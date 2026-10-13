@@ -1,0 +1,8 @@
+node_modules
+dist
+pnpm-lock.yaml
+specs
+.specify
+.claude
+supabase/.temp
+supabase/config.toml

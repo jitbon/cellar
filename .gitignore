@@ -1,0 +1,11 @@
+CLAUDE.md
+.claude/
+.speckit/
+
+node_modules/
+dist/
+.env.local
+supabase/.temp/
+supabase/.branches/
+apps/web/test-results/
+apps/web/playwright-report/

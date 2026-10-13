@@ -1,0 +1,24 @@
+.list {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+  list-style: none;
+}
+
+.option {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.active {
+  background-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.type {
+  font-size: var(--font-size-sm);
+}
