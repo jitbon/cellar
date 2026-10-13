@@ -1,0 +1,22 @@
+{
+  "name": "cellar",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "lint": "eslint . && prettier --check . && pnpm --filter web lint:css",
+    "test": "pnpm -r --if-present test",
+    "test:db": "vitest run --config supabase/tests/vitest.config.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@supabase/supabase-js": "^2.47.10",
+    "@types/pg": "^8.11.10",
+    "eslint": "^9.17.0",
+    "pg": "^8.13.1",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^2.1.8"
+  }
+}

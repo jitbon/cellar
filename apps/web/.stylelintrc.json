@@ -1,0 +1,25 @@
+{
+  "plugins": ["stylelint-declaration-strict-value"],
+  "ignoreFiles": ["src/styles/tokens.css"],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "color",
+        "background-color",
+        "border-color",
+        "border-radius",
+        "box-shadow",
+        "font-family",
+        "font-size",
+        "margin",
+        "padding",
+        "gap"
+      ],
+      {
+        "ignoreValues": ["0", "auto", "transparent", "inherit", "currentColor", "none"],
+        "ignoreFunctions": false,
+        "disableFix": true
+      }
+    ]
+  }
+}
