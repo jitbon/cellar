@@ -17,16 +17,19 @@ const names = (s: TripState) => orderedBlocks(s).map((b) => b.name);
 describe('addBlock', () => {
   it('inserts after the given block', () => {
     const s = newTripState();
-    const r = expectOk(addBlock('Late afternoon', blockIdByName(s, 'Afternoon'))(s));
+    const r = expectOk(addBlock('Tea', blockIdByName(s, 'Afternoon'))(s));
     expect(names(r.state)).toEqual([
       'Morning',
       'Breakfast',
-      'Post-breakfast',
+      'Late morning',
       'Lunch',
       'Afternoon',
+      'Tea',
       'Late afternoon',
       'Dinner',
+      'Dessert',
       'Evening',
+      'Night',
     ]);
     expect(r.changes).toEqual([expect.objectContaining({ table: 'blocks', op: 'upsert' })]);
   });
@@ -35,7 +38,7 @@ describe('addBlock', () => {
     const s = newTripState();
     const r = expectOk(addBlock('Morning')(s));
     expect(names(r.state).at(-1)).toBe('Morning');
-    expect(r.state.blocks).toHaveLength(8);
+    expect(r.state.blocks).toHaveLength(11);
   });
 
   it('requires a name of 1-40 chars', () => {
@@ -64,16 +67,16 @@ describe('addBlock', () => {
 describe('renameBlock / moveBlock', () => {
   it('renames', () => {
     const s = newTripState();
-    const r = expectOk(renameBlock(blockIdByName(s, 'Post-breakfast'), 'Brunch')(s));
+    const r = expectOk(renameBlock(blockIdByName(s, 'Late morning'), 'Brunch')(s));
     expect(names(r.state)).toContain('Brunch');
-    expect(names(r.state)).not.toContain('Post-breakfast');
+    expect(names(r.state)).not.toContain('Late morning');
     expect(renameBlock('x', ' ')(s).ok).toBe(false);
   });
 
-  it('moves Evening above Dinner', () => {
+  it('moves Evening above Dessert', () => {
     const s = newTripState();
-    const r = expectOk(moveBlock(blockIdByName(s, 'Evening'), blockIdByName(s, 'Dinner'))(s));
-    expect(names(r.state).slice(-2)).toEqual(['Evening', 'Dinner']);
+    const r = expectOk(moveBlock(blockIdByName(s, 'Evening'), blockIdByName(s, 'Dessert'))(s));
+    expect(names(r.state).slice(-4)).toEqual(['Dinner', 'Evening', 'Dessert', 'Night']);
     expect(r.changes).toHaveLength(1);
   });
 

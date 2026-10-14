@@ -94,13 +94,13 @@ data-model = `specs/001-block-trip-planner/data-model.md`, core contract =
 **Goal**: Create trips, see the day × block grid with default blocks, type events into cells,
 and see changes sync across devices.
 
-**Independent Test**: Create a 4-day trip, confirm 4 columns with the 7 default blocks, type an
+**Independent Test**: Create a 4-day trip, confirm 4 columns with the 10 default blocks, type an
 event into a cell, press Enter and add a second, switch one to Food place, reload and confirm
 both persist; open the trip in a second browser and see edits appear within 5 s.
 
 ### Tests for User Story 1 ⚠️ (write first, must fail)
 
-- [X] T033 [P] [US1] Unit tests for trip commands in `packages/core/tests/trip.test.ts`: `createTrip` returns 7 blocks named Morning, Breakfast, Post-breakfast, Lunch, Afternoon, Dinner, Evening in that order; rejects empty name, end before start, span > 60 days; `renameTrip` validates; each returns correct `changes` and an `inverse` that restores the prior state
+- [X] T033 [P] [US1] Unit tests for trip commands in `packages/core/tests/trip.test.ts`: `createTrip` returns 10 blocks named Morning, Breakfast, Late morning, Lunch, Afternoon, Late afternoon, Dinner, Dessert, Evening, Night in that order; rejects empty name, end before start, span > 60 days; `renameTrip` validates; each returns correct `changes` and an `inverse` that restores the prior state
 - [X] T034 [P] [US1] Unit tests for typed placements in `packages/core/tests/placement-typed.test.ts`: `addTypedPlacement` creates type `activity` with `sourceItemId: null`, appends after the given placement; `updatePlacement` changes name/type/notes/link of only that placement; `removePlacement`; `movePlacement` across cells and within a cell keeps correct order
 - [X] T035 [P] [US1] Unit tests for queries in `packages/core/tests/queries.test.ts`: `days()` returns each date inclusive with weekday; `cell()` returns placements ordered by position, then `id` for equal positions
 - [X] T036 [P] [US1] Unit tests for `applyRemote` in `packages/core/tests/merge.test.ts`: newer `updatedAt` wins, older is ignored; a DELETE carrying only the primary key removes the matching row (`id`, or `tripId`+`date` for day settings); delete of unknown key is ignored; upsert of new row is added; changes to rows in `pendingKeys` are ignored
@@ -160,7 +160,7 @@ cell and pick the suggestion.
 **Goal**: Add, rename, reorder, remove blocks; set per-day arrival/departure that greys out
 blocks outside the window.
 
-**Independent Test**: Add "Late afternoon" after Afternoon, rename Post-breakfast, move Evening
+**Independent Test**: Add "Tea" after Afternoon, rename Late morning, move Evening
 above Dinner, remove an empty block; set Day 1 arrival = Lunch and last-day departure =
 Afternoon and confirm the right cells are greyed but still accept drops.
 

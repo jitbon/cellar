@@ -34,7 +34,7 @@ State: `active` (null) → `pending deletion` (set) → back to `active` on sign
 State: `active` (deleted_at null) → `deleted` (set; shown under "Recently deleted", restorable)
 → back to `active` on restore, or purged 30 days after `deleted_at` (cascade removes all rows).
 
-On create: insert the 7 default blocks (FR-005).
+On create: insert the 10 default blocks (FR-005).
 On date-range shrink: delete placements and day_settings whose `date` falls outside the new
 range, after the user confirms (FR-003). Extending needs no row changes (days are derived).
 

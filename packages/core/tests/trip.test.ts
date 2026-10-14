@@ -4,17 +4,20 @@ import { cell } from '../src/queries/cell';
 import { expectOk, newTripState } from './fixtures';
 
 describe('createTrip', () => {
-  it('creates the 7 default blocks in order', () => {
+  it('creates the 10 default blocks in order', () => {
     const r = expectOk(createTrip('u', 'Tokyo', '2027-04-01', '2027-04-05'));
     const ordered = [...r.state.blocks].sort((a, b) => (a.position < b.position ? -1 : 1));
     expect(ordered.map((b) => b.name)).toEqual([
       'Morning',
       'Breakfast',
-      'Post-breakfast',
+      'Late morning',
       'Lunch',
       'Afternoon',
+      'Late afternoon',
       'Dinner',
+      'Dessert',
       'Evening',
+      'Night',
     ]);
     expect(r.state.trip.name).toBe('Tokyo');
     expect(r.state.trip.ownerId).toBe('u');
@@ -24,7 +27,7 @@ describe('createTrip', () => {
   it('emits a trip upsert followed by block upserts', () => {
     const r = expectOk(createTrip('u', 'Tokyo', '2027-04-01', '2027-04-05'));
     expect(r.changes[0].table).toBe('trips');
-    expect(r.changes.filter((c) => c.table === 'blocks')).toHaveLength(7);
+    expect(r.changes.filter((c) => c.table === 'blocks')).toHaveLength(10);
     expect(r.changes.every((c) => c.op === 'upsert')).toBe(true);
   });
 
