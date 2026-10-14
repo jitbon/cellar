@@ -9,7 +9,7 @@
 **Input**: User description: "create the basic core block-based trip planner, point 1" — Cellar is a
 web app for planning a vacation. Time slots are organized into "blocks" like a spreadsheet. The
 user builds a list of activities and food places, then copies them into blocks within a schedule
-using time blocks such as "Morning", "Breakfast", "Post-breakfast", "Lunch",
+using time blocks such as "Morning", "Breakfast", "Late morning", "Lunch",
 "Afternoon/Late afternoon". It should be flexible and easy to plan.
 
 ## Clarifications
@@ -35,7 +35,7 @@ using time blocks such as "Morning", "Breakfast", "Post-breakfast", "Lunch",
 
 The traveler creates a trip by giving it a name and a date range. Cellar shows a schedule grid
 with one column per day and one row per time block, pre-filled with a default set of blocks
-(Morning, Breakfast, Post-breakfast, Lunch, Afternoon, Dinner, Evening). The traveler can type an
+(Morning, Breakfast, Late morning, Lunch, Afternoon, Late afternoon, Dinner, Dessert, Evening, Night). The traveler can type an
 event (e.g. "Walk around Shibuya") directly into any cell, as in a spreadsheet; it becomes a
 placement in that cell without having to be added to the list first.
 
@@ -116,20 +116,20 @@ their style (e.g. adding "Late night snack" or merging "Afternoon" and "Late aft
 **Why this priority**: Flexibility is a stated goal and a constitution principle, but the
 defaults make the app usable before this exists.
 
-**Independent Test**: In a trip, add a "Late afternoon" block between Afternoon and Dinner,
-rename "Post-breakfast" to "Mid-morning", drag "Evening" above "Dinner", and delete an empty
+**Independent Test**: In a trip, add a "Tea" block between Afternoon and Late afternoon,
+rename "Late morning" to "Mid-morning", drag "Evening" above "Dessert", and delete an empty
 block; confirm the grid updates for all days.
 
 **Acceptance Scenarios**:
 
-1. **Given** a trip, **When** the traveler adds a block named "Late afternoon" after "Afternoon",
+1. **Given** a trip, **When** the traveler adds a block named "Tea" after "Afternoon",
    **Then** a new row appears in that position for every day.
 2. **Given** a block, **When** the traveler renames or reorders it, **Then** all days reflect the
    change and placed items stay in their (renamed/moved) block.
 3. **Given** a block containing items, **When** the traveler removes it, **Then** they are warned,
    and on confirming, the placements in it are removed (list items remain in the list).
 4. **Given** Day 1 of a trip, **When** the traveler sets its arrival to "Lunch", **Then** the
-   Morning, Breakfast, and Post-breakfast cells on Day 1 are greyed out, while other days are
+   Morning, Breakfast, and Late morning cells on Day 1 are greyed out, while other days are
    unaffected.
 5. **Given** the last day, **When** the traveler sets its departure to "Afternoon", **Then** the
    blocks after Afternoon on that day are greyed out.
@@ -201,8 +201,8 @@ state is restored; redo once and confirm the move is reapplied.
 
 - **FR-004**: The system MUST display each trip as a grid of days (columns, labeled with date and
   weekday) × time blocks (rows).
-- **FR-005**: New trips MUST start with the default blocks: Morning, Breakfast, Post-breakfast,
-  Lunch, Afternoon, Dinner, Evening.
+- **FR-005**: New trips MUST start with the default blocks: Morning, Breakfast, Late morning,
+  Lunch, Afternoon, Late afternoon, Dinner, Dessert, Evening, Night.
 - **FR-006**: Users MUST be able to add, rename, reorder, and remove blocks for a trip; block
   changes apply to every day of that trip. A trip MUST always have at least one block.
 - **FR-006a**: Users MUST be able to set an optional arrival block and/or departure block on any

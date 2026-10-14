@@ -7,11 +7,14 @@ import { commit } from './diff';
 export const DEFAULT_BLOCK_NAMES = [
   'Morning',
   'Breakfast',
-  'Post-breakfast',
+  'Late morning',
   'Lunch',
   'Afternoon',
+  'Late afternoon',
   'Dinner',
+  'Dessert',
   'Evening',
+  'Night',
 ];
 
 const noop: Command = (state) => ({ ok: true, state, changes: [], inverse: noop });

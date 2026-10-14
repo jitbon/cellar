@@ -14,16 +14,19 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
   test.setTimeout(90_000);
   await signIn(page, account);
 
-  // 2: create a 5-day trip with 7 default blocks
+  // 2: create a 5-day trip with 10 default blocks
   await createTrip(page, 'Tokyo', '2027-04-01', '2027-04-05');
   for (const block of [
     'Morning',
     'Breakfast',
-    'Post-breakfast',
+    'Late morning',
     'Lunch',
     'Afternoon',
+    'Late afternoon',
     'Dinner',
+    'Dessert',
     'Evening',
+    'Night',
   ]) {
     await expect(page.getByRole('button', { name: `Rename ${block}`, exact: true })).toBeVisible();
   }
@@ -81,13 +84,13 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
   // 8: add a block
   await closeList();
   await page.getByRole('button', { name: 'Add block below Afternoon' }).click();
-  await page.getByLabel('Block name').fill('Late afternoon');
+  await page.getByLabel('Block name').fill('Tea');
   await page.getByRole('button', { name: 'Add block', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Rename Late afternoon' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Rename Tea' })).toBeVisible();
 
   // survive a reload
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Rename Late afternoon' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Rename Tea' })).toBeVisible();
 });
 
 test('quickstart 9 and 11: travel window greys cells; shrinking warns', async ({ page }) => {

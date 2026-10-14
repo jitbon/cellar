@@ -38,13 +38,13 @@ All must pass before merge (constitution, Development Workflow).
 | # | Steps | Expected | Spec |
 |---|---|---|---|
 | 1 | Sign up, confirm email, sign in | Empty trip list | US1-4 |
-| 2 | Create "Tokyo" 2027-04-01 → 2027-04-05 | 5 day columns with weekdays, 7 default blocks; done in < 1 min | US1-1, SC-001 |
+| 2 | Create "Tokyo" 2027-04-01 → 2027-04-05 | 5 day columns with weekdays, 10 default blocks; done in < 1 min | US1-1, SC-001 |
 | 3 | Type "Walk around Shibuya" in Day 2 / Afternoon, Enter, type "Coffee" | Two Activity placements in that cell; list unchanged | US1-2, US1-6 |
 | 4 | Switch "Coffee" to Food place | Icon + label change | US1-7 |
 | 5 | Add "Ichiran Ramen" (Food) to list; type "ichi" in Day 3 / Lunch, choose suggestion | Copy placed with notes/link; list shows "placed 1×" | US1-8, FR-007a |
 | 6 | Drag same item into Day 1 / Breakfast; edit that copy's notes | Two copies; only Day 1 copy changed | US2-3, US2-4 |
 | 7 | Delete "Ichiran Ramen" from the list | Both placements copied from it remain | US2-5 |
-| 8 | Add block "Late afternoon" after Afternoon; rename, reorder, remove an empty block | Grid updates on every day | US3-1..3 |
+| 8 | Add block "Tea" after Afternoon; rename, reorder, remove an empty block | Grid updates on every day | US3-1..3 |
 | 9 | Set Day 1 arrival = Lunch; last day departure = Afternoon | Correct cells greyed; can still drop into them | US3-4, US3-5 |
 | 10 | Undo the last 3 actions, redo 1 | Exact prior states restored | US4-1, SC-004 |
 | 11 | Shorten trip by a day with placements on it | Warning with count; cancel keeps everything | US4-2 |

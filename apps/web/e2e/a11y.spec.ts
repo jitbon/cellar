@@ -57,9 +57,9 @@ test('SC-006: create trip, add item, place item, edit block using only the keybo
   await goToDay(page, 1);
   await page.getByRole('button', { name: 'Rename Evening' }).focus();
   await page.keyboard.press('Enter');
-  await page.getByLabel('Rename Evening').fill('Night');
+  await page.getByLabel('Rename Evening').fill('Late evening');
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: 'Rename Night' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Rename Late evening' })).toBeVisible();
 
   // No horizontal page scroll (the grid scrolls inside its own container).
   const overflow = await page.evaluate(

@@ -74,11 +74,14 @@ describe('isGreyed', () => {
     const grey = (name: string, date = '2027-04-02') => isGreyed(s, date, blockIdByName(s, name));
     expect(grey('Morning')).toBe(true);
     expect(grey('Breakfast')).toBe(true);
-    expect(grey('Post-breakfast')).toBe(true);
+    expect(grey('Late morning')).toBe(true);
     expect(grey('Lunch')).toBe(false);
     expect(grey('Afternoon')).toBe(false);
     expect(grey('Dinner')).toBe(true);
+    expect(grey('Dessert')).toBe(true);
     expect(grey('Evening')).toBe(true);
+    expect(grey('Night')).toBe(true);
+    expect(grey('Late afternoon')).toBe(true);
   });
 
   it('only affects the day that has a setting', () => {

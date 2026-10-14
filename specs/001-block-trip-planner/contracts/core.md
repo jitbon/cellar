@@ -35,7 +35,7 @@ type Result = { ok: true; state: TripState; changes: Change[]; inverse: Command 
 
 | Command | Spec |
 |---|---|
-| `createTrip(ownerId, name, start, end)` → state with 7 default blocks | FR-001, FR-005 |
+| `createTrip(ownerId, name, start, end)` → state with 10 default blocks | FR-001, FR-005 |
 | `updateTripDates(start, end)` → also returns `removedPlacementCount` for the warning | FR-002, FR-003 |
 | `renameTrip(name)` | FR-002 |
 | `addBlock(name, afterBlockId?)` / `renameBlock` / `moveBlock(id, beforeId?)` / `removeBlock(id)` | FR-006 |
