@@ -111,7 +111,7 @@ export function BlockLabel({ state, block, dispatch }: Props) {
           ⠿
         </button>
         {renaming ? (
-          <div>
+          <div className={styles.renameField}>
             <input
               autoFocus
               className={styles.input}
@@ -148,26 +148,29 @@ export function BlockLabel({ state, block, dispatch }: Props) {
             {block.name}
           </button>
         )}
-      </div>
-      <div className={styles.controls}>
-        <button
-          type="button"
-          className={styles.iconButton}
-          aria-label={`Add block below ${block.name}`}
-          onClick={() => setAdding(true)}
-        >
-          +
-        </button>
-        <button
-          type="button"
-          className={styles.iconButton}
-          aria-label={`Remove ${block.name}`}
-          disabled={lastBlock}
-          title={lastBlock ? 'A trip needs at least one time block' : undefined}
-          onClick={() => setRemoving(true)}
-        >
-          ✕
-        </button>
+        {renaming ? null : (
+          <div className={styles.controls}>
+            <button
+              type="button"
+              className={styles.iconButton}
+              aria-label={`Add block below ${block.name}`}
+              title="Add block below"
+              onClick={() => setAdding(true)}
+            >
+              +
+            </button>
+            <button
+              type="button"
+              className={styles.iconButton}
+              aria-label={`Remove ${block.name}`}
+              disabled={lastBlock}
+              title={lastBlock ? 'A trip needs at least one time block' : 'Remove block'}
+              onClick={() => setRemoving(true)}
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
 
       {adding ? (

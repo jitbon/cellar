@@ -23,6 +23,10 @@
   box-shadow: var(--shadow-md);
 }
 
+.wide {
+  max-width: 720px;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

@@ -3,6 +3,7 @@ import styles from './Dialog.module.css';
 
 interface Props {
   title: string;
+  wide?: boolean;
   onClose: () => void;
   children: ReactNode;
 }
@@ -11,7 +12,7 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** Modal dialog: focus is trapped inside, Esc closes, focus returns to the opener. */
-export function Dialog({ title, onClose, children }: Props) {
+export function Dialog({ title, wide, onClose, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
 
@@ -51,7 +52,7 @@ export function Dialog({ title, onClose, children }: Props) {
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={styles.dialog}
+        className={`${styles.dialog} ${wide ? styles.wide : ''}`}
       >
         <h2 id={titleId} className={styles.title}>
           {title}

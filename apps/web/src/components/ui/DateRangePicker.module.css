@@ -1,0 +1,130 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.navButton {
+  width: var(--size-day-cell);
+  height: var(--size-day-cell);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.navButton:hover {
+  background-color: var(--color-greyed);
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.months {
+  display: flex;
+  min-width: 0;
+  justify-content: space-around;
+  gap: var(--space-5);
+}
+
+.month {
+  min-width: 0;
+}
+
+.monthTitle {
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+  text-align: center;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, var(--size-day-cell)));
+  row-gap: var(--space-1);
+}
+
+.weekday {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.day {
+  height: var(--size-day-cell);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.day:hover {
+  background-color: var(--color-greyed);
+}
+
+.inRange,
+.inRange:hover {
+  border-radius: 0;
+  background-color: var(--color-range-bg);
+}
+
+.rangeStart {
+  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+}
+
+.rangeEnd {
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+}
+
+.rangeStart.rangeEnd {
+  border-radius: var(--radius-pill);
+}
+
+.rangeEnd:not(.selected) {
+  background-color: var(--color-range-bg);
+}
+
+.selected,
+.selected:hover {
+  background-color: var(--color-accent);
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+
+@media (max-width: 639px) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  .month + .month {
+    display: none;
+  }
+}

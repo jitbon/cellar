@@ -11,6 +11,7 @@
   --color-food: #8a4b0f;
   --color-food-bg: #fbeedd;
   --color-greyed: #ece8e3;
+  --color-range-bg: #f3e3e6;
   --color-danger: #b3261e;
   --color-danger-bg: #fdecea;
   --color-focus: #1a73e8;
@@ -38,7 +39,9 @@
   --shadow-md: 0 4px 16px rgb(0 0 0 / 14%);
 
   --size-touch: 44px;
-  --size-block-label: 168px;
+  --size-icon-button: 24px;
+  --size-day-cell: 40px;
+  --size-block-label: 184px;
   --size-day-column: 220px;
 }
 
@@ -56,6 +59,7 @@
     --color-food: #f0b878;
     --color-food-bg: #43301a;
     --color-greyed: #36302c;
+    --color-range-bg: #4a2d33;
     --color-danger: #ff8a80;
     --color-danger-bg: #4a1f1c;
     --color-focus: #8ab4f8;

@@ -1,8 +1,5 @@
 .label {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
   padding: var(--space-2);
   border-right: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
@@ -15,25 +12,38 @@
 
 .nameRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-1);
 }
 
+.renameField {
+  flex: 1;
+  min-width: 0;
+}
+
 .nameButton {
-  min-height: var(--size-touch);
+  flex: 1;
+  min-width: 0;
+  min-height: var(--size-icon-button);
   padding: 0 var(--space-1);
   border: 0;
+  border-radius: var(--radius-sm);
   background-color: transparent;
   font-weight: 600;
+  line-height: var(--size-icon-button);
   text-align: left;
   cursor: text;
   overflow-wrap: anywhere;
 }
 
+.nameButton:hover {
+  background-color: var(--color-greyed);
+}
+
 .input {
   width: 100%;
-  min-height: var(--size-touch);
-  padding: var(--space-1) var(--space-2);
+  min-height: var(--size-icon-button);
+  padding: 0 var(--space-1);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background-color: var(--color-surface);
@@ -41,16 +51,28 @@
 
 .controls {
   display: flex;
-  gap: var(--space-1);
+  flex-shrink: 0;
 }
 
 .iconButton {
-  min-width: var(--size-touch);
-  min-height: var(--size-touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
+  padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
   background-color: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1;
   cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled) {
+  background-color: var(--color-greyed);
+  color: var(--color-text);
 }
 
 .iconButton:disabled {

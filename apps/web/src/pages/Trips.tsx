@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { createTrip, validateTripName, type Trip } from '@cellar/core';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
+import { DateRangePicker } from '../components/ui/DateRangePicker';
 import { Dialog } from '../components/ui/Dialog';
 import { TextField } from '../components/ui/TextField';
 import { useAuthUser, useServices } from '../state/services';
@@ -35,31 +36,26 @@ function CreateTripDialog({ onClose }: { onClose: () => void }) {
     }
     try {
       await repo.save(result.changes);
-      navigate(`/trips/${result.state.trip.id}`);
+      navigate(`/trips/${result.state.trip.id}`, { state: { justCreated: true } });
     } catch (err) {
       setError((err as Error).message || 'Could not create the trip.');
     }
   }
 
   return (
-    <Dialog title="New trip" onClose={onClose}>
+    <Dialog title="New trip" wide onClose={onClose}>
       <form className={styles.form} onSubmit={onSubmit}>
         <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <TextField
-          label="Start date"
-          type="date"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-          required
-        />
-        <TextField
-          label="End date"
-          type="date"
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-          required
+        <DateRangePicker
+          start={start}
+          end={end}
+          onChange={(from, to) => {
+            setStart(from);
+            setEnd(to);
+          }}
           error={error}
         />
+        <span className={styles.muted}>Not sure yet? You can change your dates anytime.</span>
         <div className={styles.actions}>
           <Button onClick={onClose}>Cancel</Button>
           <Button type="submit" variant="primary">

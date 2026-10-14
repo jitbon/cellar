@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { renameTrip, updateTripDates, type TripState } from '@cellar/core';
 import { DndProvider } from '../components/grid/DndProvider';
 import { Grid } from '../components/grid/Grid';
@@ -9,6 +9,7 @@ import { SaveStatusBanner } from '../components/SaveStatusBanner';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { DateRangePicker, formatRange } from '../components/ui/DateRangePicker';
 import { Dialog } from '../components/ui/Dialog';
 import { TextField } from '../components/ui/TextField';
 import { useServices } from '../state/services';
@@ -72,20 +73,16 @@ function TripSettingsDialog({
 
   return (
     <>
-      <Dialog title="Trip settings" onClose={onClose}>
+      <Dialog title="Trip settings" wide onClose={onClose}>
         <form className={styles.form} onSubmit={onSubmit}>
           <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <TextField
-            label="Start date"
-            type="date"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-          />
-          <TextField
-            label="End date"
-            type="date"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
+          <DateRangePicker
+            start={start}
+            end={end}
+            onChange={(from, to) => {
+              setStart(from);
+              setEnd(to);
+            }}
             error={error}
           />
           <div className={styles.actions}>
@@ -118,7 +115,10 @@ function TripSettingsDialog({
 export function TripPlanner() {
   const { tripId } = useParams();
   const { outbox } = useServices();
+  const location = useLocation();
+  const navigate = useNavigate();
   const trip = useTrip(tripId);
+  const justCreated = (location.state as { justCreated?: boolean } | null)?.justCreated ?? false;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const ready = trip.status === 'ready' ? trip : null;
   const undo = ready?.undo;
@@ -160,6 +160,15 @@ export function TripPlanner() {
       <header className={styles.header}>
         <Link to="/">‹ Trips</Link>
         <h1>{state.trip.name}</h1>
+        <button
+          type="button"
+          className={styles.dates}
+          aria-label={`Change trip dates (${formatRange(state.trip.startDate, state.trip.endDate)})`}
+          onClick={() => setSettingsOpen(true)}
+        >
+          <span aria-hidden="true">📅</span>
+          {formatRange(state.trip.startDate, state.trip.endDate)}
+        </button>
         <div className={styles.toolbar}>
           <Button onClick={trip.undo} disabled={!trip.canUndo} aria-label="Undo">
             ↶ Undo
@@ -170,6 +179,15 @@ export function TripPlanner() {
           <Button onClick={() => setSettingsOpen(true)}>Trip settings</Button>
         </div>
       </header>
+      {justCreated ? (
+        <Banner>
+          Trip created for {formatRange(state.trip.startDate, state.trip.endDate)}. Plans change —
+          click the dates up top anytime to move them.{' '}
+          <Button variant="ghost" onClick={() => navigate(location.pathname, { replace: true })}>
+            Got it
+          </Button>
+        </Banner>
+      ) : null}
       <SaveStatusBanner outbox={outbox} />
       <DndProvider state={state} dispatch={dispatch}>
         <div className={styles.body}>
