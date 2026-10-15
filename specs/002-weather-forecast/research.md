@@ -20,6 +20,8 @@ Supabase) is unchanged; only what this feature adds is decided here.
   with its fetch time; with no cache, cells show no icon and a "Weather unavailable" banner (R8).
   If the app ever becomes commercial, swap in a paid Open-Meteo key behind a Supabase Edge
   Function proxy — only the adapter changes.
+- **Attribution**: Open-Meteo data is CC BY 4.0; the forecast popover shows "Weather data by
+  Open-Meteo.com" as a link.
 
 ## R2. Calling the provider: client or server
 
