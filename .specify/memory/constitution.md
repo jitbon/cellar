@@ -1,18 +1,3 @@
-<!--
-Sync Impact Report
-- Version change: (unversioned template) → 1.0.0
-- Modified principles (template placeholder → new title):
-  - [PRINCIPLE_1_NAME] → I. Flexible Block-Based Planning
-  - [PRINCIPLE_2_NAME] → II. Clean, Friendly Interface
-  - [PRINCIPLE_3_NAME] → III. Portable Core (Web First, Mobile Next)
-  - [PRINCIPLE_4_NAME] → IV. Integrations Behind Adapters
-  - [PRINCIPLE_5_NAME] → V. Simplicity & Verified Changes
-- Added sections: Technology & Integration Constraints; Development Workflow; Governance
-- Removed sections: none
-- Templates: plan/spec/tasks templates read this file at runtime; no edits made here
-- Follow-up TODOs: none
--->
-
 # Cellar Constitution
 
 ## Core Principles
@@ -35,14 +20,17 @@ it has failed.
 ### II. Clean, Friendly Interface
 
 - All UI MUST use a shared set of design tokens (color, spacing, radius, typography). Ad-hoc
-  values in components are not allowed. The visual language is clean and soft: rounded corners,
-  generous spacing, restrained color.
+  values in components are not allowed.
+- The visual language is dense and professional, in the style of an airline itinerary or booking
+  site: compact, consistent spacing from a defined spacing scale; small, restrained corner radii;
+  a compact type scale; one accent color; and information density suited to planning.
 - Layouts MUST work from phone width (≥360px) up to desktop, designed mobile-first.
 - UI MUST meet WCAG 2.1 AA for contrast, keyboard access, and labeled controls.
 - Status (e.g. weather on a block) MUST be shown with an icon or label as well as color.
 
 Rationale: ease of use is the product; consistency via tokens keeps the look clean as features
-grow and eases the mobile port.
+grow and eases the mobile port. Planning means scanning many days and blocks at once, so density
+serves the user better than airy spacing.
 
 ### III. Portable Core (Web First, Mobile Next)
 
@@ -112,4 +100,4 @@ Rationale: a small, tested codebase is easier to port and extend.
   be fixed or explicitly justified in Complexity Tracking.
 - Runtime development guidance for AI agents lives in `CLAUDE.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-12 | **Last Amended**: 2026-10-12
+**Version**: 1.1.0 | **Ratified**: 2026-10-12 | **Last Amended**: 2026-10-14

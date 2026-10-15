@@ -285,8 +285,8 @@ No new data. Per-device UI preferences only:
 - The existing domain logic and data stay as they are and are reused unchanged.
 - Visual references (United, Delta, hotel booking sites) guide the feel; Cellar does not copy
   their branding, logos, or proprietary assets.
-- "Generous spacing" in constitution Principle II is read as consistent, intentional spacing, not
-  large spacing; if planning finds this conflicts with the compact density requested, the
-  constitution gets a PATCH clarification via `/speckit-constitution`.
+- The layout is dense. Constitution v1.1.0 (amended 2026-10-14) changed Principle II's visual
+  language from "soft, generous spacing" to dense and professional (compact spacing scale, small
+  radii, compact type scale, one accent).
 - Platform was decided in clarification (web). `/speckit-plan` researches the web techniques
   needed (drag overlay, icon set, type scale, design references).
