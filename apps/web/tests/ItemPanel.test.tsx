@@ -1,9 +1,19 @@
 import { useState } from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { addItem, createTrip, placeItem, type Command, type TripState } from '@cellar/core';
+import {
+  addItem,
+  createTrip,
+  placeFields,
+  placeItem,
+  type Command,
+  type PlaceSearch,
+  type PlaceSuggestion,
+  type TripState,
+} from '@cellar/core';
 import { ItemPanel } from '../src/components/list/ItemPanel';
+import { chelseaPlace, chelseaSuggestion, fakePlaceSearch, withPlaces } from './setup';
 
 const created = createTrip('u', 'Tokyo', '2027-04-01', '2027-04-03');
 if (!created.ok) throw new Error('fixture');
@@ -34,8 +44,8 @@ function Harness({ onDispatch }: { onDispatch?: (c: Command) => void }) {
   return <ItemPanel state={state} dispatch={dispatch} />;
 }
 
-function setup(onDispatch?: (c: Command) => void) {
-  render(<Harness onDispatch={onDispatch} />);
+function setup(onDispatch?: (c: Command) => void, places?: PlaceSearch) {
+  render(<Harness onDispatch={onDispatch} />, places ? { wrapper: withPlaces(places) } : undefined);
   return userEvent.setup();
 }
 
@@ -87,5 +97,85 @@ describe('ItemPanel', () => {
     expect(screen.getByRole('menuitem', { name: 'Edit Museum' })).toBeVisible();
     expect(screen.getByRole('menuitem', { name: 'Delete Museum' })).toBeVisible();
     expect(screen.getByRole('menuitem', { name: 'Place Museum in a block' })).toBeVisible();
+  });
+
+  describe('place suggestions', () => {
+    const tacos: PlaceSuggestion = {
+      placeId: 'test-tacos',
+      name: 'Los Tacos No. 1',
+      address: '9th Avenue, New York, NY, USA',
+      types: ['mexican_restaurant', 'restaurant'],
+    };
+
+    async function openAdd(places: PlaceSearch, onDispatch?: (c: Command) => void) {
+      const user = setup(onDispatch, places);
+      await user.click(screen.getByRole('button', { name: 'Add' }));
+      return user;
+    }
+
+    it('shows options while typing; picking one fills the name and shows the address', async () => {
+      const user = await openAdd(fakePlaceSearch({ suggestions: [chelseaSuggestion] }));
+      await user.type(screen.getByLabelText('Name'), 'Chelsea Mar');
+      await user.click(await screen.findByRole('option', { name: /Chelsea Market/ }));
+      expect(screen.getByLabelText('Name')).toHaveValue('Chelsea Market');
+      expect(screen.getByText('75 9th Ave, New York')).toBeInTheDocument();
+    });
+
+    it('saving after a pick adds a linked item', async () => {
+      const dispatched: Command[] = [];
+      const user = await openAdd(fakePlaceSearch({ suggestions: [chelseaSuggestion] }), (c) =>
+        dispatched.push(c),
+      );
+      await user.type(screen.getByLabelText('Name'), 'Chelsea Mar');
+      await user.click(await screen.findByRole('option', { name: /Chelsea Market/ }));
+      await user.click(screen.getByRole('button', { name: 'Add to list' }));
+      expect(names()).toContain('Chelsea Market');
+      const result = dispatched.at(-1)!(seeded);
+      expect(result.ok && result.state.items.at(-1)).toMatchObject(placeFields(chelseaPlace));
+      expect(within(panel()).getByLabelText('Linked place')).toBeInTheDocument();
+    });
+
+    it('ArrowDown then Enter picks an option instead of submitting', async () => {
+      const user = await openAdd(fakePlaceSearch({ suggestions: [chelseaSuggestion] }));
+      await user.type(screen.getByLabelText('Name'), 'Chelsea Mar');
+      await screen.findByRole('option', { name: /Chelsea Market/ });
+      await user.keyboard('{ArrowDown}{Enter}');
+      await waitFor(() => expect(screen.getByLabelText('Name')).toHaveValue('Chelsea Market'));
+      expect(screen.getByRole('button', { name: 'Add to list' })).toBeInTheDocument();
+    });
+
+    it('picking a food place sets the type to Food', async () => {
+      const user = await openAdd(
+        fakePlaceSearch({
+          suggestions: [tacos],
+          place: { ...chelseaPlace, id: 'test-tacos', name: tacos.name },
+        }),
+      );
+      await user.type(screen.getByLabelText('Name'), 'taco');
+      await user.click(await screen.findByRole('option', { name: /Los Tacos/ }));
+      expect(screen.getByLabelText('Type')).toHaveValue('food');
+    });
+
+    it('saves plain text when nothing is picked', async () => {
+      const dispatched: Command[] = [];
+      const user = await openAdd(fakePlaceSearch({ suggestions: [chelseaSuggestion] }), (c) =>
+        dispatched.push(c),
+      );
+      await user.type(screen.getByLabelText('Name'), 'Rest day');
+      await user.click(screen.getByRole('button', { name: 'Add to list' }));
+      const result = dispatched.at(-1)!(seeded);
+      expect(result.ok && result.state.items.at(-1)).toMatchObject({
+        name: 'Rest day',
+        ...placeFields(null),
+      });
+    });
+
+    it('shows "Place search unavailable" and still saves', async () => {
+      const user = await openAdd(fakePlaceSearch({ fail: true }));
+      await user.type(screen.getByLabelText('Name'), 'Sushi');
+      expect(await screen.findByText('Place search unavailable')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Add to list' }));
+      expect(names()).toContain('Sushi');
+    });
   });
 });

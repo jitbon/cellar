@@ -26,7 +26,7 @@ export {
 } from './commands/block';
 export { setDayWindow } from './commands/daySetting';
 export { setTripLocation, setDayLocation } from './commands/location';
-export { tripLocation, dayLocation, dayLocationOverride } from './queries/location';
+export { tripLocation, dayLocation, dayLocationOverride, suggestNear } from './queries/location';
 export { DEFAULT_BLOCK_WINDOWS, effectiveWindow, effectiveWindows } from './queries/window';
 export { conditionFromWmo } from './weather/wmo';
 export { summarizeWindow } from './weather/summarize';
@@ -34,6 +34,7 @@ export { dayForecastStatus, forecastLocations, todayIn, locationKey } from './we
 export { temperatureUnit, formatTemp, type TemperatureUnit } from './weather/units';
 export { createForecastCache, type ForecastCache } from './weather/cache';
 export { placeFields, placeOf } from './places/fields';
+export { isFoodPlace } from './places/food';
 export { isGreyed } from './queries/greyed';
 export { days } from './queries/days';
 export { cell, orderedBlocks } from './queries/cell';

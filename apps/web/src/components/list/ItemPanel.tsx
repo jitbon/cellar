@@ -5,10 +5,14 @@ import {
   deleteItem,
   filterItems,
   placeItem,
+  isFoodPlace,
   placedCount,
+  placeOf,
+  suggestNear,
   updateItem,
   type Item,
   type ItemType,
+  type Place,
   type TripState,
 } from '@cellar/core';
 import { CellPickerDialog } from '../CellPickerDialog';
@@ -19,6 +23,8 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Dialog } from '../ui/Dialog';
 import { Icon, MoreHorizontal, Plus, Search } from '../ui/Icon';
 import { Menu, MenuItem } from '../ui/Menu';
+import { PlaceLine } from '../places/PlaceLine';
+import { PlaceNameField } from '../places/PlaceNameField';
 import { Popover } from '../ui/Popover';
 import { TextField } from '../ui/TextField';
 import styles from './ItemPanel.module.css';
@@ -43,33 +49,51 @@ interface FormProps {
     type: ItemType;
     notes: string;
     link: string;
+    place: Place | null;
   }) => string | null;
   onDone?: () => void;
+  near: { lat: number; lon: number } | null;
 }
 
-function ItemForm({ item, submitLabel, onSubmit, onDone }: FormProps) {
+function ItemForm({ item, submitLabel, onSubmit, onDone, near }: FormProps) {
   const [name, setName] = useState(item?.name ?? '');
   const [type, setType] = useState<ItemType>(item?.type ?? 'activity');
   const [notes, setNotes] = useState(item?.notes ?? '');
   const [link, setLink] = useState(item?.link ?? '');
+  const [place, setPlace] = useState<Place | null>(item ? placeOf(item) : null);
   const [error, setError] = useState<string | null>(null);
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    const problem = onSubmit({ name, type, notes, link });
+    const problem = onSubmit({ name, type, notes, link, place });
     setError(problem);
     if (!problem) onDone?.();
   }
 
   return (
     <form className={styles.form} onSubmit={submit}>
-      <TextField
-        label="Name"
-        value={name}
-        autoFocus
-        onChange={(e) => setName(e.target.value)}
-        error={error}
-      />
+      {item ? (
+        <TextField
+          label="Name"
+          value={name}
+          autoFocus
+          onChange={(e) => setName(e.target.value)}
+          error={error}
+        />
+      ) : (
+        <PlaceNameField
+          value={name}
+          onChange={setName}
+          place={place}
+          near={near}
+          error={error}
+          autoFocus
+          onPick={(picked, suggestion) => {
+            setPlace(picked);
+            if (isFoodPlace(suggestion.types)) setType('food');
+          }}
+        />
+      )}
       <label className={styles.field}>
         Type
         <select
@@ -123,8 +147,11 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
       <span className={`${styles.typeIcon} ${styles[item.type]}`}>
         <Icon as={TYPE_ICON[item.type]} />
       </span>
-      <span className={styles.name} data-testid="item-name">
-        {item.name}
+      <span className={styles.text}>
+        <span className={styles.name} data-testid="item-name">
+          {item.name}
+        </span>
+        <PlaceLine place={placeOf(item)} />
       </span>
       {count > 0 ? <span className={styles.count}>placed {count}×</span> : null}
       <Menu
@@ -150,6 +177,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
           <ItemForm
             item={item}
             submitLabel="Save"
+            near={suggestNear(state)}
             onDone={() => setEditing(false)}
             onSubmit={({ name, type, notes, link }) => {
               const r = dispatch(
@@ -215,9 +243,10 @@ export function ItemPanel({ state, dispatch }: { state: TripState; dispatch: Dis
             <Popover id="add-item-form" anchorRef={addRef} onClose={() => setAdding(false)}>
               <ItemForm
                 submitLabel="Add to list"
+                near={suggestNear(state)}
                 onDone={() => setAdding(false)}
-                onSubmit={({ name, type: itemType, notes, link }) => {
-                  const r = dispatch(addItem(name, itemType, notes || null, link || null));
+                onSubmit={({ name, type: itemType, notes, link, place }) => {
+                  const r = dispatch(addItem(name, itemType, notes || null, link || null, place));
                   return r.ok ? null : r.error.message;
                 }}
               />

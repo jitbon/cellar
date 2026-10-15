@@ -1,0 +1,23 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.anchor {
+  position: relative;
+}
+
+/* Overlays what follows so hiding it on blur never shifts the layout under a click. */
+.panel {
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  right: 0;
+  left: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  box-shadow: var(--shadow-1);
+  font-size: var(--font-size-md);
+}

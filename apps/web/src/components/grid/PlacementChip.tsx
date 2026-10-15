@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
   movePlacement,
+  placeOf,
   removePlacement,
   updatePlacement,
   type Command,
@@ -14,7 +15,7 @@ import { CellPickerDialog } from '../CellPickerDialog';
 import { placementDragId } from './dndIds';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
-import { Flag, Icon, MoreHorizontal, Utensils } from '../ui/Icon';
+import { Flag, Icon, MapPin, MoreHorizontal, Utensils } from '../ui/Icon';
 import { Menu, MenuItem } from '../ui/Menu';
 import { TextField } from '../ui/TextField';
 import { Tooltip } from '../ui/Tooltip';
@@ -80,7 +81,15 @@ function EditDialog({
 }
 
 /** The chip's look without any behavior: used inside the drag overlay. */
-export function ChipFace({ name, type }: { name: string; type: Placement['type'] }) {
+export function ChipFace({
+  name,
+  type,
+  linked = false,
+}: {
+  name: string;
+  type: Placement['type'];
+  linked?: boolean;
+}) {
   return (
     <>
       <span className={styles.typeIcon}>
@@ -89,6 +98,11 @@ export function ChipFace({ name, type }: { name: string; type: Placement['type']
       <span className={styles.name} data-chip-name>
         {name}
       </span>
+      {linked ? (
+        <span className={styles.typeIcon}>
+          <Icon as={MapPin} size="small" role="img" aria-label="Linked place" />
+        </span>
+      ) : null}
     </>
   );
 }
@@ -120,7 +134,8 @@ function PlacementChipImpl({
     isOver,
   } = useSortable({ id: placementDragId(placement.id) });
   const style = { transform: CSS.Transform.toString(transform), transition };
-  const tip = placement.notes ? `${placement.name} — ${placement.notes}` : placement.name;
+  const place = placeOf(placement);
+  const tip = [placement.name, place?.address, placement.notes].filter(Boolean).join(' — ');
 
   // Menus and dialogs render in portals, but React events still bubble through them.
   const inside = (e: MouseEvent | PointerEvent) =>
@@ -152,10 +167,12 @@ function PlacementChipImpl({
         />
         <Tooltip
           label={tip}
-          when={(el) => !!placement.notes || isTruncated(el.querySelector('[data-chip-name]'))}
+          when={(el) =>
+            !!placement.notes || !!place || isTruncated(el.querySelector('[data-chip-name]'))
+          }
         >
           <span className={styles.face}>
-            <ChipFace name={placement.name} type={placement.type} />
+            <ChipFace name={placement.name} type={placement.type} linked={!!place} />
           </span>
         </Tooltip>
         <Menu

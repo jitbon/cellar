@@ -1,9 +1,9 @@
 import { validationError, type ValidationError } from '../model/errors';
 import { newId } from '../model/ids';
 import { comparePositioned, positionAmong } from '../model/ordering';
-import type { ISODate, ItemType, Placement, TripState } from '../model/types';
-import { validateItemName, validateLink, validateNotes } from '../model/validation';
-import { placeFields } from '../places/fields';
+import type { ISODate, ItemType, Place, Placement, TripState } from '../model/types';
+import { validateItemName, validateLink, validateNotes, validatePlace } from '../model/validation';
+import { placeFields, placeOf } from '../places/fields';
 import type { Command } from './command';
 import { commit } from './diff';
 
@@ -39,9 +39,12 @@ export function addTypedPlacement(
   blockId: string,
   name: string,
   afterPlacementId?: string,
+  opts: { place?: Place | null; type?: ItemType } = {},
 ): Command {
+  const { place = null, type = 'activity' } = opts;
   return (state) => {
-    const error = validateItemName(name) ?? validateCell(state, date, blockId);
+    const error =
+      validateItemName(name) ?? validatePlace(place) ?? validateCell(state, date, blockId);
     if (error) return { ok: false, error };
     const placement: Placement = {
       id: newId(),
@@ -50,10 +53,10 @@ export function addTypedPlacement(
       blockId,
       position: positionAmong(cellPlacements(state, date, blockId), { afterId: afterPlacementId }),
       name: name.trim(),
-      type: 'activity',
+      type,
       notes: null,
       link: null,
-      ...placeFields(null),
+      ...placeFields(place),
       sourceItemId: null,
       updatedAt: '',
     };
@@ -124,7 +127,7 @@ export function placeItem(
       type: item.type,
       notes: item.notes,
       link: item.link,
-      ...placeFields(null),
+      ...placeFields(placeOf(item)),
       sourceItemId: item.id,
       updatedAt: '',
     };

@@ -1,7 +1,7 @@
 import { validationError } from '../model/errors';
 import { newId } from '../model/ids';
-import type { Item, ItemType } from '../model/types';
-import { validateItemName, validateLink, validateNotes } from '../model/validation';
+import type { Item, ItemType, Place } from '../model/types';
+import { validateItemName, validateLink, validateNotes, validatePlace } from '../model/validation';
 import { placeFields } from '../places/fields';
 import type { Command } from './command';
 import { commit } from './diff';
@@ -13,13 +13,15 @@ export function addItem(
   type: ItemType,
   notes: string | null = null,
   link: string | null = null,
+  place: Place | null = null,
 ): Command {
   return (state) => {
     const error =
       validateItemName(name) ??
       (isItemType(type) ? null : validationError('NOT_FOUND', 'Unknown item type.')) ??
       validateNotes(notes) ??
-      validateLink(link);
+      validateLink(link) ??
+      validatePlace(place);
     if (error) return { ok: false, error };
     const item: Item = {
       id: newId(),
@@ -28,7 +30,7 @@ export function addItem(
       type,
       notes: notes || null,
       link: link || null,
-      ...placeFields(null),
+      ...placeFields(place),
       updatedAt: '',
     };
     return commit(state, { ...state, items: [...state.items, item] });

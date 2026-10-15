@@ -2,7 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { addItem } from '../src/commands/item';
 import { addTypedPlacement, placeItem } from '../src/commands/placement';
 import { cell } from '../src/queries/cell';
+import type { Place } from '../src/model/types';
+import { placeFields } from '../src/places/fields';
 import { expectOk, newTripState } from './fixtures';
+
+const chelsea: Place = {
+  id: 'test-chelsea',
+  provider: 'google',
+  name: 'Chelsea Market',
+  address: '75 9th Ave, New York',
+  lat: 40.7424,
+  lon: -74.0061,
+  category: 'market',
+};
 
 function setup() {
   const s0 = newTripState();
@@ -25,6 +37,19 @@ describe('placeItem', () => {
       sourceItemId: item.id,
     });
     expect(r.changes).toEqual([expect.objectContaining({ table: 'placements', op: 'upsert' })]);
+  });
+
+  it('copies the place fields; later item edits do not change the placement place', async () => {
+    const { updateItem } = await import('../src/commands/item');
+    const { state, blockId } = setup();
+    const linked = expectOk(
+      addItem('Chelsea Market', 'activity', null, null, chelsea)(state),
+    ).state;
+    const item = linked.items[1];
+    const r1 = expectOk(placeItem(item.id, '2027-04-02', blockId)(linked));
+    expect(r1.state.placements[0]).toMatchObject(placeFields(chelsea));
+    const r2 = expectOk(updateItem(item.id, { name: 'Renamed' })(r1.state));
+    expect(r2.state.placements[0]).toMatchObject(placeFields(chelsea));
   });
 
   it('can place the same item in several cells as independent copies', () => {

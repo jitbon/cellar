@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { addItem, deleteItem, updateItem } from '../src/commands/item';
 import { addTypedPlacement } from '../src/commands/placement';
+import type { Place } from '../src/model/types';
+import { placeFields, placeOf } from '../src/places/fields';
 import { expectOk, newTripState } from './fixtures';
+
+const chelsea: Place = {
+  id: 'test-chelsea',
+  provider: 'google',
+  name: 'Chelsea Market',
+  address: '75 9th Ave, New York',
+  lat: 40.7424,
+  lon: -74.0061,
+  category: 'market',
+};
 
 describe('addItem', () => {
   it('adds an item with a type and optional notes/link', () => {
@@ -30,6 +42,29 @@ describe('addItem', () => {
 
   it('inverse removes the item', () => {
     const r = expectOk(addItem('x', 'food')(newTripState()));
+    expect(expectOk(r.inverse(r.state)).state.items).toEqual([]);
+  });
+});
+
+describe('addItem with a place', () => {
+  it('stores all place fields', () => {
+    const r = expectOk(addItem('Chelsea Market', 'activity', null, null, chelsea)(newTripState()));
+    expect(r.state.items[0]).toMatchObject(placeFields(chelsea));
+    expect(placeOf(r.state.items[0])).toEqual(chelsea);
+  });
+
+  it('rejects an invalid place', () => {
+    const r = addItem('x', 'food', null, null, { ...chelsea, lat: 100 })(newTripState());
+    expect(!r.ok && r.error.code).toBe('INVALID_PLACE');
+  });
+
+  it('leaves the place fields null when omitted', () => {
+    const r = expectOk(addItem('Rest day', 'activity')(newTripState()));
+    expect(r.state.items[0]).toMatchObject(placeFields(null));
+  });
+
+  it('undo removes the item', () => {
+    const r = expectOk(addItem('Chelsea Market', 'activity', null, null, chelsea)(newTripState()));
     expect(expectOk(r.inverse(r.state)).state.items).toEqual([]);
   });
 });

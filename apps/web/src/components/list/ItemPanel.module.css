@@ -131,8 +131,15 @@
   color: var(--color-food);
 }
 
-.name {
+.text {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-1) 0;
+}
+
+.name {
   min-width: 0;
   overflow: hidden;
   font-weight: 500;

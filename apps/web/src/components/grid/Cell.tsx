@@ -4,12 +4,15 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import {
   addTypedPlacement,
   cell,
+  isFoodPlace,
   isGreyed,
   placeItem,
   suggestItems,
+  suggestNear,
   type CellWeather,
   type ISODate,
   type Item,
+  type PlaceSuggestion,
   type TripState,
 } from '@cellar/core';
 import { CellSuggestions, optionId } from './CellSuggestions';
@@ -19,6 +22,7 @@ import { CellListPopover } from './CellListPopover';
 import { PlacementChip, type Dispatch } from './PlacementChip';
 import { PlaneTakeoff, Icon, Plus } from '../ui/Icon';
 import { visibleChips } from '../../lib/cellOverflow';
+import { usePlaceSuggestions } from '../../state/usePlaceSuggestions';
 import styles from './Cell.module.css';
 
 interface Props {
@@ -50,17 +54,27 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
     overCell || (overId !== null && placements.some((p) => placementDragId(p.id) === overId));
   const greyed = isGreyed(state, date, blockId);
   const suggestions = adding ? suggestItems(state, text) : [];
+  const places = usePlaceSuggestions(adding ? text : '', suggestNear(state, date));
+  const [pickFailed, setPickFailed] = useState(false);
+  const placeStatus = pickFailed ? 'unavailable' : places.status;
+  const optionCount = suggestions.length + places.suggestions.length;
 
   function reset() {
     setText('');
     setError(null);
     setActiveIndex(-1);
+    setPickFailed(false);
     inputRef.current?.focus(); // ready for the next event in this cell
   }
 
   function submit() {
     if (activeIndex >= 0 && suggestions[activeIndex]) {
       choose(suggestions[activeIndex]);
+      return;
+    }
+    const suggested = places.suggestions[activeIndex - suggestions.length];
+    if (activeIndex >= 0 && suggested) {
+      choosePlace(suggested);
       return;
     }
     if (text.trim() === '') return;
@@ -82,11 +96,33 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
     reset();
   }
 
+  function choosePlace(suggestion: PlaceSuggestion) {
+    places.pick(suggestion).then(
+      (place) => {
+        const last = placements.at(-1);
+        const result = dispatch(
+          addTypedPlacement(date, blockId, place.name, last?.id, {
+            place,
+            type: isFoodPlace(suggestion.types) ? 'food' : 'activity',
+          }),
+        );
+        if (!result.ok) {
+          setError(result.error.message);
+          return;
+        }
+        reset();
+      },
+      // Keep the typed text so it can still be saved as a plain event.
+      () => setPickFailed(true),
+    );
+  }
+
   function close() {
     setAdding(false);
     setText('');
     setError(null);
     setActiveIndex(-1);
+    setPickFailed(false);
   }
 
   return (
@@ -147,8 +183,8 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
             autoFocus
             className={styles.input}
             role="combobox"
-            aria-expanded={suggestions.length > 0}
-            aria-controls={suggestions.length > 0 ? listId : undefined}
+            aria-expanded={optionCount > 0}
+            aria-controls={optionCount > 0 ? listId : undefined}
             aria-activedescendant={activeIndex >= 0 ? optionId(listId, activeIndex) : undefined}
             aria-autocomplete="list"
             aria-label={label}
@@ -157,6 +193,7 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
             onChange={(e) => {
               setText(e.target.value);
               setActiveIndex(-1);
+              setPickFailed(false);
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -165,12 +202,12 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
               } else if (e.key === 'Escape') {
                 e.stopPropagation();
                 close();
-              } else if (e.key === 'ArrowDown' && suggestions.length > 0) {
+              } else if (e.key === 'ArrowDown' && optionCount > 0) {
                 e.preventDefault();
-                setActiveIndex((i) => (i + 1) % suggestions.length);
-              } else if (e.key === 'ArrowUp' && suggestions.length > 0) {
+                setActiveIndex((i) => (i + 1) % optionCount);
+              } else if (e.key === 'ArrowUp' && optionCount > 0) {
                 e.preventDefault();
-                setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+                setActiveIndex((i) => (i <= 0 ? optionCount - 1 : i - 1));
               }
             }}
             onBlur={() => {
@@ -182,6 +219,9 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
             items={suggestions}
             activeIndex={activeIndex}
             onChoose={choose}
+            places={places.suggestions}
+            placeStatus={placeStatus}
+            onChoosePlace={choosePlace}
           />
           {error ? (
             <p role="alert" className={styles.error}>

@@ -7,8 +7,19 @@ import {
 } from '../src/commands/placement';
 import { cell } from '../src/queries/cell';
 import type { Ok } from '../src/commands/command';
-import type { TripState } from '../src/model/types';
+import type { Place, TripState } from '../src/model/types';
+import { placeFields } from '../src/places/fields';
 import { blockIdByName, expectOk, newTripState } from './fixtures';
+
+const tacos: Place = {
+  id: 'test-tacos',
+  provider: 'google',
+  name: 'Los Tacos No. 1',
+  address: '75 9th Ave, New York',
+  lat: 40.7441,
+  lon: -74.0063,
+  category: 'mexican_restaurant',
+};
 
 function add(state: TripState, date: string, blockId: string, name: string, after?: string): Ok {
   return expectOk(addTypedPlacement(date, blockId, name, after)(state));
@@ -50,6 +61,38 @@ describe('addTypedPlacement', () => {
     const back = expectOk(r1.inverse(r1.state));
     expect(back.state.placements).toEqual([]);
     expect(back.changes).toEqual([expect.objectContaining({ table: 'placements', op: 'delete' })]);
+  });
+});
+
+describe('addTypedPlacement with a place', () => {
+  it('stores the place fields and type', () => {
+    const s0 = newTripState();
+    const b = s0.blocks[0].id;
+    const r = expectOk(
+      addTypedPlacement('2027-04-02', b, 'Los Tacos', undefined, {
+        place: tacos,
+        type: 'food',
+      })(s0),
+    );
+    expect(r.state.placements[0]).toMatchObject({
+      name: 'Los Tacos',
+      type: 'food',
+      ...placeFields(tacos),
+    });
+  });
+
+  it('keeps type activity and null place fields without opts', () => {
+    const s0 = newTripState();
+    const r = add(s0, '2027-04-02', s0.blocks[0].id, 'Walk');
+    expect(r.state.placements[0]).toMatchObject({ type: 'activity', ...placeFields(null) });
+  });
+
+  it('rejects an invalid place', () => {
+    const s0 = newTripState();
+    const r = addTypedPlacement('2027-04-02', s0.blocks[0].id, 'x', undefined, {
+      place: { ...tacos, lon: 200 },
+    })(s0);
+    expect(!r.ok && r.error.code).toBe('INVALID_PLACE');
   });
 });
 

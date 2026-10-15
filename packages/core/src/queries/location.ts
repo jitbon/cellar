@@ -29,6 +29,12 @@ export function locationFields(location: Location | null): LocationFields {
 
 export const tripLocation = (state: TripState): Location | null => locationOf(state.trip);
 
+/** Where to bias place search: the day's location for a date, else the trip's, else nowhere. */
+export function suggestNear(state: TripState, date?: ISODate): { lat: number; lon: number } | null {
+  const location = date ? dayLocation(state, date) : tripLocation(state);
+  return location ? { lat: location.lat, lon: location.lon } : null;
+}
+
 /** The location set for this day only (the pin badge), or null. */
 export function dayLocationOverride(state: TripState, date: ISODate): Location | null {
   return locationOf(state.daySettings.find((d) => d.date === date));

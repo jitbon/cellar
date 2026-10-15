@@ -4,12 +4,29 @@ import { setDayWindow } from '../src/commands/daySetting';
 import { setDayLocation, setTripLocation } from '../src/commands/location';
 import { History } from '../src/history';
 import type { Location } from '../src/model/types';
-import { dayLocation, dayLocationOverride } from '../src/queries/location';
+import { dayLocation, dayLocationOverride, suggestNear } from '../src/queries/location';
 import { blockIdByName, expectOk, newTripState } from './fixtures';
 
 const kyoto: Location = { name: 'Kyoto, Japan', lat: 35.0211, lon: 135.7538, tz: 'Asia/Tokyo' };
 const osaka: Location = { name: 'Osaka, Japan', lat: 34.6937, lon: 135.5022, tz: 'Asia/Tokyo' };
 const DATE = '2027-04-02';
+
+describe('suggestNear', () => {
+  it('uses the day override, else the trip location, else null', () => {
+    const none = newTripState();
+    expect(suggestNear(none)).toBeNull();
+    expect(suggestNear(none, DATE)).toBeNull();
+
+    const withTrip = expectOk(setTripLocation(kyoto)(none)).state;
+    expect(suggestNear(withTrip)).toEqual({ lat: kyoto.lat, lon: kyoto.lon });
+    expect(suggestNear(withTrip, DATE)).toEqual({ lat: kyoto.lat, lon: kyoto.lon });
+
+    const withDay = expectOk(setDayLocation(DATE, osaka)(withTrip)).state;
+    expect(suggestNear(withDay, DATE)).toEqual({ lat: osaka.lat, lon: osaka.lon });
+    expect(suggestNear(withDay, '2027-04-03')).toEqual({ lat: kyoto.lat, lon: kyoto.lon });
+    expect(suggestNear(withDay)).toEqual({ lat: kyoto.lat, lon: kyoto.lon });
+  });
+});
 
 describe('setDayLocation', () => {
   it('creates a day_settings row with null arrival/departure and the location', () => {
