@@ -3,6 +3,7 @@ import type {
   AuthService,
   AuthUser,
   KeyValueStore,
+  PlaceSearch,
   TripRepository,
   WeatherService,
 } from '@cellar/core';
@@ -13,6 +14,7 @@ export interface Services {
   repo: TripRepository;
   outbox: Outbox;
   weather: WeatherService;
+  places: PlaceSearch;
   store: KeyValueStore;
   /** Resolves once the persisted session has been read. */
   ready: Promise<void>;
@@ -34,6 +36,14 @@ export function useServices(): Services {
   const s = useContext(ServicesContext);
   if (!s) throw new Error('ServicesProvider missing');
   return s;
+}
+
+/**
+ * Place search, or null outside a ServicesProvider so name fields still render and save plain
+ * text (place search is an enhancement, never a dependency).
+ */
+export function usePlaceSearch(): PlaceSearch | null {
+  return useContext(ServicesContext)?.places ?? null;
 }
 
 /** Current user; `loading` is true until the stored session has been read. */

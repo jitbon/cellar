@@ -1,0 +1,10 @@
+{
+  "suggestions": [
+    {
+      "placeId": "test-tacos",
+      "name": "Los Tacos No. 1",
+      "address": "9th Avenue, New York, NY, USA",
+      "types": ["mexican_restaurant", "restaurant", "food"]
+    }
+  ]
+}

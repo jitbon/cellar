@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyRemote } from '../src/merge';
 import type { Change } from '../src/commands/command';
 import type { Item, TripState } from '../src/model/types';
+import { placeFields } from '../src/places/fields';
 import { newTripState } from './fixtures';
 
 const none = new Set<string>();
@@ -15,6 +16,7 @@ function withItem(updatedAt = '2027-01-01T00:00:00.000Z'): { state: TripState; i
     type: 'food',
     notes: null,
     link: null,
+    ...placeFields(null),
     updatedAt,
   };
   return { state: { ...s, items: [item] }, item };

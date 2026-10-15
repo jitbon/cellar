@@ -33,6 +33,7 @@ export { summarizeWindow } from './weather/summarize';
 export { dayForecastStatus, forecastLocations, todayIn, locationKey } from './weather/status';
 export { temperatureUnit, formatTemp, type TemperatureUnit } from './weather/units';
 export { createForecastCache, type ForecastCache } from './weather/cache';
+export { placeFields, placeOf } from './places/fields';
 export { isGreyed } from './queries/greyed';
 export { days } from './queries/days';
 export { cell, orderedBlocks } from './queries/cell';

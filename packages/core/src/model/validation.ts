@@ -1,5 +1,5 @@
 import { validationError, type ValidationError } from './errors';
-import type { ISODate, Location, TimeWindow } from './types';
+import type { ISODate, Location, Place, TimeWindow } from './types';
 
 export const MAX_TRIP_DAYS = 60;
 
@@ -66,6 +66,26 @@ export function validateLocation(loc: Location): ValidationError | null {
     loc.lon <= 180 &&
     loc.tz.length > 0;
   return valid ? null : validationError('INVALID_LOCATION', 'That location is not valid.');
+}
+
+/** `null` (a plain row with no place) is valid. */
+export function validatePlace(place: Place | null): ValidationError | null {
+  if (place === null) return null;
+  const valid =
+    place.id.length >= 1 &&
+    place.id.length <= 300 &&
+    place.provider === 'google' &&
+    place.name.trim().length >= 1 &&
+    place.name.trim().length <= 200 &&
+    place.address.length <= 300 &&
+    Number.isFinite(place.lat) &&
+    place.lat >= -90 &&
+    place.lat <= 90 &&
+    Number.isFinite(place.lon) &&
+    place.lon >= -180 &&
+    place.lon <= 180 &&
+    (place.category === null || place.category.length <= 100);
+  return valid ? null : validationError('INVALID_PLACE', 'That place is not valid.');
 }
 
 export function validateWindow(win: TimeWindow): ValidationError | null {

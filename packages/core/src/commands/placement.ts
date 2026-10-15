@@ -3,6 +3,7 @@ import { newId } from '../model/ids';
 import { comparePositioned, positionAmong } from '../model/ordering';
 import type { ISODate, ItemType, Placement, TripState } from '../model/types';
 import { validateItemName, validateLink, validateNotes } from '../model/validation';
+import { placeFields } from '../places/fields';
 import type { Command } from './command';
 import { commit } from './diff';
 
@@ -52,6 +53,7 @@ export function addTypedPlacement(
       type: 'activity',
       notes: null,
       link: null,
+      ...placeFields(null),
       sourceItemId: null,
       updatedAt: '',
     };
@@ -122,6 +124,7 @@ export function placeItem(
       type: item.type,
       notes: item.notes,
       link: item.link,
+      ...placeFields(null),
       sourceItemId: item.id,
       updatedAt: '',
     };

@@ -9,6 +9,38 @@ export interface LocationFields {
   locationTz: string | null;
 }
 
+export type PlaceProvider = 'google';
+
+// A saved snapshot of a real place, flat for the same reason as LocationFields.
+export interface PlaceFields {
+  placeId: string | null;
+  placeProvider: PlaceProvider | null;
+  placeName: string | null;
+  placeAddress: string | null;
+  placeLat: number | null;
+  placeLon: number | null;
+  placeCategory: string | null;
+}
+
+export interface Place {
+  id: string;
+  provider: PlaceProvider;
+  name: string;
+  address: string;
+  lat: number;
+  lon: number;
+  category: string | null;
+}
+
+export interface PlaceSuggestion {
+  placeId: string;
+  name: string;
+  address: string;
+  types: string[];
+}
+
+export type MapApp = 'google' | 'apple' | 'waze';
+
 export interface Trip extends LocationFields {
   id: string;
   ownerId: string;
@@ -37,7 +69,7 @@ export interface DaySetting extends LocationFields {
   updatedAt: string;
 }
 
-export interface Item {
+export interface Item extends PlaceFields {
   id: string;
   tripId: string;
   name: string;
@@ -47,7 +79,7 @@ export interface Item {
   updatedAt: string;
 }
 
-export interface Placement {
+export interface Placement extends PlaceFields {
   id: string;
   tripId: string;
   date: ISODate;

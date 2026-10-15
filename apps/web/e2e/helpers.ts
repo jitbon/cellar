@@ -92,6 +92,43 @@ export async function mockOpenMeteo(page: Page, mode: 'ok' | 'fail'): Promise<vo
   });
 }
 
+export interface PlacesRequest {
+  action: 'suggest' | 'details';
+  [key: string]: unknown;
+}
+
+/**
+ * Routes the `places` Edge Function to fixtures so e2e never reaches Google. Returns the
+ * request bodies seen, in order, so tests can assert what was sent (FR-014).
+ */
+export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<PlacesRequest[]> {
+  const requests: PlacesRequest[] = [];
+  await page.route('**/functions/v1/places', async (route) => {
+    const request = route.request();
+    const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+    const body = request.postDataJSON() as PlacesRequest;
+    requests.push(body);
+    if (mode === 'fail') {
+      return route.fulfill({ status: 503, headers: cors, json: { error: 'unavailable' } });
+    }
+    let file: string;
+    if (body.action === 'suggest') {
+      const input = String(body.input ?? '').toLowerCase();
+      file = input.includes('taco')
+        ? 'places-suggest-tacos.json'
+        : input.includes('zzzxqq')
+          ? 'places-suggest-empty.json'
+          : 'places-suggest-chelsea.json';
+    } else {
+      file =
+        body.placeId === 'test-tacos' ? 'places-details-tacos.json' : 'places-details-chelsea.json';
+    }
+    return route.fulfill({ headers: cors, body: fixture(file), contentType: 'application/json' });
+  });
+  return requests;
+}
+
 /** Sets a trip's location straight in the database (test setup only). */
 export async function setTripLocationDirect(
   tripId: string,

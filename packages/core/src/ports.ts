@@ -1,5 +1,5 @@
 import type { Change } from './commands/command';
-import type { Forecast, Location, Trip, TripState } from './model/types';
+import type { Forecast, Location, Place, PlaceSuggestion, Trip, TripState } from './model/types';
 
 export interface TripRepository {
   listTrips(): Promise<Trip[]>;
@@ -33,6 +33,16 @@ export interface WeatherService {
   forecast(location: Location): Promise<Forecast>;
   /** Up to 5 matches; empty array when nothing matches. Rejects on failure. */
   searchLocations(query: string, language: string): Promise<Location[]>;
+}
+
+export interface PlaceSearch {
+  /** Up to 5 suggestions; [] when nothing matches. Rejects on any failure. */
+  suggest(
+    input: string,
+    opts: { sessionToken: string; near: { lat: number; lon: number } | null },
+  ): Promise<PlaceSuggestion[]>;
+  /** Resolves a picked suggestion to a full Place. Ends the session. Rejects on failure. */
+  details(suggestion: PlaceSuggestion, sessionToken: string): Promise<Place>;
 }
 
 export interface KeyValueStore {

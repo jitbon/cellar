@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { cell } from '../src/queries/cell';
 import { days } from '../src/queries/days';
 import type { TripState } from '../src/model/types';
+import { placeFields } from '../src/places/fields';
 import { newTripState } from './fixtures';
 
 describe('days', () => {
@@ -39,6 +40,7 @@ describe('cell', () => {
       type: 'activity' as const,
       notes: null,
       link: null,
+      ...placeFields(null),
       sourceItemId: null,
       updatedAt: '',
     });

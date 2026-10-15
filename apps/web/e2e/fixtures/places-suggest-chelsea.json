@@ -1,0 +1,22 @@
+{
+  "suggestions": [
+    {
+      "placeId": "test-chelsea",
+      "name": "Chelsea Market",
+      "address": "9th Avenue, New York, NY, USA",
+      "types": ["market", "point_of_interest"]
+    },
+    {
+      "placeId": "test-piers",
+      "name": "Chelsea Piers",
+      "address": "Pier 62, New York, NY, USA",
+      "types": ["tourist_attraction", "point_of_interest"]
+    },
+    {
+      "placeId": "test-hotel",
+      "name": "Chelsea Hotel",
+      "address": "West 23rd Street, New York, NY, USA",
+      "types": ["lodging", "point_of_interest"]
+    }
+  ]
+}

@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { createElement, type ReactNode } from 'react';
+import type { Place, PlaceSearch, PlaceSuggestion } from '@cellar/core';
+import { afterEach, vi } from 'vitest';
+import { ServicesProvider, type Services } from '../src/state/services';
 
 afterEach(cleanup);
 
@@ -44,3 +47,49 @@ globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObse
 Element.prototype.scrollIntoView ??= () => {};
 Element.prototype.hasPointerCapture ??= () => false;
 Element.prototype.releasePointerCapture ??= () => {};
+
+export const chelseaSuggestion: PlaceSuggestion = {
+  placeId: 'test-chelsea',
+  name: 'Chelsea Market',
+  address: '9th Avenue, New York, NY, USA',
+  types: ['market', 'point_of_interest'],
+};
+
+export const chelseaPlace: Place = {
+  id: 'test-chelsea',
+  provider: 'google',
+  name: 'Chelsea Market',
+  address: '75 9th Ave, New York',
+  lat: 40.7424,
+  lon: -74.0061,
+  category: 'market',
+};
+
+/** A fake PlaceSearch; returns no suggestions unless a test passes some. */
+export function fakePlaceSearch(
+  opts: {
+    suggestions?: PlaceSuggestion[];
+    place?: Place;
+    fail?: boolean;
+  } = {},
+): PlaceSearch & { suggest: ReturnType<typeof vi.fn>; details: ReturnType<typeof vi.fn> } {
+  const { suggestions = [], place = chelseaPlace, fail = false } = opts;
+  return {
+    suggest: vi.fn(async () => {
+      if (fail) throw new Error('unavailable');
+      return suggestions;
+    }),
+    details: vi.fn(async () => {
+      if (fail) throw new Error('unavailable');
+      return place;
+    }),
+  };
+}
+
+/** Wraps a component in services that only provide place search. */
+export function withPlaces(places: PlaceSearch) {
+  const services = { places } as unknown as Services;
+  return function PlacesWrapper({ children }: { children: ReactNode }) {
+    return createElement(ServicesProvider, { services, children });
+  };
+}

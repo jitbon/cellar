@@ -2,6 +2,7 @@ import { validationError } from '../model/errors';
 import { newId } from '../model/ids';
 import type { Item, ItemType } from '../model/types';
 import { validateItemName, validateLink, validateNotes } from '../model/validation';
+import { placeFields } from '../places/fields';
 import type { Command } from './command';
 import { commit } from './diff';
 
@@ -27,6 +28,7 @@ export function addItem(
       type,
       notes: notes || null,
       link: link || null,
+      ...placeFields(null),
       updatedAt: '',
     };
     return commit(state, { ...state, items: [...state.items, item] });
