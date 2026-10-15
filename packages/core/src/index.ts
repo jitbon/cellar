@@ -22,8 +22,10 @@ export {
   moveBlock,
   removeBlock,
   setBlockWindow,
+  setBlockMeal,
   impactOfRemoveBlock,
 } from './commands/block';
+export { isMealBlock, isMealName } from './queries/meal';
 export { setDayWindow } from './commands/daySetting';
 export { setTripLocation, setDayLocation } from './commands/location';
 export {

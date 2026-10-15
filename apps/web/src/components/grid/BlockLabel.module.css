@@ -4,7 +4,7 @@
   padding: var(--space-3) var(--space-4);
   border-right: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-bg);
+  background-color: var(--label-bg, var(--color-bg));
 }
 
 .dragging {
@@ -58,7 +58,7 @@
   display: flex;
   transform: translateY(-50%);
   border-radius: var(--radius-sm);
-  background-color: var(--color-bg);
+  background-color: var(--label-bg, var(--color-bg));
   opacity: 0;
 }
 
@@ -120,4 +120,10 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-4);
+}
+
+.mealIcon {
+  display: inline-flex;
+  margin-right: var(--space-2);
+  color: var(--color-food);
 }

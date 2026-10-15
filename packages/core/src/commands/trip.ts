@@ -51,6 +51,7 @@ export function createTrip(
       position,
       windowStartMin: DEFAULT_BLOCK_WINDOWS[blockName].startMin,
       windowEndMin: DEFAULT_BLOCK_WINDOWS[blockName].endMin,
+      isMeal: null,
       updatedAt: now,
     });
     prev = position;

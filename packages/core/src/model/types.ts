@@ -58,6 +58,8 @@ export interface Block {
   position: string;
   windowStartMin: number | null;
   windowEndMin: number | null;
+  /** Meal-row look: true/false when set by the traveler, null to follow the name. */
+  isMeal: boolean | null;
   updatedAt: string;
 }
 

@@ -6,7 +6,9 @@ import {
   impactOfRemoveBlock,
   removeBlock,
   effectiveWindow,
+  isMealBlock,
   renameBlock,
+  setBlockMeal,
   setBlockWindow,
   type Block,
   type TripState,
@@ -14,7 +16,7 @@ import {
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Dialog } from '../ui/Dialog';
-import { GripVertical, Icon, MoreHorizontal } from '../ui/Icon';
+import { GripVertical, Icon, MoreHorizontal, Utensils } from '../ui/Icon';
 import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { Tooltip } from '../ui/Tooltip';
 import { TextField } from '../ui/TextField';
@@ -164,6 +166,7 @@ export function BlockLabel({ state, block, dispatch }: Props) {
     }
   }
 
+  const meal = isMealBlock(block);
   const impact = impactOfRemoveBlock(state, block.id);
   const lastBlock = state.blocks.length === 1;
   const affectedDays = state.daySettings
@@ -203,16 +206,23 @@ export function BlockLabel({ state, block, dispatch }: Props) {
             ) : null}
           </div>
         ) : (
-          <Tooltip label={block.name} when={(el) => el.scrollWidth > el.clientWidth}>
-            <button
-              type="button"
-              className={styles.nameButton}
-              aria-label={`Rename ${block.name}`}
-              onClick={startRename}
-            >
-              {block.name}
-            </button>
-          </Tooltip>
+          <>
+            {meal ? (
+              <span className={styles.mealIcon}>
+                <Icon as={Utensils} size="small" role="img" aria-label="Meal row" />
+              </span>
+            ) : null}
+            <Tooltip label={block.name} when={(el) => el.scrollWidth > el.clientWidth}>
+              <button
+                type="button"
+                className={styles.nameButton}
+                aria-label={`Rename ${block.name}`}
+                onClick={startRename}
+              >
+                {block.name}
+              </button>
+            </Tooltip>
+          </>
         )}
         {renaming ? null : (
           <div className={styles.controls}>
@@ -250,6 +260,14 @@ export function BlockLabel({ state, block, dispatch }: Props) {
                 onSelect={() => setEditingWindow(true)}
               >
                 Edit time window
+              </MenuItem>
+              <MenuItem
+                aria-label={
+                  meal ? `${block.name} is not a meal row` : `Make ${block.name} a meal row`
+                }
+                onSelect={() => dispatch(setBlockMeal(block.id, !meal))}
+              >
+                {meal ? 'Not a meal row' : 'Make meal row'}
               </MenuItem>
               <MenuItem
                 aria-label={`Add block below ${block.name}`}

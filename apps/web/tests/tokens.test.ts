@@ -54,7 +54,8 @@ describe('design tokens', () => {
         'accent',
         'accent-soft',
       ],
-      ...['on-accent', 'activity', 'activity-bg', 'food', 'food-bg', 'header-bg', 'header-text'],
+      ...['on-accent', 'activity', 'activity-bg', 'food', 'food-bg', 'food-row', 'header-bg'],
+      ...['header-text'],
       ...['header-muted', 'greyed-hatch', 'danger', 'focus'],
     ].map((n) => `--color-${n}`);
     for (let i = 1; i <= 8; i++) names.push(`--space-${i}`);
@@ -74,6 +75,11 @@ describe('design tokens', () => {
     ['on-accent', 'accent'],
     ['activity', 'activity-bg'],
     ['food', 'food-bg'],
+    ['text', 'food-row'],
+    ['text-muted', 'food-row'],
+    ['food', 'food-row'],
+    ['text', 'food-bg'],
+    ['text-muted', 'food-bg'],
     ['header-text', 'header-bg'],
     ['header-muted', 'header-bg'],
   ];

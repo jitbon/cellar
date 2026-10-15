@@ -34,6 +34,7 @@ export function addBlock(name: string, afterBlockId?: string): Command {
       position: positionAmong(sorted, { afterId: afterBlockId }),
       windowStartMin: window.startMin,
       windowEndMin: window.endMin,
+      isMeal: null,
       updatedAt: '',
     };
     return commit(state, { ...state, blocks: [...state.blocks, block] });
@@ -50,6 +51,17 @@ export function setBlockWindow(id: string, window: TimeWindow): Command {
       blocks: state.blocks.map((b) =>
         b.id === id ? { ...b, windowStartMin: window.startMin, windowEndMin: window.endMin } : b,
       ),
+    });
+  };
+}
+
+/** Marks a row as a meal row (true), not one (false), or back to following its name (null). */
+export function setBlockMeal(id: string, isMeal: boolean | null): Command {
+  return (state) => {
+    if (!state.blocks.some((b) => b.id === id)) return { ok: false, error: notFound() };
+    return commit(state, {
+      ...state,
+      blocks: state.blocks.map((b) => (b.id === id ? { ...b, isMeal } : b)),
     });
   };
 }

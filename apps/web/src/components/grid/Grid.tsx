@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { days, orderedBlocks, type TripState } from '@cellar/core';
+import { days, isMealBlock, orderedBlocks, type TripState } from '@cellar/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '../ui/Button';
 import { ChevronLeft, ChevronRight, Icon } from '../ui/Icon';
@@ -82,7 +82,11 @@ export function Grid({ state, dispatch, forecasts }: Props) {
             strategy={verticalListSortingStrategy}
           >
             {blocks.map((block) => (
-              <div key={block.id} className={styles.row}>
+              <div
+                key={block.id}
+                className={`${styles.row} ${isMealBlock(block) ? styles.meal : ''}`}
+                data-meal-row={isMealBlock(block) ? 'true' : undefined}
+              >
                 <div className={styles.blockLabel}>
                   <BlockLabel state={state} block={block} dispatch={dispatch} />
                 </div>
