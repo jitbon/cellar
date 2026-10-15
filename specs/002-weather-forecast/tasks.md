@@ -149,7 +149,7 @@ contract = `contracts/core.md`, DB contract = `contracts/database.md`.
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [ ] T049 [P] Extend `apps/web/e2e/a11y.spec.ts`: axe scan with weather icons visible, with a popover open, and with the `LocationPicker` open — no violations
-- [ ] T050 [P] In `README.md`, add a short "Weather" line to the intro (per-block forecast icons) and a new "## Integrations" section listing Open-Meteo: purpose, no API key, free non-commercial tier (10k calls/day), fallback ("Weather unavailable"), and CC BY 4.0 attribution; link `specs/002-weather-forecast/quickstart.md` next to the 001 quickstart link
+- [X] T050 [P] In `README.md`, add a short "Weather" line to the intro (per-block forecast icons) and a new "## Integrations" section listing Open-Meteo: purpose, no API key, free non-commercial tier (10k calls/day), fallback ("Weather unavailable"), and CC BY 4.0 attribution; link `specs/002-weather-forecast/quickstart.md` next to the 001 quickstart link
 - [ ] T051 Run `pnpm lint` (including the design-token stylelint rule), `pnpm --filter @cellar/core test`, `pnpm test:db`, `pnpm --filter web test`, `pnpm --filter web e2e`; fix any failures
 - [ ] T052 Walk through all 22 scenarios in `specs/002-weather-forecast/quickstart.md` against the running app and note any failures
 
