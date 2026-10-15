@@ -147,11 +147,11 @@ contract = `contracts/core.md`, DB contract = `contracts/database.md`, function 
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T049 [P] Add the place listbox, place line and "Open in maps" menu to the axe checks in `apps/web/e2e/a11y.spec.ts` in light and dark (quickstart scenario 12), and a 360 px check to `apps/web/e2e/layout.spec.ts` that the Places group fits without horizontal scroll
-- [ ] T050 [P] Confirm `apps/web/tests/no-emoji.test.ts` and `apps/web/tests/tokens.test.ts` cover the new `components/places/` files (extend their globs if needed)
-- [ ] T051 [P] Document setup in `README.md`: enabling Places API (New), a server key restricted to that API, daily quota caps (research R1), `supabase secrets set GOOGLE_PLACES_API_KEY=…`, `supabase functions deploy places`, and local `supabase functions serve places` with `supabase/functions/.env`
-- [ ] T052 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and `pnpm --filter web e2e`; fix failures
-- [ ] T053 Walk through quickstart.md manual scenarios 1–12 against a real key (or record which ones need the user's key) and note results in the PR description
+- [X] T049 [P] Add the place listbox, place line and "Open in maps" menu to the axe checks in `apps/web/e2e/a11y.spec.ts` in light and dark (quickstart scenario 12), and a 360 px check to `apps/web/e2e/layout.spec.ts` that the Places group fits without horizontal scroll
+- [X] T050 [P] Confirm `apps/web/tests/no-emoji.test.ts` and `apps/web/tests/tokens.test.ts` cover the new `components/places/` files (extend their globs if needed)
+- [X] T051 [P] Document setup in `README.md`: enabling Places API (New), a server key restricted to that API, daily quota caps (research R1), `supabase secrets set GOOGLE_PLACES_API_KEY=…`, `supabase functions deploy places`, and local `supabase functions serve places` with `supabase/functions/.env`
+- [X] T052 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and `pnpm --filter web e2e`; fix failures
+- [ ] T053 Walk through quickstart.md manual scenarios 1–12 against a real key (or record which ones need the user's key) and note results in the PR description (Not done: needs a real Google Places key; run by the user. Automated coverage uses the mocked function only.)
 
 ---
 

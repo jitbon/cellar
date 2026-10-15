@@ -4,6 +4,8 @@ import {
   createTrip,
   deleteAccount,
   mockOpenMeteo,
+  mockPlaces,
+  goToDay,
   openDayMenu,
   setItemPanel,
   signIn,
@@ -169,5 +171,43 @@ test.describe('layout (desktop)', () => {
 
     await expect(page.getByText('Travel…')).toHaveCount(0);
     await expect(page.getByText('Location…')).toHaveCount(0);
+  });
+});
+
+test.describe('layout (360 px)', () => {
+  test.skip(({ hasTouch }) => !hasTouch, 'measured on the phone project');
+
+  test('the Places group fits without horizontal scroll in a cell and in the item form', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'Phone places', '2027-04-01', '2027-04-03');
+    const pageScrolls = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      );
+
+    await setItemPanel(page, false);
+    await goToDay(page, 1);
+    await page.getByRole('button', { name: 'Add event to Lunch on 2027-04-01' }).click();
+    await page.getByRole('combobox', { name: /Add event to Lunch/ }).fill('chel');
+    const group = page.getByRole('group', { name: 'Places' });
+    await expect(group).toBeVisible();
+    const box = (await group.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(360);
+    expect(await pageScrolls()).toBe(false);
+    await page.keyboard.press('Escape');
+
+    await setItemPanel(page, true);
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByLabel('Name', { exact: true }).fill('Chelsea Mar');
+    const formGroup = page.getByRole('group', { name: 'Places' });
+    await expect(formGroup).toBeVisible();
+    const formBox = (await formGroup.boundingBox())!;
+    expect(formBox.x).toBeGreaterThanOrEqual(0);
+    expect(formBox.x + formBox.width).toBeLessThanOrEqual(360);
+    expect(await pageScrolls()).toBe(false);
   });
 });

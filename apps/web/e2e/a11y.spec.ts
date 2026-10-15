@@ -7,6 +7,7 @@ import {
   deleteAccount,
   goToDay,
   mockOpenMeteo,
+  mockPlaces,
   openChipMenu,
   openDayMenu,
   setItemPanel,
@@ -177,5 +178,51 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Add to list' })).toBeVisible();
     await expectNoSeriousViolations(page); // add-item popover
+  });
+}
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`axe (${scheme}): place listbox, place line and Open in maps menu`, async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.emulateMedia({ colorScheme: scheme });
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, `Axe places ${scheme}`, '2027-04-01', '2027-04-03');
+
+    // Grid cell: list items group is absent here, so the listbox holds the Places group only.
+    await setItemPanel(page, false);
+    await goToDay(page, 1);
+    await page.getByRole('button', { name: 'Add event to Lunch on 2027-04-01' }).click();
+    await page.getByRole('combobox', { name: /Add event to Lunch/ }).fill('chel');
+    await expect(page.getByRole('option', { name: /Chelsea Market/ })).toBeVisible();
+    await expect(page.getByText('Powered by Google')).toBeVisible();
+    await expectNoSeriousViolations(page); // cell listbox with Places group
+    await page.keyboard.press('ArrowDown');
+    await expectNoSeriousViolations(page); // active option
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('chip').filter({ hasText: 'Chelsea Market' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expectNoSeriousViolations(page); // pin on the chip
+
+    await openChipMenu(page, 'Chelsea Market');
+    await expect(page.getByText('Open in maps')).toBeVisible();
+    await expectNoSeriousViolations(page); // chip menu with the maps group
+    await page.keyboard.press('Escape');
+
+    // Item panel form: listbox, then the place line under the name.
+    await setItemPanel(page, true);
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByLabel('Name', { exact: true }).fill('Chelsea Mar');
+    await expect(
+      page.getByRole('listbox', { name: 'Place suggestions' }).getByRole('option').first(),
+    ).toBeVisible();
+    await expectNoSeriousViolations(page); // form listbox
+    await page.getByRole('option', { name: /Chelsea Market/ }).click();
+    await expect(page.getByText('75 9th Ave, New York')).toBeVisible();
+    await expectNoSeriousViolations(page); // place line and Remove place
+
+    await page.getByLabel('Name', { exact: true }).fill('zzzxqq');
+    await expect(page.getByText('No places found')).toBeVisible();
+    await expectNoSeriousViolations(page); // empty note
   });
 }
