@@ -24,6 +24,9 @@ google maps/apple maps/waze?"
 - Q: When should place suggestions appear: live while typing, a "Did you mean…?" prompt after
   saving, or only on a "Find place" button? → A: Live list under the name field while typing;
   ignoring it saves plain text.
+- Q: Can the trip's location be set when creating the trip, or come from its title? → A: An
+  optional Location field on the new-trip form that proposes a match for the title ("Use Kyoto,
+  Japan"); the traveler picks it, searches another, or leaves it blank. Never set silently.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -173,6 +176,10 @@ linked. Choose "Remove place": it is plain again, keeping its current name and n
   ordering) MUST be sent to the place-search provider. No other trip data is sent.
 - **FR-015**: Any key needed for place search MUST NOT be included in the app delivered to the
   browser or committed to the repository.
+- **FR-016**: The new-trip form MUST offer an optional trip location (the same city search used
+  for weather) and MUST propose a match for the trip title, ignoring years and trip words such
+  as "trip" or "vacation". The proposal MUST only apply when the traveler accepts it, and a
+  failed lookup MUST NOT block creating the trip.
 
 ### Key Entities
 

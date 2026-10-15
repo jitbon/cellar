@@ -1,7 +1,8 @@
 import { newId, positionBetween } from '../model/ids';
-import type { Block, ISODate, TripState } from '../model/types';
+import type { Block, ISODate, Location, TripState } from '../model/types';
+import { locationFields } from '../queries/location';
 import { DEFAULT_BLOCK_WINDOWS } from '../queries/window';
-import { validateDateRange, validateTripName } from '../model/validation';
+import { validateDateRange, validateLocation, validateTripName } from '../model/validation';
 import type { Command, Ok, Result } from './command';
 import { commit } from './diff';
 
@@ -20,9 +21,21 @@ export const DEFAULT_BLOCK_NAMES = [
 
 const noop: Command = (state) => ({ ok: true, state, changes: [], inverse: noop });
 
-/** Creates a trip with the default blocks. There is no prior state, so the inverse is a no-op. */
-export function createTrip(ownerId: string, name: string, start: ISODate, end: ISODate): Result {
-  const error = validateTripName(name) ?? validateDateRange(start, end);
+/**
+ * Creates a trip with the default blocks and an optional location. There is no prior state, so
+ * the inverse is a no-op.
+ */
+export function createTrip(
+  ownerId: string,
+  name: string,
+  start: ISODate,
+  end: ISODate,
+  location: Location | null = null,
+): Result {
+  const error =
+    validateTripName(name) ??
+    validateDateRange(start, end) ??
+    (location ? validateLocation(location) : null);
   if (error) return { ok: false, error };
 
   const now = new Date().toISOString();
@@ -50,10 +63,7 @@ export function createTrip(ownerId: string, name: string, start: ISODate, end: I
       startDate: start,
       endDate: end,
       deletedAt: null,
-      locationName: null,
-      locationLat: null,
-      locationLon: null,
-      locationTz: null,
+      ...locationFields(location),
       updatedAt: now,
     },
     blocks,

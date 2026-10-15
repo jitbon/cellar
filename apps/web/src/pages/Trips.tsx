@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { createTrip, validateTripName, type Trip } from '@cellar/core';
+import { createTrip, validateTripName, type Location, type Trip } from '@cellar/core';
 import { Banner } from '../components/ui/Banner';
 import {
   CalendarDays,
@@ -15,6 +15,7 @@ import { Button } from '../components/ui/Button';
 import { DateRangePicker, formatRange } from '../components/ui/DateRangePicker';
 import { Dialog } from '../components/ui/Dialog';
 import { TextField } from '../components/ui/TextField';
+import { TripLocationField } from '../components/weather/TripLocationField';
 import { useAuthUser, useServices } from '../state/services';
 import styles from './Trips.module.css';
 
@@ -27,18 +28,19 @@ export function daysRemaining(deletedAt: string, now = Date.now()): number {
 }
 
 function CreateTripDialog({ onClose }: { onClose: () => void }) {
-  const { repo } = useServices();
+  const { repo, weather } = useServices();
   const { user } = useAuthUser();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
+  const [location, setLocation] = useState<Location | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!user) return;
-    const result = createTrip(user.id, name, start, end);
+    const result = createTrip(user.id, name, start, end, location);
     if (!result.ok) {
       setError(result.error.message);
       return;
@@ -55,6 +57,7 @@ function CreateTripDialog({ onClose }: { onClose: () => void }) {
     <Dialog title="New trip" wide onClose={onClose}>
       <form className={styles.form} onSubmit={onSubmit}>
         <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+        <TripLocationField title={name} service={weather} value={location} onChange={setLocation} />
         <DateRangePicker
           start={start}
           end={end}

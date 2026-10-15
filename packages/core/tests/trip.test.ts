@@ -31,6 +31,29 @@ describe('createTrip', () => {
     expect(r.changes.every((c) => c.op === 'upsert')).toBe(true);
   });
 
+  it('stores an optional location on the new trip', () => {
+    const tokyo = { name: 'Tokyo, Japan', lat: 35.6895, lon: 139.6917, tz: 'Asia/Tokyo' };
+    const r = expectOk(createTrip('u', 'Tokyo 2027', '2027-04-01', '2027-04-05', tokyo));
+    expect(r.state.trip).toMatchObject({
+      locationName: 'Tokyo, Japan',
+      locationLat: 35.6895,
+      locationLon: 139.6917,
+      locationTz: 'Asia/Tokyo',
+    });
+    expect(r.changes[0].row).toMatchObject({ locationName: 'Tokyo, Japan' });
+  });
+
+  it('leaves the location empty when none is given', () => {
+    const r = expectOk(createTrip('u', 'Tokyo', '2027-04-01', '2027-04-05'));
+    expect(r.state.trip.locationName).toBeNull();
+  });
+
+  it('rejects an invalid location', () => {
+    const bad = { name: 'Nowhere', lat: 100, lon: 0, tz: 'UTC' };
+    const r = createTrip('u', 'Trip', '2027-04-01', '2027-04-05', bad);
+    expect(r.ok).toBe(false);
+  });
+
   it('trims the name', () => {
     expect(expectOk(createTrip('u', '  Tokyo ', '2027-04-01', '2027-04-02')).state.trip.name).toBe(
       'Tokyo',

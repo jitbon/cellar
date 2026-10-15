@@ -43,3 +43,43 @@ export function dayLocationOverride(state: TripState, date: ISODate): Location |
 /** Effective location for a day: its override, else the trip location. */
 export const dayLocation = (state: TripState, date: ISODate): Location | null =>
   dayLocationOverride(state, date) ?? tripLocation(state);
+
+// Words that describe the trip rather than the place ("Summer vacation in Rome").
+const TRIP_WORDS = new Set([
+  'a',
+  'an',
+  'the',
+  'in',
+  'to',
+  'at',
+  'of',
+  'our',
+  'my',
+  'and',
+  'trip',
+  'vacation',
+  'holiday',
+  'holidays',
+  'getaway',
+  'weekend',
+  'honeymoon',
+  'break',
+  'spring',
+  'summer',
+  'fall',
+  'autumn',
+  'winter',
+  'family',
+  'road',
+  'visit',
+  'tour',
+]);
+
+/** Best-guess place search text from a trip title, or '' when nothing place-like is left. */
+export function placeQueryFromTitle(title: string): string {
+  return title
+    .replace(/[^\p{L}\s'-]/gu, ' ')
+    .split(/\s+/)
+    .filter((w) => w !== '' && !TRIP_WORDS.has(w.toLowerCase()))
+    .join(' ');
+}

@@ -26,7 +26,13 @@ export {
 } from './commands/block';
 export { setDayWindow } from './commands/daySetting';
 export { setTripLocation, setDayLocation } from './commands/location';
-export { tripLocation, dayLocation, dayLocationOverride, suggestNear } from './queries/location';
+export {
+  tripLocation,
+  dayLocation,
+  dayLocationOverride,
+  suggestNear,
+  placeQueryFromTitle,
+} from './queries/location';
 export { DEFAULT_BLOCK_WINDOWS, effectiveWindow, effectiveWindows } from './queries/window';
 export { conditionFromWmo } from './weather/wmo';
 export { summarizeWindow } from './weather/summarize';
