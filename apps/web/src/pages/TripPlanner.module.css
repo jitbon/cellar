@@ -1,14 +1,16 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-6);
+}
+
+.strips {
+  display: flex;
+  flex-direction: column;
 }
 
 .body {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-6);
 }
 
 .grid {
@@ -22,13 +24,6 @@
   }
 }
 
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  margin-left: auto;
-}
-
 .form {
   display: flex;
   flex-direction: column;
@@ -39,32 +34,4 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-4);
-}
-
-.header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-6);
-}
-
-.header a {
-  color: var(--color-accent);
-}
-
-.dates {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: var(--size-touch);
-  padding: var(--space-2) var(--space-6);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-bg);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.dates:hover {
-  border-color: var(--color-accent);
 }

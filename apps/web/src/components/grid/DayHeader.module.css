@@ -1,30 +1,101 @@
 .header {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--size-icon-button);
+}
+
+.weekday {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 
 .date {
-  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-}
-
-.badge {
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background-color: var(--color-surface);
   font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .menuButton {
-  min-height: var(--size-touch);
-  padding: 0 var(--space-4);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-text-muted);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.header:hover .menuButton,
+.header:focus-within .menuButton,
+.menuButton[data-state='open'] {
+  opacity: 1;
+}
+
+.menuButton:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+@media (pointer: coarse) {
+  .menuButton {
+    opacity: 1;
+  }
+
+  .menuButton::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--size-touch);
+    height: var(--size-touch);
+    transform: translate(-50%, -50%);
+  }
+}
+
+.indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+}
+
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  padding: 0;
   border: 0;
   background-color: transparent;
   color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
   cursor: pointer;
+}
+
+.indicator span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.indicator:hover span {
   text-decoration: underline;
 }
 
@@ -43,10 +114,10 @@
 }
 
 .select {
-  min-height: var(--size-touch);
-  padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  min-height: 28px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   background-color: var(--color-bg);
 }
 

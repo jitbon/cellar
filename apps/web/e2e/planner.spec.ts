@@ -6,6 +6,8 @@ import {
   goToDay,
   openBlockMenu,
   openChipMenu,
+  openDayMenu,
+  openTripSettings,
   signIn,
   type Account,
 } from './helpers';
@@ -110,7 +112,8 @@ test('quickstart 9 and 11: travel window greys cells; shrinking warns', async ({
   await signIn(page, account);
   await createTrip(page, 'Osaka', '2027-05-01', '2027-05-03');
 
-  await page.getByRole('button', { name: 'Set arrival and departure for 2027-05-01' }).click();
+  await openDayMenu(page, '2027-05-01');
+  await page.getByRole('menuitem', { name: 'Set arrival and departure for 2027-05-01' }).click();
   await page.getByLabel('Arrival block').selectOption({ label: 'Lunch' });
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('Arrive · Lunch')).toBeVisible();
@@ -121,7 +124,7 @@ test('quickstart 9 and 11: travel window greys cells; shrinking warns', async ({
   await page.getByRole('combobox', { name: /Add event to Morning/ }).fill('Castle');
   await page.keyboard.press('Enter');
 
-  await page.getByRole('button', { name: 'Trip settings' }).click();
+  await openTripSettings(page);
   await page.getByLabel('End date').fill('2027-05-02');
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText(/1 placement on removed days will be deleted/)).toBeVisible();

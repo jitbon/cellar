@@ -1,0 +1,114 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--size-header);
+  padding: 0 var(--space-6);
+  background-color: var(--color-header-bg);
+  color: var(--color-header-text);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-header-muted);
+  font-size: var(--font-size-md);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--color-header-text);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+  height: 28px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-header-muted);
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-header-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--color-header-text);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.iconButton {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-header-text);
+  cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled) {
+  opacity: 0.75;
+}
+
+.iconButton:disabled {
+  color: var(--color-header-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.header :focus-visible {
+  outline-color: var(--color-header-text);
+}
+
+@media (pointer: coarse) {
+  .chip::after,
+  .iconButton::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: var(--size-touch);
+    height: var(--size-touch);
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 639px) {
+  .header {
+    gap: var(--space-3);
+    padding: 0 var(--space-4);
+  }
+
+  .backText,
+  .locationText,
+  .itemsText {
+    display: none;
+  }
+}

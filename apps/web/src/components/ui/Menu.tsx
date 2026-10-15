@@ -9,12 +9,15 @@ interface MenuProps {
   trigger: ReactElement;
   children: ReactNode;
   onCloseAutoFocus?: (event: Event) => void;
+  /** Optional control, for callers that open the menu from elsewhere. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /** A token-styled dropdown menu: keyboard navigation, Escape, and focus return come from Radix. */
-export function Menu({ trigger, children, onCloseAutoFocus }: MenuProps) {
+export function Menu({ trigger, children, onCloseAutoFocus, open, onOpenChange }: MenuProps) {
   return (
-    <DropdownMenu.Root modal={false}>
+    <DropdownMenu.Root modal={false} open={open} onOpenChange={onOpenChange}>
       <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content

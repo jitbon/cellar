@@ -1,5 +1,13 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { createAccount, createTrip, deleteAccount, signIn, type Account } from './helpers';
+import {
+  createAccount,
+  createTrip,
+  deleteAccount,
+  mockOpenMeteo,
+  openDayMenu,
+  signIn,
+  type Account,
+} from './helpers';
 
 let account: Account;
 
@@ -114,5 +122,36 @@ test.describe('layout (desktop)', () => {
     for (let i = 0; i < 2; i++) {
       expect((await chips.nth(i).boundingBox())!.height).toBeLessThanOrEqual(32);
     }
+  });
+
+  test('SC-004: day headers are at most two lines, the trip header is one row tall, no text links', async ({
+    page,
+  }) => {
+    await mockOpenMeteo(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'Headers', '2027-04-01', '2027-04-05');
+    await setPanel(page, false);
+
+    await openDayMenu(page, '2027-04-01');
+    await page.getByRole('menuitem', { name: 'Set arrival and departure for 2027-04-01' }).click();
+    await page.getByLabel('Arrival block').selectOption({ label: 'Lunch' });
+    await page.getByRole('button', { name: 'Save' }).click();
+    await openDayMenu(page, '2027-04-03');
+    await page.getByRole('menuitem', { name: 'Set location for 2027-04-03' }).click();
+    await page.getByRole('combobox', { name: 'Search for a place' }).fill('Osa');
+    await page.getByRole('option', { name: 'Osaka, Japan' }).click();
+    await expect(page.getByText('Arrive · Lunch')).toBeVisible();
+    await expect(page.getByText('Osaka', { exact: true })).toBeVisible();
+
+    const headers = page.getByTestId('day-header');
+    for (let i = 0; i < (await headers.count()); i++) {
+      expect((await headers.nth(i).boundingBox())!.height).toBeLessThanOrEqual(48);
+    }
+    const rowHeight = (await page.getByTestId('cell:2027-04-02:Morning').boundingBox())!.height;
+    const bar = (await page.locator('header').first().boundingBox())!;
+    expect(bar.height).toBeLessThanOrEqual(rowHeight + 12);
+
+    await expect(page.getByText('Travel…')).toHaveCount(0);
+    await expect(page.getByText('Location…')).toHaveCount(0);
   });
 });

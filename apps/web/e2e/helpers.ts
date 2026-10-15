@@ -118,3 +118,14 @@ export async function openChipMenu(page: Page, name: string): Promise<void> {
 export async function openBlockMenu(page: Page, block: string): Promise<void> {
   await page.getByRole('button', { name: `Options for ${block}`, exact: true }).click();
 }
+
+/** Opens the "⋯" menu of a day header. */
+export async function openDayMenu(page: Page, date: string): Promise<void> {
+  await page.getByRole('button', { name: `Day options for ${date}`, exact: true }).click();
+}
+
+/** Opens the header "⋯" menu and chooses Trip settings. */
+export async function openTripSettings(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'More trip actions' }).click();
+  await page.getByRole('menuitem', { name: 'Trip settings' }).click();
+}

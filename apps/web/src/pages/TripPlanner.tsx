@@ -14,11 +14,13 @@ import { ItemList } from '../components/list/ItemList';
 import { SaveStatusBanner } from '../components/SaveStatusBanner';
 import { LocationDialog } from '../components/weather/LocationDialog';
 import { Banner } from '../components/ui/Banner';
+import { TripHeader } from '../components/layout/TripHeader';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { DateRangePicker, formatRange } from '../components/ui/DateRangePicker';
 import { Dialog } from '../components/ui/Dialog';
 import { TextField } from '../components/ui/TextField';
+import { Toast, useTip } from '../components/ui/Toast';
 import { useServices } from '../state/services';
 import { useForecasts } from '../state/useForecasts';
 import { useTrip } from '../state/useTrip';
@@ -127,6 +129,7 @@ export function TripPlanner() {
   const navigate = useNavigate();
   const trip = useTrip(tripId);
   const justCreated = (location.state as { justCreated?: boolean } | null)?.justCreated ?? false;
+  const createdTip = useTip('trip-created');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
   const ready = trip.status === 'ready' ? trip : null;
@@ -168,49 +171,34 @@ export function TripPlanner() {
   const tripPlace = tripLocation(state);
   return (
     <main className={styles.page}>
-      <header className={styles.header}>
-        <Link to="/">‹ Trips</Link>
-        <h1>{state.trip.name}</h1>
-        <button
-          type="button"
-          className={styles.dates}
-          aria-label={`Change trip dates (${formatRange(state.trip.startDate, state.trip.endDate)})`}
-          onClick={() => setSettingsOpen(true)}
+      <TripHeader
+        name={state.trip.name}
+        rangeLabel={formatRange(state.trip.startDate, state.trip.endDate)}
+        locationName={tripPlace ? tripPlace.name : null}
+        canUndo={trip.canUndo}
+        canRedo={trip.canRedo}
+        onUndo={trip.undo}
+        onRedo={trip.redo}
+        onEditDates={() => setSettingsOpen(true)}
+        onEditLocation={() => setLocationOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
+      <div className={styles.strips}>
+        <SaveStatusBanner outbox={outbox} />
+        {tripPlace ? null : <Banner>Add a location to see the weather.</Banner>}
+        {forecasts.unavailable ? <Banner tone="warning">Weather unavailable</Banner> : null}
+      </div>
+      {justCreated && createdTip.visible ? (
+        <Toast
+          onDismiss={() => {
+            createdTip.dismiss();
+            navigate(location.pathname, { replace: true });
+          }}
         >
-          <span aria-hidden="true">📅</span>
-          {formatRange(state.trip.startDate, state.trip.endDate)}
-        </button>
-        <button
-          type="button"
-          className={styles.dates}
-          aria-label={tripPlace ? `Change trip location (${tripPlace.name})` : 'Add a location'}
-          onClick={() => setLocationOpen(true)}
-        >
-          <span aria-hidden="true">📍</span>
-          {tripPlace ? tripPlace.name : 'Add a location'}
-        </button>
-        <div className={styles.toolbar}>
-          <Button onClick={trip.undo} disabled={!trip.canUndo} aria-label="Undo">
-            ↶ Undo
-          </Button>
-          <Button onClick={trip.redo} disabled={!trip.canRedo} aria-label="Redo">
-            ↷ Redo
-          </Button>
-          <Button onClick={() => setSettingsOpen(true)}>Trip settings</Button>
-        </div>
-      </header>
-      {justCreated ? (
-        <Banner>
           Trip created for {formatRange(state.trip.startDate, state.trip.endDate)}. Plans change —
-          click the dates up top anytime to move them.{' '}
-          <Button variant="ghost" onClick={() => navigate(location.pathname, { replace: true })}>
-            Got it
-          </Button>
-        </Banner>
+          click the dates up top anytime to move them.
+        </Toast>
       ) : null}
-      <SaveStatusBanner outbox={outbox} />
-      {tripPlace ? null : <Banner>Add a location to see the weather.</Banner>}
-      {forecasts.unavailable ? <Banner tone="warning">Weather unavailable</Banner> : null}
       <DndProvider state={state} dispatch={dispatch}>
         <div className={styles.body}>
           <div className={styles.grid}>

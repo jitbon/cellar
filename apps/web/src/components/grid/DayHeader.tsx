@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type ComponentType, type FormEvent } from 'react';
+import type { LucideProps } from 'lucide-react';
 import {
   dayLocationOverride,
   orderedBlocks,
@@ -10,6 +11,8 @@ import {
 } from '@cellar/core';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
+import { Icon, MapPin, MoreHorizontal, PlaneLanding, PlaneTakeoff } from '../ui/Icon';
+import { Menu, MenuItem } from '../ui/Menu';
 import { LocationDialog } from '../weather/LocationDialog';
 import type { Dispatch } from './PlacementChip';
 import styles from './DayHeader.module.css';
@@ -98,50 +101,89 @@ function TravelDialog({
   );
 }
 
+function shortName(name: string): string {
+  return name.split(',')[0]!.trim();
+}
+
 export function DayHeader({ state, date, weekday, dispatch, forecastStatus }: Props) {
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
   const place = dayLocationOverride(state, date);
   const setting = state.daySettings.find((d) => d.date === date);
   const nameOf = (id: string | null) => state.blocks.find((b) => b.id === id)?.name;
   const arrival = nameOf(setting?.arrivalBlockId ?? null);
   const departure = nameOf(setting?.departureBlockId ?? null);
+  const shortDate = new Date(`${date}T12:00:00Z`).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+  const indicator = (icon: ComponentType<LucideProps>, text: string) => (
+    <button
+      type="button"
+      className={styles.indicator}
+      aria-label={`${text}. Open day options for ${date}`}
+      onClick={() => setMenuOpen(true)}
+    >
+      <Icon as={icon} size="small" />
+      <span>{text}</span>
+    </button>
+  );
 
   return (
     <div className={styles.header} data-testid="day-header">
-      <strong>{weekday}</strong>
-      <span className={styles.date}>{date}</span>
-      {forecastStatus?.kind === 'pending' ? (
-        <span className={styles.date}>Forecast from {forecastStatus.availableFrom}</span>
-      ) : null}
-      {place ? <span className={styles.badge}>📍 {place.name}</span> : null}
-      {arrival ? <span className={styles.badge}>✈ Arrive · {arrival}</span> : null}
-      {departure ? <span className={styles.badge}>✈ Depart · {departure}</span> : null}
-      <button
-        type="button"
-        className={styles.menuButton}
-        aria-label={`Set arrival and departure for ${date}`}
-        onClick={() => setOpen(true)}
-      >
-        Travel…
-      </button>
-      <button
-        type="button"
-        className={styles.menuButton}
-        aria-label={`Set location for ${date}`}
-        onClick={() => setLocationOpen(true)}
-      >
-        Location…
-      </button>
-      {place ? (
-        <button
-          type="button"
-          className={styles.menuButton}
-          aria-label={`Use trip location on ${date}`}
-          onClick={() => dispatch(setDayLocation(date, null))}
+      <div className={styles.line}>
+        <span className={styles.weekday}>{weekday.slice(0, 3).toUpperCase()}</span>
+        <span className={styles.date}>{shortDate}</span>
+        <Menu
+          open={menuOpen}
+          onOpenChange={setMenuOpen}
+          trigger={
+            <button
+              type="button"
+              className={styles.menuButton}
+              aria-label={`Day options for ${date}`}
+            >
+              <Icon as={MoreHorizontal} />
+            </button>
+          }
         >
-          Use trip location
-        </button>
+          {forecastStatus?.kind === 'pending' ? (
+            <MenuItem disabled onSelect={() => {}}>
+              Forecast from {forecastStatus.availableFrom}
+            </MenuItem>
+          ) : null}
+          <MenuItem
+            icon={PlaneLanding}
+            aria-label={`Set arrival and departure for ${date}`}
+            onSelect={() => setOpen(true)}
+          >
+            Arrival and departure
+          </MenuItem>
+          <MenuItem
+            icon={MapPin}
+            aria-label={`Set location for ${date}`}
+            onSelect={() => setLocationOpen(true)}
+          >
+            Location
+          </MenuItem>
+          {place ? (
+            <MenuItem
+              aria-label={`Use trip location on ${date}`}
+              onSelect={() => dispatch(setDayLocation(date, null))}
+            >
+              Use trip location
+            </MenuItem>
+          ) : null}
+        </Menu>
+      </div>
+      {arrival || departure || place ? (
+        <div className={styles.indicators}>
+          {arrival ? indicator(PlaneLanding, `Arrive · ${arrival}`) : null}
+          {departure ? indicator(PlaneTakeoff, `Depart · ${departure}`) : null}
+          {place ? indicator(MapPin, shortName(place.name)) : null}
+        </div>
       ) : null}
       {locationOpen ? (
         <LocationDialog

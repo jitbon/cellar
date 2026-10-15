@@ -7,6 +7,7 @@ import {
   goToDay,
   mockOpenMeteo,
   openBlockMenu,
+  openDayMenu,
   setTripLocationDirect,
   signIn,
   type Account,
@@ -50,7 +51,8 @@ test.describe('US1: weather icons on the grid', () => {
     await setTripLocationDirect(tripIdOf(page.url()), KYOTO);
     await page.reload();
 
-    await expect(page.getByText(/^Forecast from /).first()).toBeVisible();
+    await openDayMenu(page, day(90));
+    await expect(page.getByRole('menuitem', { name: /^Forecast from / })).toBeVisible();
     await expect(page.getByRole('button', { name: /weather:/ })).toHaveCount(0);
   });
 
@@ -64,7 +66,8 @@ test.describe('US1: weather icons on the grid', () => {
     await goToDay(page, 1);
     await expect(page.getByRole('button', { name: /^Morning weather:/ }).first()).toBeVisible();
     await goToDay(page, 17);
-    await expect(page.getByText(`Forecast from ${day(1)}`)).toBeVisible();
+    await openDayMenu(page, day(16));
+    await expect(page.getByRole('menuitem', { name: `Forecast from ${day(1)}` })).toBeVisible();
   });
 
   test('with the weather API down the banner shows and editing still works', async ({ page }) => {
@@ -211,29 +214,33 @@ test.describe('US3: set where the trip is', () => {
 
     // override day 4
     await goToDay(page, 4);
-    await pickPlace(page, `Set location for ${day(3)}`, 'Osa', 'Osaka, Japan');
-    await expect(page.getByText('📍 Osaka, Japan')).toBeVisible();
+    await openDayMenu(page, day(3));
+    await page.getByRole('menuitem', { name: `Set location for ${day(3)}` }).click();
+    await page.getByRole('combobox', { name: 'Search for a place' }).fill('Osa');
+    await page.getByRole('option', { name: 'Osaka, Japan' }).click();
+    await expect(page.getByText('Osaka', { exact: true })).toBeVisible();
 
     // changing the trip keeps the override
     await pickPlace(page, /^Change trip location/, 'Sap', 'Sapporo, Japan');
     await expect(
       page.getByRole('button', { name: 'Change trip location (Sapporo, Japan)' }),
     ).toBeVisible();
-    await expect(page.getByText('📍 Osaka, Japan')).toBeVisible();
+    await expect(page.getByText('Osaka', { exact: true })).toBeVisible();
 
     // use the trip location again
-    await page.getByRole('button', { name: `Use trip location on ${day(3)}` }).click();
-    await expect(page.getByText('📍 Osaka, Japan')).toHaveCount(0);
+    await openDayMenu(page, day(3));
+    await page.getByRole('menuitem', { name: `Use trip location on ${day(3)}` }).click();
+    await expect(page.getByText('Osaka', { exact: true })).toHaveCount(0);
 
     // three undos reverse the last three steps
     await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(page.getByText('📍 Osaka, Japan')).toBeVisible();
+    await expect(page.getByText('Osaka', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Undo' }).click();
     await expect(
       page.getByRole('button', { name: 'Change trip location (Kyoto, Japan)' }),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Undo' }).click();
-    await expect(page.getByText('📍 Osaka, Japan')).toHaveCount(0);
+    await expect(page.getByText('Osaka', { exact: true })).toHaveCount(0);
 
     // no match keeps the previous location
     await page.getByRole('button', { name: /^Change trip location/ }).click();
