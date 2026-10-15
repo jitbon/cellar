@@ -22,7 +22,7 @@
 }
 
 .name {
-  min-width: 0;
+  min-width: 48px;
   overflow: hidden;
   font-size: var(--font-size-lg);
   font-weight: 700;
@@ -107,6 +107,7 @@
   }
 
   .backText,
+  .rangeText,
   .locationText,
   .itemsText {
     display: none;

@@ -10,7 +10,7 @@ import {
 import { DndProvider } from '../components/grid/DndProvider';
 import { Grid } from '../components/grid/Grid';
 import type { Dispatch } from '../components/grid/PlacementChip';
-import { ItemList } from '../components/list/ItemList';
+import { ItemPanel } from '../components/list/ItemPanel';
 import { SaveStatusBanner } from '../components/SaveStatusBanner';
 import { LocationDialog } from '../components/weather/LocationDialog';
 import { Banner } from '../components/ui/Banner';
@@ -25,6 +25,20 @@ import { useServices } from '../state/services';
 import { useForecasts } from '../state/useForecasts';
 import { useTrip } from '../state/useTrip';
 import styles from './TripPlanner.module.css';
+
+const PANEL_KEY = 'cellar:itemPanelOpen';
+
+/** Stored per device; defaults to open on wide screens (data-model.md). */
+function readPanelOpen(): boolean {
+  try {
+    const stored = localStorage.getItem(PANEL_KEY);
+    if (stored === '1') return true;
+    if (stored === '0') return false;
+  } catch {
+    // Storage unavailable: fall through to the default.
+  }
+  return window.innerWidth >= 1280;
+}
 
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -130,6 +144,15 @@ export function TripPlanner() {
   const trip = useTrip(tripId);
   const justCreated = (location.state as { justCreated?: boolean } | null)?.justCreated ?? false;
   const createdTip = useTip('trip-created');
+  const [panelOpen, setPanelOpen] = useState(readPanelOpen);
+  const togglePanel = (open: boolean) => {
+    setPanelOpen(open);
+    try {
+      localStorage.setItem(PANEL_KEY, open ? '1' : '0');
+    } catch {
+      // Not persisted; the choice still applies for this visit.
+    }
+  };
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
   const ready = trip.status === 'ready' ? trip : null;
@@ -148,6 +171,22 @@ export function TripPlanner() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [undo, redo]);
+
+  useEffect(() => {
+    if (!panelOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && window.matchMedia('(max-width: 639px)').matches) {
+        setPanelOpen(false);
+        try {
+          localStorage.setItem(PANEL_KEY, '0');
+        } catch {
+          // Not persisted.
+        }
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [panelOpen]);
 
   if (trip.status === 'loading') return <p aria-live="polite">Loading…</p>;
   if (trip.status === 'notfound') {
@@ -182,6 +221,7 @@ export function TripPlanner() {
         onEditDates={() => setSettingsOpen(true)}
         onEditLocation={() => setLocationOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
+        panel={{ open: panelOpen, onToggle: () => togglePanel(!panelOpen) }}
       />
       <div className={styles.strips}>
         <SaveStatusBanner outbox={outbox} />
@@ -204,7 +244,21 @@ export function TripPlanner() {
           <div className={styles.grid}>
             <Grid state={state} dispatch={dispatch} forecasts={forecasts} />
           </div>
-          <ItemList state={state} dispatch={dispatch} />
+          {panelOpen ? (
+            <>
+              <button
+                type="button"
+                className={styles.scrim}
+                aria-label="Close list"
+                tabIndex={-1}
+                onClick={() => togglePanel(false)}
+              />
+              <div className={styles.panelSlot}>
+                <div className={styles.handle} aria-hidden="true" />
+                <ItemPanel state={state} dispatch={dispatch} />
+              </div>
+            </>
+          ) : null}
         </div>
       </DndProvider>
       {locationOpen ? (

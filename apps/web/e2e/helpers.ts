@@ -129,3 +129,10 @@ export async function openTripSettings(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'More trip actions' }).click();
   await page.getByRole('menuitem', { name: 'Trip settings' }).click();
 }
+
+/** Opens or closes the item panel (a bottom sheet on phones) with the header toggle. */
+export async function setItemPanel(page: Page, open: boolean): Promise<void> {
+  const toggle = page.getByRole('button', { name: 'Show list' });
+  if (((await toggle.getAttribute('aria-expanded')) === 'true') !== open) await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', String(open));
+}

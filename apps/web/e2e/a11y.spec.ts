@@ -7,6 +7,7 @@ import {
   deleteAccount,
   goToDay,
   mockOpenMeteo,
+  setItemPanel,
   setTripLocationDirect,
   signIn,
   type Account,
@@ -46,22 +47,27 @@ test('SC-006: create trip, add item, place item, edit block using only the keybo
 
   // Add a list item.
   const showList = page.getByRole('button', { name: 'Show list' });
-  if (await showList.isVisible()) {
+  if ((await showList.getAttribute('aria-expanded')) !== 'true') {
     await showList.focus();
     await page.keyboard.press('Enter');
   }
+  await page.getByRole('button', { name: 'Add', exact: true }).focus();
+  await page.keyboard.press('Enter');
   await page.getByLabel('Name', { exact: true }).first().focus();
   await page.keyboard.type('Tsukiji Market');
   await page.keyboard.press('Enter');
   await expect(page.getByText('Tsukiji Market')).toBeVisible();
 
   // Place it with the non-drag alternative.
-  await page.getByRole('button', { name: 'Place Tsukiji Market in a block' }).focus();
+  await page.getByRole('button', { name: 'Actions for Tsukiji Market' }).focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('menuitem', { name: 'Place Tsukiji Market in a block' }).focus();
   await page.keyboard.press('Enter');
   await page.getByLabel('Time block').selectOption({ label: 'Breakfast' });
   await page.getByRole('button', { name: 'Place', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByText(/placed 1×/)).toBeVisible();
+  await setItemPanel(page, false);
 
   // Rename a block.
   await goToDay(page, 1);

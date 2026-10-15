@@ -1,0 +1,220 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: var(--size-panel);
+  min-height: 0;
+  padding: var(--space-5);
+  border-left: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.addWrap {
+  position: relative;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  min-height: 26px;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  outline-offset: 4px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.segment,
+.toggleChip {
+  height: 24px;
+  padding: 0 var(--space-4);
+  border: 0;
+  background-color: var(--color-bg);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.segment + .segment {
+  border-left: 1px solid var(--color-border-strong);
+}
+
+.toggleChip {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.segmentActive {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 28px;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-bg);
+  font-size: var(--font-size-sm);
+  cursor: grab;
+  touch-action: manipulation;
+}
+
+.row:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.dragging {
+  opacity: 0.5;
+}
+
+.typeIcon {
+  display: inline-flex;
+  flex: none;
+}
+
+.activity {
+  color: var(--color-activity);
+}
+
+.food {
+  color: var(--color-food);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background-color: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.actions:hover {
+  background-color: var(--color-surface);
+}
+
+@media (pointer: coarse) {
+  .actions::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--size-touch);
+    height: var(--size-touch);
+    transform: translate(-50%, -50%);
+  }
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 200px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.select,
+.textarea {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.select {
+  min-height: 28px;
+}

@@ -8,6 +8,7 @@ import {
   openChipMenu,
   openDayMenu,
   openTripSettings,
+  setItemPanel,
   signIn,
   type Account,
 } from './helpers';
@@ -62,20 +63,15 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
 
   // 5: add a list item and use the suggestion
   // On narrow screens the list is a bottom sheet that covers the grid: open it only when needed.
-  const openList = async () => {
-    const button = page.getByRole('button', { name: 'Show list' });
-    if (await button.isVisible()) await button.click();
-  };
-  const closeList = async () => {
-    const button = page.getByRole('button', { name: 'Hide list' });
-    if (await button.isVisible()) await button.click();
-  };
+  const openList = () => setItemPanel(page, true);
+  const closeList = () => setItemPanel(page, false);
   await openList();
   const list = page.getByRole('complementary', { name: 'Activities and food' });
+  await list.getByRole('button', { name: 'Add', exact: true }).click();
   await list.getByLabel('Name', { exact: true }).fill('Ichiran Ramen');
   await list.getByLabel('Type').selectOption('food');
   await list.getByRole('button', { name: 'Add to list' }).click();
-  await expect(list.getByText(/placed 0×/)).toBeVisible();
+  await expect(list.getByText('Ichiran Ramen')).toBeVisible();
   await closeList();
   await goToDay(page, 3);
   await page.getByRole('button', { name: 'Add event to Lunch on 2027-04-03' }).click();
@@ -85,7 +81,8 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
   await expect(list.getByText(/placed 1×/)).toBeVisible();
 
   // 7: deleting the list item keeps the placement
-  await list.getByRole('button', { name: 'Delete Ichiran Ramen' }).click();
+  await list.getByRole('button', { name: 'Actions for Ichiran Ramen' }).click();
+  await page.getByRole('menuitem', { name: 'Delete Ichiran Ramen' }).click();
   await page.getByRole('button', { name: 'Delete', exact: true }).last().click();
   await expect(page.getByText('Ichiran Ramen').first()).toBeVisible();
 

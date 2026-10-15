@@ -5,6 +5,7 @@ import {
   deleteAccount,
   mockOpenMeteo,
   openDayMenu,
+  setItemPanel,
   signIn,
   type Account,
 } from './helpers';
@@ -19,14 +20,6 @@ test.afterAll(async () => {
 });
 
 const DESKTOP = { width: 1440, height: 900 };
-
-/** Opens or closes the item panel via the header toggle (no-op if there is no toggle yet). */
-async function setPanel(page: Page, open: boolean) {
-  const toggle = page.getByRole('button', { name: 'Show list' });
-  if ((await toggle.count()) === 0) return;
-  const expanded = (await toggle.getAttribute('aria-expanded')) === 'true';
-  if (expanded !== open) await toggle.click();
-}
 
 async function fullyInViewport(page: Page, locator: Locator) {
   const view = page.viewportSize()!;
@@ -57,14 +50,37 @@ test.describe('layout (desktop)', () => {
     await signIn(page, account);
     await createTrip(page, 'Layout', '2027-04-01', '2027-04-05');
 
-    await setPanel(page, false);
+    await setItemPanel(page, false);
     expect(await fullyInViewport(page, page.getByTestId('day-header'))).toBeGreaterThanOrEqual(5);
     expect(
       await fullyInViewport(page, page.getByRole('button', { name: /^Rename / })),
     ).toBeGreaterThanOrEqual(8);
 
-    await setPanel(page, true);
+    await setItemPanel(page, true);
     expect(await fullyInViewport(page, page.getByTestId('day-header'))).toBeGreaterThanOrEqual(4);
+  });
+
+  test('FR-012: the panel toggle widens the grid and the choice survives a reload', async ({
+    page,
+  }) => {
+    await signIn(page, account);
+    await createTrip(page, 'Panel', '2027-04-01', '2027-04-05');
+    const panel = page.getByRole('complementary', { name: 'Activities and food' });
+    const gridWidth = async () =>
+      (await page.getByTestId('day-header').first().boundingBox())!.width;
+
+    await setItemPanel(page, true);
+    await expect(panel).toBeVisible();
+    const withPanel = await gridWidth();
+    await setItemPanel(page, false);
+    await expect(panel).toHaveCount(0);
+    expect(await gridWidth()).toBeGreaterThan(withPanel);
+
+    await page.reload();
+    await expect(panel).toHaveCount(0);
+    await setItemPanel(page, true);
+    await page.reload();
+    await expect(panel).toBeVisible();
   });
 
   test('block names stay on one line and show no time range', async ({ page }) => {
@@ -86,7 +102,7 @@ test.describe('layout (desktop)', () => {
     test.setTimeout(60_000);
     await signIn(page, account);
     await createTrip(page, 'Chips', '2027-04-01', '2027-04-05');
-    await setPanel(page, false);
+    await setItemPanel(page, false);
 
     const headers = page.getByTestId('day-header');
     const widths = async () => {
@@ -130,7 +146,7 @@ test.describe('layout (desktop)', () => {
     await mockOpenMeteo(page, 'ok');
     await signIn(page, account);
     await createTrip(page, 'Headers', '2027-04-01', '2027-04-05');
-    await setPanel(page, false);
+    await setItemPanel(page, false);
 
     await openDayMenu(page, '2027-04-01');
     await page.getByRole('menuitem', { name: 'Set arrival and departure for 2027-04-01' }).click();

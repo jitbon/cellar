@@ -57,7 +57,7 @@ export function TripHeader({
         onClick={onEditDates}
       >
         <Icon as={CalendarDays} />
-        <span>{rangeLabel}</span>
+        <span className={styles.rangeText}>{rangeLabel}</span>
       </button>
       <button
         type="button"
