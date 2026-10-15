@@ -171,3 +171,79 @@ test.describe('US2: touch at 360px', () => {
     await expect(page.getByText('70% chance of rain')).toHaveCount(0);
   });
 });
+
+test.describe('US3: set where the trip is', () => {
+  async function pickPlace(page: Page, opener: string | RegExp, query: string, option: string) {
+    await page.getByRole('button', { name: opener }).click();
+    await page.getByRole('combobox', { name: 'Search for a place' }).fill(query);
+    await page.getByRole('option', { name: option }).click();
+  }
+
+  test('search, override a day, change the trip, clear, and undo', async ({ page }) => {
+    test.setTimeout(90_000);
+    const requests: URL[] = [];
+    page.on('request', (r) => {
+      if (r.url().includes('open-meteo.com')) requests.push(new URL(r.url()));
+    });
+    await mockOpenMeteo(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'Kyoto US3', day(0), day(5));
+
+    // no location: prompt, no icons
+    await expect(page.getByText('Add a location to see the weather')).toBeVisible();
+    await expect(page.getByRole('button', { name: /weather:/ })).toHaveCount(0);
+
+    // search and pick
+    await pickPlace(page, 'Add a location', 'Kyo', 'Kyoto, Japan');
+    await expect(page.getByRole('button', { name: /^Morning weather:/ }).first()).toBeVisible();
+
+    // override day 4
+    await goToDay(page, 4);
+    await pickPlace(page, `Set location for ${day(3)}`, 'Osa', 'Osaka, Japan');
+    await expect(page.getByText('📍 Osaka, Japan')).toBeVisible();
+
+    // changing the trip keeps the override
+    await pickPlace(page, /^Change trip location/, 'Sap', 'Sapporo, Japan');
+    await expect(
+      page.getByRole('button', { name: 'Change trip location (Sapporo, Japan)' }),
+    ).toBeVisible();
+    await expect(page.getByText('📍 Osaka, Japan')).toBeVisible();
+
+    // use the trip location again
+    await page.getByRole('button', { name: `Use trip location on ${day(3)}` }).click();
+    await expect(page.getByText('📍 Osaka, Japan')).toHaveCount(0);
+
+    // three undos reverse the last three steps
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(page.getByText('📍 Osaka, Japan')).toBeVisible();
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Change trip location (Kyoto, Japan)' }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(page.getByText('📍 Osaka, Japan')).toHaveCount(0);
+
+    // no match keeps the previous location
+    await page.getByRole('button', { name: /^Change trip location/ }).click();
+    await page.getByRole('combobox', { name: 'Search for a place' }).fill('zzzxqq');
+    await expect(page.getByText('No matching place found')).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Change trip location (Kyoto, Japan)' }),
+    ).toBeVisible();
+
+    // FR-012: only coordinates or the search text leave the device
+    const forecast = requests.filter((u) => u.hostname === 'api.open-meteo.com');
+    const geocode = requests.filter((u) => u.hostname === 'geocoding-api.open-meteo.com');
+    expect(forecast.length).toBeGreaterThan(0);
+    expect(geocode.length).toBeGreaterThan(0);
+    for (const u of forecast) {
+      expect([...u.searchParams.keys()].sort()).toEqual(
+        ['forecast_days', 'hourly', 'latitude', 'longitude', 'timezone'].sort(),
+      );
+    }
+    for (const u of geocode) {
+      expect([...u.searchParams.keys()].sort()).toEqual(['count', 'format', 'language', 'name']);
+    }
+  });
+});

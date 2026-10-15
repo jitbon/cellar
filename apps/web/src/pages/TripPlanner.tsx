@@ -1,11 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import { renameTrip, updateTripDates, type TripState } from '@cellar/core';
+import {
+  renameTrip,
+  setTripLocation,
+  tripLocation,
+  updateTripDates,
+  type TripState,
+} from '@cellar/core';
 import { DndProvider } from '../components/grid/DndProvider';
 import { Grid } from '../components/grid/Grid';
 import type { Dispatch } from '../components/grid/PlacementCard';
 import { ItemList } from '../components/list/ItemList';
 import { SaveStatusBanner } from '../components/SaveStatusBanner';
+import { LocationDialog } from '../components/weather/LocationDialog';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -121,6 +128,7 @@ export function TripPlanner() {
   const trip = useTrip(tripId);
   const justCreated = (location.state as { justCreated?: boolean } | null)?.justCreated ?? false;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
   const ready = trip.status === 'ready' ? trip : null;
   const forecasts = useForecasts(ready?.state ?? null);
   const undo = ready?.undo;
@@ -157,6 +165,7 @@ export function TripPlanner() {
   }
 
   const { state, dispatch } = trip;
+  const tripPlace = tripLocation(state);
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -170,6 +179,15 @@ export function TripPlanner() {
         >
           <span aria-hidden="true">📅</span>
           {formatRange(state.trip.startDate, state.trip.endDate)}
+        </button>
+        <button
+          type="button"
+          className={styles.dates}
+          aria-label={tripPlace ? `Change trip location (${tripPlace.name})` : 'Add a location'}
+          onClick={() => setLocationOpen(true)}
+        >
+          <span aria-hidden="true">📍</span>
+          {tripPlace ? tripPlace.name : 'Add a location'}
         </button>
         <div className={styles.toolbar}>
           <Button onClick={trip.undo} disabled={!trip.canUndo} aria-label="Undo">
@@ -191,6 +209,7 @@ export function TripPlanner() {
         </Banner>
       ) : null}
       <SaveStatusBanner outbox={outbox} />
+      {tripPlace ? null : <Banner>Add a location to see the weather.</Banner>}
       {forecasts.unavailable ? <Banner tone="warning">Weather unavailable</Banner> : null}
       <DndProvider state={state} dispatch={dispatch}>
         <div className={styles.body}>
@@ -200,6 +219,16 @@ export function TripPlanner() {
           <ItemList state={state} dispatch={dispatch} />
         </div>
       </DndProvider>
+      {locationOpen ? (
+        <LocationDialog
+          title="Trip location"
+          current={tripPlace}
+          onSelect={(place) => dispatch(setTripLocation(place))}
+          clearLabel={tripPlace ? 'Remove location' : undefined}
+          onClear={() => dispatch(setTripLocation(null))}
+          onClose={() => setLocationOpen(false)}
+        />
+      ) : null}
       {settingsOpen ? (
         <TripSettingsDialog
           state={state}

@@ -1,6 +1,16 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { createAccount, createTrip, deleteAccount, goToDay, signIn, type Account } from './helpers';
+import {
+  createAccount,
+  createTrip,
+  dateIn,
+  deleteAccount,
+  goToDay,
+  mockOpenMeteo,
+  setTripLocationDirect,
+  signIn,
+  type Account,
+} from './helpers';
 
 let account: Account;
 
@@ -76,5 +86,35 @@ test('axe: sign-in, trips and planner have no serious or critical violations', a
   await expectNoSeriousViolations(page);
 
   await createTrip(page, 'Axe', '2027-04-01', '2027-04-02');
+  await expectNoSeriousViolations(page);
+});
+
+test('axe: weather icons, an open popover and the location picker have no serious violations', async ({
+  page,
+}) => {
+  await mockOpenMeteo(page, 'ok');
+  await signIn(page, account);
+  await createTrip(page, 'Axe weather', dateIn('Asia/Tokyo', 0), dateIn('Asia/Tokyo', 2));
+  await setTripLocationDirect(page.url().split('/').pop()!, {
+    name: 'Kyoto, Japan',
+    lat: 35.0211,
+    lon: 135.7538,
+    tz: 'Asia/Tokyo',
+  });
+  await page.reload();
+  await goToDay(page, 1);
+
+  const icon = page.getByRole('button', { name: /^Afternoon weather:/ }).first();
+  await expect(icon).toBeVisible();
+  await expectNoSeriousViolations(page);
+
+  await icon.focus();
+  await expect(page.getByText('Weather data by Open-Meteo.com')).toBeVisible();
+  await expectNoSeriousViolations(page);
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: /^Change trip location/ }).click();
+  await page.getByRole('combobox', { name: 'Search for a place' }).fill('Kyo');
+  await expect(page.getByRole('option', { name: 'Kyoto, Japan' })).toBeVisible();
   await expectNoSeriousViolations(page);
 });

@@ -3,6 +3,7 @@ import { newId } from '../model/ids';
 import { comparePositioned, positionAmong } from '../model/ordering';
 import type { Block, DaySetting, TimeWindow, TripState } from '../model/types';
 import { validateBlockName, validateWindow } from '../model/validation';
+import { locationOf } from '../queries/location';
 import { effectiveWindows, suggestedWindow } from '../queries/window';
 import type { Command } from './command';
 import { commit } from './diff';
@@ -87,7 +88,9 @@ function clearBlockFromSettings(settings: DaySetting[], blockId: string): DaySet
       arrivalBlockId: d.arrivalBlockId === blockId ? null : d.arrivalBlockId,
       departureBlockId: d.departureBlockId === blockId ? null : d.departureBlockId,
     }))
-    .filter((d) => d.arrivalBlockId !== null || d.departureBlockId !== null);
+    .filter(
+      (d) => d.arrivalBlockId !== null || d.departureBlockId !== null || locationOf(d) !== null,
+    );
 }
 
 /** Deletes the block and its placements, and clears day settings that referenced it. */
