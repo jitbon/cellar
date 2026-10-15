@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { BlockLabel } from './BlockLabel';
 import { Cell } from './Cell';
 import { DayHeader } from './DayHeader';
+import type { Forecasts } from '../../state/useForecasts';
 import { blockDragId } from './dndIds';
 import type { Dispatch } from './PlacementCard';
 import styles from './Grid.module.css';
@@ -27,9 +28,10 @@ function useIsNarrow(): boolean {
 interface Props {
   state: TripState;
   dispatch: Dispatch;
+  forecasts: Forecasts;
 }
 
-export function Grid({ state, dispatch }: Props) {
+export function Grid({ state, dispatch, forecasts }: Props) {
   const allDays = days(state.trip);
   const blocks = orderedBlocks(state);
   const narrow = useIsNarrow();
@@ -69,7 +71,13 @@ export function Grid({ state, dispatch }: Props) {
           <div className={`${styles.corner} ${styles.headerCell}`}>Time block</div>
           {visible.map((d) => (
             <div key={d.date} className={styles.headerCell}>
-              <DayHeader state={state} date={d.date} weekday={d.weekday} dispatch={dispatch} />
+              <DayHeader
+                state={state}
+                date={d.date}
+                weekday={d.weekday}
+                dispatch={dispatch}
+                forecastStatus={forecasts.dayStatus(d.date)}
+              />
             </div>
           ))}
           <SortableContext
@@ -89,6 +97,7 @@ export function Grid({ state, dispatch }: Props) {
                       blockId={block.id}
                       blockName={block.name}
                       dispatch={dispatch}
+                      weather={forecasts.cellWeather(d.date, block.id)}
                     />
                   </div>
                 ))}

@@ -66,7 +66,7 @@ const fixture = (name: string) =>
   readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8');
 
 /** Calendar date (YYYY-MM-DD) `offset` days from today in the given time zone. */
-function dateIn(tz: string, offset: number): string {
+export function dateIn(tz: string, offset: number): string {
   const ms = Date.now() + offset * 86_400_000;
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(ms);
 }

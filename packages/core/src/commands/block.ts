@@ -1,8 +1,9 @@
 import { validationError } from '../model/errors';
 import { newId } from '../model/ids';
 import { comparePositioned, positionAmong } from '../model/ordering';
-import type { Block, DaySetting, TripState } from '../model/types';
-import { validateBlockName } from '../model/validation';
+import type { Block, DaySetting, TimeWindow, TripState } from '../model/types';
+import { validateBlockName, validateWindow } from '../model/validation';
+import { effectiveWindows, suggestedWindow } from '../queries/window';
 import type { Command } from './command';
 import { commit } from './diff';
 
@@ -19,16 +20,36 @@ export function addBlock(name: string, afterBlockId?: string): Command {
     if (afterBlockId !== undefined && !state.blocks.some((b) => b.id === afterBlockId)) {
       return { ok: false, error: notFound() };
     }
+    const sorted = sortedBlocks(state);
+    const previousId = afterBlockId ?? sorted.at(-1)?.id;
+    const previousEnd = previousId
+      ? (effectiveWindows(state).get(previousId)?.endMin ?? null)
+      : null;
+    const window = suggestedWindow(previousEnd);
     const block: Block = {
       id: newId(),
       tripId: state.trip.id,
       name: name.trim(),
-      position: positionAmong(sortedBlocks(state), { afterId: afterBlockId }),
-      windowStartMin: null,
-      windowEndMin: null,
+      position: positionAmong(sorted, { afterId: afterBlockId }),
+      windowStartMin: window.startMin,
+      windowEndMin: window.endMin,
       updatedAt: '',
     };
     return commit(state, { ...state, blocks: [...state.blocks, block] });
+  };
+}
+
+export function setBlockWindow(id: string, window: TimeWindow): Command {
+  return (state) => {
+    if (!state.blocks.some((b) => b.id === id)) return { ok: false, error: notFound() };
+    const error = validateWindow(window);
+    if (error) return { ok: false, error };
+    return commit(state, {
+      ...state,
+      blocks: state.blocks.map((b) =>
+        b.id === id ? { ...b, windowStartMin: window.startMin, windowEndMin: window.endMin } : b,
+      ),
+    });
   };
 }
 

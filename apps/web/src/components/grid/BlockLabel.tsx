@@ -5,7 +5,9 @@ import {
   addBlock,
   impactOfRemoveBlock,
   removeBlock,
+  effectiveWindow,
   renameBlock,
+  setBlockWindow,
   type Block,
   type TripState,
 } from '@cellar/core';
@@ -62,12 +64,76 @@ function AddBlockDialog({
   );
 }
 
+const toTime = (min: number) =>
+  `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+const fromTime = (time: string) => {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+};
+
+function WindowDialog({
+  state,
+  block,
+  dispatch,
+  onClose,
+}: {
+  state: TripState;
+  block: Block;
+  dispatch: Dispatch;
+  onClose: () => void;
+}) {
+  const current = effectiveWindow(state, block.id);
+  const [start, setStart] = useState(toTime(current.startMin));
+  const [end, setEnd] = useState(toTime(current.endMin));
+  const [error, setError] = useState<string | null>(null);
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (start === '' || end === '') {
+      setError('Enter a start and end time.');
+      return;
+    }
+    const result = dispatch(
+      setBlockWindow(block.id, { startMin: fromTime(start), endMin: fromTime(end) }),
+    );
+    if (result.ok) onClose();
+    else setError(result.error.message);
+  }
+
+  return (
+    <Dialog title={`Time window for ${block.name}`} onClose={onClose}>
+      <form className={styles.form} onSubmit={onSubmit}>
+        <TextField
+          label="Starts"
+          type="time"
+          value={start}
+          onChange={(e) => setStart(e.target.value)}
+        />
+        <TextField
+          label="Ends"
+          type="time"
+          value={end}
+          onChange={(e) => setEnd(e.target.value)}
+          error={error}
+        />
+        <div className={styles.actions}>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="submit" variant="primary">
+            Save
+          </Button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
 export function BlockLabel({ state, block, dispatch }: Props) {
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(block.name);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [editingWindow, setEditingWindow] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: blockDragId(block.id),
   });
@@ -153,6 +219,15 @@ export function BlockLabel({ state, block, dispatch }: Props) {
             <button
               type="button"
               className={styles.iconButton}
+              aria-label={`Edit time window for ${block.name}`}
+              title="Edit time window (used for the weather forecast)"
+              onClick={() => setEditingWindow(true)}
+            >
+              <span aria-hidden="true">🕒</span>
+            </button>
+            <button
+              type="button"
+              className={styles.iconButton}
               aria-label={`Add block below ${block.name}`}
               title="Add block below"
               onClick={() => setAdding(true)}
@@ -173,6 +248,14 @@ export function BlockLabel({ state, block, dispatch }: Props) {
         )}
       </div>
 
+      {editingWindow ? (
+        <WindowDialog
+          state={state}
+          block={block}
+          dispatch={dispatch}
+          onClose={() => setEditingWindow(false)}
+        />
+      ) : null}
       {adding ? (
         <AddBlockDialog block={block} dispatch={dispatch} onClose={() => setAdding(false)} />
       ) : null}

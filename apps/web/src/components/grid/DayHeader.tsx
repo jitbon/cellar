@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { orderedBlocks, setDayWindow, type ISODate, type TripState } from '@cellar/core';
+import {
+  orderedBlocks,
+  setDayWindow,
+  type DayForecastStatus,
+  type ISODate,
+  type TripState,
+} from '@cellar/core';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import type { Dispatch } from './PlacementCard';
@@ -10,6 +16,7 @@ interface Props {
   date: ISODate;
   weekday: string;
   dispatch: Dispatch;
+  forecastStatus?: DayForecastStatus;
 }
 
 function TravelDialog({
@@ -17,7 +24,7 @@ function TravelDialog({
   date,
   dispatch,
   onClose,
-}: Omit<Props, 'weekday'> & { onClose: () => void }) {
+}: Omit<Props, 'weekday' | 'forecastStatus'> & { onClose: () => void }) {
   const blocks = orderedBlocks(state);
   const setting = state.daySettings.find((d) => d.date === date);
   const [arrival, setArrival] = useState(setting?.arrivalBlockId ?? '');
@@ -88,7 +95,7 @@ function TravelDialog({
   );
 }
 
-export function DayHeader({ state, date, weekday, dispatch }: Props) {
+export function DayHeader({ state, date, weekday, dispatch, forecastStatus }: Props) {
   const [open, setOpen] = useState(false);
   const setting = state.daySettings.find((d) => d.date === date);
   const nameOf = (id: string | null) => state.blocks.find((b) => b.id === id)?.name;
@@ -99,6 +106,9 @@ export function DayHeader({ state, date, weekday, dispatch }: Props) {
     <div className={styles.header}>
       <strong>{weekday}</strong>
       <span className={styles.date}>{date}</span>
+      {forecastStatus?.kind === 'pending' ? (
+        <span className={styles.date}>Forecast from {forecastStatus.availableFrom}</span>
+      ) : null}
       {arrival ? <span className={styles.badge}>✈ Arrive · {arrival}</span> : null}
       {departure ? <span className={styles.badge}>✈ Depart · {departure}</span> : null}
       <button

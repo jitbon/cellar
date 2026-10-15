@@ -7,12 +7,14 @@ import {
   isGreyed,
   placeItem,
   suggestItems,
+  type CellWeather,
   type ISODate,
   type Item,
   type TripState,
 } from '@cellar/core';
 import { CellSuggestions, optionId } from './CellSuggestions';
 import { cellDropId, placementDragId } from './dndIds';
+import { WeatherIcon } from '../weather/WeatherIcon';
 import { PlacementCard, type Dispatch } from './PlacementCard';
 import styles from './Cell.module.css';
 
@@ -22,9 +24,10 @@ interface Props {
   blockId: string;
   blockName: string;
   dispatch: Dispatch;
+  weather?: CellWeather | null;
 }
 
-export function Cell({ state, date, blockId, blockName, dispatch }: Props) {
+export function Cell({ state, date, blockId, blockName, dispatch, weather = null }: Props) {
   const placements = cell(state, date, blockId);
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState('');
@@ -80,6 +83,7 @@ export function Cell({ state, date, blockId, blockName, dispatch }: Props) {
       ref={setNodeRef}
       className={`${styles.cell} ${isOver ? styles.over : ''} ${greyed ? styles.greyed : ''}`}
     >
+      {weather ? <WeatherIcon blockName={blockName} weather={weather} /> : null}
       {greyed ? (
         <span className={styles.travelNote} role="img" aria-label="Outside travel window">
           ✈ Outside travel window

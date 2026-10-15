@@ -1,5 +1,6 @@
 import { newId, positionBetween } from '../model/ids';
 import type { Block, ISODate, TripState } from '../model/types';
+import { DEFAULT_BLOCK_WINDOWS } from '../queries/window';
 import { validateDateRange, validateTripName } from '../model/validation';
 import type { Command, Ok, Result } from './command';
 import { commit } from './diff';
@@ -35,8 +36,8 @@ export function createTrip(ownerId: string, name: string, start: ISODate, end: I
       tripId,
       name: blockName,
       position,
-      windowStartMin: null,
-      windowEndMin: null,
+      windowStartMin: DEFAULT_BLOCK_WINDOWS[blockName].startMin,
+      windowEndMin: DEFAULT_BLOCK_WINDOWS[blockName].endMin,
       updatedAt: now,
     });
     prev = position;

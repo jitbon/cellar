@@ -13,6 +13,7 @@ import { DateRangePicker, formatRange } from '../components/ui/DateRangePicker';
 import { Dialog } from '../components/ui/Dialog';
 import { TextField } from '../components/ui/TextField';
 import { useServices } from '../state/services';
+import { useForecasts } from '../state/useForecasts';
 import { useTrip } from '../state/useTrip';
 import styles from './TripPlanner.module.css';
 
@@ -121,6 +122,7 @@ export function TripPlanner() {
   const justCreated = (location.state as { justCreated?: boolean } | null)?.justCreated ?? false;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const ready = trip.status === 'ready' ? trip : null;
+  const forecasts = useForecasts(ready?.state ?? null);
   const undo = ready?.undo;
   const redo = ready?.redo;
 
@@ -189,10 +191,11 @@ export function TripPlanner() {
         </Banner>
       ) : null}
       <SaveStatusBanner outbox={outbox} />
+      {forecasts.unavailable ? <Banner tone="warning">Weather unavailable</Banner> : null}
       <DndProvider state={state} dispatch={dispatch}>
         <div className={styles.body}>
           <div className={styles.grid}>
-            <Grid state={state} dispatch={dispatch} />
+            <Grid state={state} dispatch={dispatch} forecasts={forecasts} />
           </div>
           <ItemList state={state} dispatch={dispatch} />
         </div>
