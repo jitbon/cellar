@@ -50,15 +50,6 @@
   justify-content: center;
 }
 
-.cornerLabel {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 .blockLabel {
   position: sticky;
   left: 0;

@@ -65,9 +65,7 @@ export function Grid({ state, dispatch, forecasts }: Props) {
       ) : null}
       <div className={styles.scroller}>
         <div className={styles.grid} style={{ '--day-count': visible.length } as CSSProperties}>
-          <div className={`${styles.corner} ${styles.headerCell}`}>
-            <span className={styles.cornerLabel}>Time block</span>
-          </div>
+          <div className={`${styles.corner} ${styles.headerCell}`} />
           {visible.map((d) => (
             <div key={d.date} className={styles.headerCell}>
               <DayHeader
