@@ -2,8 +2,17 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router';
 import { createTrip, validateTripName, type Trip } from '@cellar/core';
 import { Banner } from '../components/ui/Banner';
+import {
+  CalendarDays,
+  ChevronRight,
+  Icon,
+  MapPin,
+  MoreHorizontal,
+  Plus,
+} from '../components/ui/Icon';
+import { Menu, MenuItem } from '../components/ui/Menu';
 import { Button } from '../components/ui/Button';
-import { DateRangePicker } from '../components/ui/DateRangePicker';
+import { DateRangePicker, formatRange } from '../components/ui/DateRangePicker';
 import { Dialog } from '../components/ui/Dialog';
 import { TextField } from '../components/ui/TextField';
 import { useAuthUser, useServices } from '../state/services';
@@ -157,96 +166,116 @@ export function Trips() {
   }
 
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <h1>Your trips</h1>
+    <>
+      <header className={styles.bar}>
+        <h1 className={styles.barTitle}>Your trips</h1>
         <nav className={styles.nav}>
-          <Link to="/settings">Settings</Link>
-          <Button variant="primary" onClick={() => setCreating(true)}>
+          <Link to="/settings" className={styles.barLink}>
+            Settings
+          </Link>
+          <Button className={styles.newTrip} onClick={() => setCreating(true)}>
+            <Icon as={Plus} />
             New trip
           </Button>
         </nav>
       </header>
+      <main className={styles.page}>
+        {error ? <Banner tone="error">{error}</Banner> : null}
+        {undo ? (
+          <Banner>
+            “{undo.name}” was deleted.{' '}
+            <Button variant="ghost" onClick={() => void onRestore(undo)}>
+              Undo
+            </Button>
+          </Banner>
+        ) : null}
 
-      {error ? <Banner tone="error">{error}</Banner> : null}
-      {undo ? (
-        <Banner>
-          “{undo.name}” was deleted.{' '}
-          <Button variant="ghost" onClick={() => void onRestore(undo)}>
-            Undo
-          </Button>
-        </Banner>
-      ) : null}
-
-      {trips === null ? (
-        <p aria-live="polite">Loading…</p>
-      ) : trips.length === 0 ? (
-        <p>No trips yet. Create one to start planning.</p>
-      ) : (
-        <ul className={styles.list}>
-          {trips.map((trip) => (
-            <li key={trip.id} className={styles.card}>
-              <Link to={`/trips/${trip.id}`} className={styles.cardLink}>
-                <strong>{trip.name}</strong>
-                <span className={styles.muted}>
-                  {trip.startDate} → {trip.endDate}
-                </span>
-              </Link>
-              <div className={styles.actions}>
-                <Button
-                  variant="ghost"
-                  aria-label={`Rename ${trip.name}`}
-                  onClick={() => setRenaming(trip)}
-                >
-                  Rename
-                </Button>
-                <Button
-                  variant="ghost"
-                  aria-label={`Delete ${trip.name}`}
-                  onClick={() => void onDelete(trip)}
-                >
-                  Delete
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <details className={styles.deleted}>
-        <summary>Recently deleted ({deleted.length})</summary>
-        {deleted.length === 0 ? (
-          <p className={styles.muted}>Nothing here.</p>
+        {trips === null ? (
+          <p aria-live="polite">Loading…</p>
+        ) : trips.length === 0 ? (
+          <p>No trips yet. Create one to start planning.</p>
         ) : (
           <ul className={styles.list}>
-            {deleted.map((trip) => (
-              <li key={trip.id} className={styles.card}>
-                <div className={styles.cardLink}>
-                  <strong>{trip.name}</strong>
-                  <span className={styles.muted}>
-                    {daysRemaining(trip.deletedAt!)} days left to restore
+            {trips.map((trip) => (
+              <li key={trip.id} className={styles.row}>
+                <Link to={`/trips/${trip.id}`} className={styles.rowLink}>
+                  <span className={styles.rowName}>{trip.name}</span>
+                  <span className={styles.rowMeta}>
+                    <Icon as={CalendarDays} />
+                    {formatRange(trip.startDate, trip.endDate)}
                   </span>
-                </div>
-                <Button aria-label={`Restore ${trip.name}`} onClick={() => void onRestore(trip)}>
-                  Restore
-                </Button>
+                  {trip.locationName ? (
+                    <span className={styles.rowMeta}>
+                      <Icon as={MapPin} />
+                      {trip.locationName}
+                    </span>
+                  ) : null}
+                  <span className={styles.chevron}>
+                    <Icon as={ChevronRight} />
+                  </span>
+                </Link>
+                <Menu
+                  trigger={
+                    <button
+                      type="button"
+                      className={styles.rowMenu}
+                      aria-label={`Actions for ${trip.name}`}
+                    >
+                      <Icon as={MoreHorizontal} />
+                    </button>
+                  }
+                >
+                  <MenuItem aria-label={`Rename ${trip.name}`} onSelect={() => setRenaming(trip)}>
+                    Rename
+                  </MenuItem>
+                  <MenuItem
+                    danger
+                    aria-label={`Delete ${trip.name}`}
+                    onSelect={() => void onDelete(trip)}
+                  >
+                    Delete
+                  </MenuItem>
+                </Menu>
               </li>
             ))}
           </ul>
         )}
-      </details>
 
-      {creating ? <CreateTripDialog onClose={() => setCreating(false)} /> : null}
-      {renaming ? (
-        <RenameDialog
-          trip={renaming}
-          onClose={() => setRenaming(null)}
-          onSaved={() => {
-            setRenaming(null);
-            void refresh();
-          }}
-        />
-      ) : null}
-    </main>
+        <details className={styles.deleted}>
+          <summary>Recently deleted ({deleted.length})</summary>
+          {deleted.length === 0 ? (
+            <p className={styles.muted}>Nothing here.</p>
+          ) : (
+            <ul className={styles.list}>
+              {deleted.map((trip) => (
+                <li key={trip.id} className={styles.row}>
+                  <div className={styles.rowLink}>
+                    <span className={styles.rowName}>{trip.name}</span>
+                    <span className={styles.muted}>
+                      {daysRemaining(trip.deletedAt!)} days left to restore
+                    </span>
+                  </div>
+                  <Button aria-label={`Restore ${trip.name}`} onClick={() => void onRestore(trip)}>
+                    Restore
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </details>
+
+        {creating ? <CreateTripDialog onClose={() => setCreating(false)} /> : null}
+        {renaming ? (
+          <RenameDialog
+            trip={renaming}
+            onClose={() => setRenaming(null)}
+            onSaved={() => {
+              setRenaming(null);
+              void refresh();
+            }}
+          />
+        ) : null}
+      </main>
+    </>
   );
 }

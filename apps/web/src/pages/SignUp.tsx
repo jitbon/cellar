@@ -25,38 +25,41 @@ export function SignUp() {
   }
 
   return (
-    <main className={styles.page}>
-      <h1>Create account</h1>
-      {sent ? (
-        <Banner>Check your email to confirm your account, then sign in.</Banner>
-      ) : (
-        <form className={styles.form} onSubmit={onSubmit}>
-          <TextField
-            label="Email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <TextField
-            label="Password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={error}
-          />
-          <Button type="submit" variant="primary">
-            Sign up
-          </Button>
-        </form>
-      )}
-      <div className={styles.links}>
-        <Link to="/signin">Already have an account? Sign in</Link>
-      </div>
-    </main>
+    <div className={styles.screen}>
+      <main className={styles.page}>
+        <p className={styles.wordmark}>Cellar</p>
+        <h1>Create account</h1>
+        {sent ? (
+          <Banner>Check your email to confirm your account, then sign in.</Banner>
+        ) : (
+          <form className={styles.form} onSubmit={onSubmit}>
+            <TextField
+              label="Email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={error}
+            />
+            <Button type="submit" variant="primary">
+              Sign up
+            </Button>
+          </form>
+        )}
+        <div className={styles.links}>
+          <Link to="/signin">Already have an account? Sign in</Link>
+        </div>
+      </main>
+    </div>
   );
 }

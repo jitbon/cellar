@@ -32,8 +32,9 @@
   border: 0;
   border-radius: var(--radius-pill);
   background-color: transparent;
-  font-size: var(--font-size-lg);
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { ArrowLeft, Icon } from '../components/ui/Icon';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -30,33 +31,46 @@ export function Settings() {
   }
 
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <h1>Settings</h1>
-        <Link to="/">‹ Trips</Link>
+    <>
+      <header className={styles.bar}>
+        <h1 className={styles.barTitle}>Settings</h1>
+        <Link to="/" className={styles.barLink}>
+          <Icon as={ArrowLeft} />
+          Trips
+        </Link>
       </header>
-      {error ? <Banner tone="error">{error}</Banner> : null}
-      <p>
-        Signed in as <strong>{user?.email}</strong>
-      </p>
-      <div className={styles.actions}>
-        <Button onClick={() => void onSignOut()}>Sign out</Button>
-        <Button variant="danger" onClick={() => setConfirming(true)}>
-          Delete account
-        </Button>
-      </div>
-      {confirming ? (
-        <ConfirmDialog
-          title="Delete your account?"
-          confirmLabel="Delete account"
-          danger
-          onCancel={() => setConfirming(false)}
-          onConfirm={() => void onDelete()}
-        >
-          Your account and all your trips will be permanently deleted after 30 days. If you sign
-          back in before then, the deletion is cancelled and nothing is lost.
-        </ConfirmDialog>
-      ) : null}
-    </main>
+      <main className={styles.settings}>
+        {error ? <Banner tone="error">{error}</Banner> : null}
+        <section className={styles.section}>
+          <h2 className={styles.sectionLabel}>Account</h2>
+          <p>
+            Signed in as <strong>{user?.email}</strong>
+          </p>
+          <div className={styles.actionsStart}>
+            <Button onClick={() => void onSignOut()}>Sign out</Button>
+          </div>
+        </section>
+        <section className={styles.section}>
+          <h2 className={styles.sectionLabel}>Danger zone</h2>
+          <div className={styles.actionsStart}>
+            <Button variant="danger" onClick={() => setConfirming(true)}>
+              Delete account
+            </Button>
+          </div>
+        </section>
+        {confirming ? (
+          <ConfirmDialog
+            title="Delete your account?"
+            confirmLabel="Delete account"
+            danger
+            onCancel={() => setConfirming(false)}
+            onConfirm={() => void onDelete()}
+          >
+            Your account and all your trips will be permanently deleted after 30 days. If you sign
+            back in before then, the deletion is cancelled and nothing is lost.
+          </ConfirmDialog>
+        ) : null}
+      </main>
+    </>
   );
 }

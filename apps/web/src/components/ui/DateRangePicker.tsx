@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight, Icon } from './Icon';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { daysBetween, formatISODate, parseISODate, type ISODate } from '@cellar/core';
 import { TextField } from './TextField';
@@ -188,7 +189,7 @@ export function DateRangePicker({ start, end, onChange, error }: Props) {
             aria-label="Previous month"
             onClick={() => setFirst(addMonths(first, -1))}
           >
-            ‹
+            <Icon as={ChevronLeft} />
           </button>
           <span className={styles.hint} aria-live="polite">
             {hint}
@@ -199,7 +200,7 @@ export function DateRangePicker({ start, end, onChange, error }: Props) {
             aria-label="Next month"
             onClick={() => setFirst(addMonths(first, 1))}
           >
-            ›
+            <Icon as={ChevronRight} />
           </button>
         </div>
         <div className={styles.months}>

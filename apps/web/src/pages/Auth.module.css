@@ -1,21 +1,50 @@
+.screen {
+  display: flex;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background-color: var(--color-surface);
+}
+
 .page {
-  max-width: 420px;
-  margin: 0 auto;
-  padding: var(--space-8) var(--space-6);
+  width: 100%;
+  max-width: 360px;
+  padding: var(--space-7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  box-shadow: var(--shadow-1);
+}
+
+.wordmark {
+  margin: 0 0 var(--space-5);
+  color: var(--color-accent);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+}
+
+.page h1 {
+  font-size: var(--font-size-lg);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  margin-top: var(--space-7);
+  gap: var(--space-5);
+  margin-top: var(--space-6);
+}
+
+.form button[type='submit'] {
+  width: 100%;
 }
 
 .links {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  margin-top: var(--space-7);
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  font-size: var(--font-size-sm);
 }
 
 .links a {

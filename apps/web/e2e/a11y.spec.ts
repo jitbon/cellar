@@ -7,6 +7,8 @@ import {
   deleteAccount,
   goToDay,
   mockOpenMeteo,
+  openChipMenu,
+  openDayMenu,
   setItemPanel,
   setTripLocationDirect,
   signIn,
@@ -27,7 +29,14 @@ async function expectNoSeriousViolations(page: import('@playwright/test').Page) 
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
     .analyze();
   const bad = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  expect(bad.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+  expect(
+    bad.map(
+      (v) =>
+        `${v.id}: ${v.help} ${v.nodes
+          .map((n) => `${n.target.join(' ')} ${JSON.stringify(n.any[0]?.data ?? {})}`)
+          .join(' | ')}`,
+    ),
+  ).toEqual([]);
 }
 
 test('SC-006: create trip, add item, place item, edit block using only the keyboard', async ({
@@ -124,3 +133,49 @@ test('axe: weather icons, an open popover and the location picker have no seriou
   await expect(page.getByRole('option', { name: 'Kyoto, Japan' })).toBeVisible();
   await expectNoSeriousViolations(page);
 });
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`axe (${scheme}): every screen, an open menu and an open popover`, async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.emulateMedia({ colorScheme: scheme });
+
+    for (const path of ['/signin', '/signup', '/reset-password']) {
+      await page.goto(path);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expectNoSeriousViolations(page);
+    }
+
+    await signIn(page, account);
+    await expectNoSeriousViolations(page); // trips
+
+    await page.goto('/settings');
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    await expectNoSeriousViolations(page);
+
+    await page.goto('/');
+    await createTrip(page, `Axe ${scheme}`, '2027-04-01', '2027-04-03');
+    await setItemPanel(page, false);
+    await goToDay(page, 1);
+    await page.getByRole('button', { name: 'Add event to Lunch on 2027-04-01' }).click();
+    await page.getByRole('combobox', { name: /Add event to Lunch/ }).fill('Walk');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Escape');
+    await expectNoSeriousViolations(page); // planner, panel closed
+
+    await openChipMenu(page, 'Walk');
+    await expect(page.getByRole('menuitem', { name: 'Edit Walk' })).toBeVisible();
+    await expectNoSeriousViolations(page); // chip menu
+    await page.keyboard.press('Escape');
+
+    await openDayMenu(page, '2027-04-01');
+    await expect(page.getByRole('menuitem', { name: /^Set location for/ })).toBeVisible();
+    await expectNoSeriousViolations(page); // day menu
+    await page.keyboard.press('Escape');
+
+    await setItemPanel(page, true);
+    await expectNoSeriousViolations(page); // planner with the panel open
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Add to list' })).toBeVisible();
+    await expectNoSeriousViolations(page); // add-item popover
+  });
+}

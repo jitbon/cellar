@@ -160,16 +160,16 @@ a menu, the menu item carries the old accessible name.
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T040 [P] [US5] Unit test `apps/web/tests/no-emoji.test.ts`: read every `apps/web/src/**/*.tsx` file and fail if any string literal or JSX text contains a code point matching `/\p{Extended_Pictographic}/u` (allow-list: none)
-- [ ] T041 [P] [US5] Extend `apps/web/e2e/a11y.spec.ts`: run axe on Sign in, Sign up, Reset password, Trips, Trip planner (panel open, a menu open, a popover open), and Settings, each under `page.emulateMedia({ colorScheme: 'light' })` and `'dark'`; zero violations
+- [X] T040 [P] [US5] Unit test `apps/web/tests/no-emoji.test.ts`: read every `apps/web/src/**/*.tsx` file and fail if any string literal or JSX text contains a code point matching `/\p{Extended_Pictographic}/u` (allow-list: none)
+- [X] T041 [P] [US5] Extend `apps/web/e2e/a11y.spec.ts`: run axe on Sign in, Sign up, Reset password, Trips, Trip planner (panel open, a menu open, a popover open), and Settings, each under `page.emulateMedia({ colorScheme: 'light' })` and `'dark'`; zero violations
 
 ### Implementation for User Story 5
 
-- [ ] T042 [P] [US5] Restyle auth screens `apps/web/src/pages/SignIn.tsx`, `SignUp.tsx`, `ResetPassword.tsx` and `Auth.module.css`: centered 360 px card on `--color-surface`, "Cellar" wordmark (`--font-size-xl` 700, `--color-accent`), 28 px fields, full-width primary button, links `--font-size-sm`
-- [ ] T043 [P] [US5] Restyle `apps/web/src/pages/Trips.tsx` + `Trips.module.css`: slim navy header ("Your trips" + primary "New trip" button, white variant); trips as itinerary rows (name `--font-size-md` 600; `CalendarDays` date range; `MapPin` location when set; "5 days" muted; `ChevronRight`), row hover `--color-surface`; trip actions (`Rename <trip>`, `Delete <trip>`) in a row `Menu`; "Recently deleted" as a collapsible section with `Restore <trip>`
-- [ ] T044 [P] [US5] Restyle `apps/web/src/pages/Settings.tsx` (and its CSS module if any): single column ≤ 560 px, `--font-size-xs` uppercase section labels, restyled buttons; danger zone uses `danger` button variant
-- [ ] T045 [US5] Replace every remaining emoji and ad-hoc SVG in `apps/web/src/**/*.tsx` (e.g. 📅 📍 🎟 🕒 ✈ in DateRangePicker, LocationPicker, LocationDialog, ConfirmDialog, SaveStatusBanner, Banner) with `Icon.tsx` icons; make T040 pass
-- [ ] T046 [US5] Fix any axe or contrast failures from T041 by adjusting tokens in `apps/web/src/styles/tokens.css` (keep T004 passing)
+- [X] T042 [P] [US5] Restyle auth screens `apps/web/src/pages/SignIn.tsx`, `SignUp.tsx`, `ResetPassword.tsx` and `Auth.module.css`: centered 360 px card on `--color-surface`, "Cellar" wordmark (`--font-size-xl` 700, `--color-accent`), 28 px fields, full-width primary button, links `--font-size-sm`
+- [X] T043 [P] [US5] Restyle `apps/web/src/pages/Trips.tsx` + `Trips.module.css`: slim navy header ("Your trips" + primary "New trip" button, white variant); trips as itinerary rows (name `--font-size-md` 600; `CalendarDays` date range; `MapPin` location when set; "5 days" muted; `ChevronRight`), row hover `--color-surface`; trip actions (`Rename <trip>`, `Delete <trip>`) in a row `Menu`; "Recently deleted" as a collapsible section with `Restore <trip>`
+- [X] T044 [P] [US5] Restyle `apps/web/src/pages/Settings.tsx` (and its CSS module if any): single column ≤ 560 px, `--font-size-xs` uppercase section labels, restyled buttons; danger zone uses `danger` button variant
+- [X] T045 [US5] Replace every remaining emoji and ad-hoc SVG in `apps/web/src/**/*.tsx` (e.g. 📅 📍 🎟 🕒 ✈ in DateRangePicker, LocationPicker, LocationDialog, ConfirmDialog, SaveStatusBanner, Banner) with `Icon.tsx` icons; make T040 pass
+- [X] T046 [US5] Fix any axe or contrast failures from T041 by adjusting tokens in `apps/web/src/styles/tokens.css` (keep T004 passing)
 
 **Checkpoint**: Whole app consistent
 

@@ -37,43 +37,49 @@ export function SignIn() {
   }
 
   return (
-    <main className={styles.page}>
-      <h1>Sign in</h1>
-      {cancelled ? (
-        <>
-          <Banner>Your account deletion was cancelled</Banner>
-          <Button variant="primary" onClick={() => navigate(safeReturnTo(params.get('returnTo')))}>
-            Continue
-          </Button>
-        </>
-      ) : (
-        <form className={styles.form} onSubmit={onSubmit}>
-          <TextField
-            label="Email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <TextField
-            label="Password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={error}
-          />
-          <Button type="submit" variant="primary" disabled={busy}>
-            Sign in
-          </Button>
-        </form>
-      )}
-      <div className={styles.links}>
-        <Link to="/signup">Create an account</Link>
-        <Link to="/reset-password">Forgot your password?</Link>
-      </div>
-    </main>
+    <div className={styles.screen}>
+      <main className={styles.page}>
+        <p className={styles.wordmark}>Cellar</p>
+        <h1>Sign in</h1>
+        {cancelled ? (
+          <>
+            <Banner>Your account deletion was cancelled</Banner>
+            <Button
+              variant="primary"
+              onClick={() => navigate(safeReturnTo(params.get('returnTo')))}
+            >
+              Continue
+            </Button>
+          </>
+        ) : (
+          <form className={styles.form} onSubmit={onSubmit}>
+            <TextField
+              label="Email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <TextField
+              label="Password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={error}
+            />
+            <Button type="submit" variant="primary" disabled={busy}>
+              Sign in
+            </Button>
+          </form>
+        )}
+        <div className={styles.links}>
+          <Link to="/signup">Create an account</Link>
+          <Link to="/reset-password">Forgot your password?</Link>
+        </div>
+      </main>
+    </div>
   );
 }
