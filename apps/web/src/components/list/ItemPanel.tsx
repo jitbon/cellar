@@ -22,7 +22,8 @@ import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Dialog } from '../ui/Dialog';
 import { Icon, MoreHorizontal, Plus, Search } from '../ui/Icon';
-import { Menu, MenuItem } from '../ui/Menu';
+import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
+import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { PlaceLine } from '../places/PlaceLine';
 import { PlaceNameField } from '../places/PlaceNameField';
 import { Popover } from '../ui/Popover';
@@ -130,6 +131,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
   const [placing, setPlacing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const count = placedCount(state, item.id);
+  const place = placeOf(item);
 
   return (
     <li
@@ -151,7 +153,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
         <span className={styles.name} data-testid="item-name">
           {item.name}
         </span>
-        <PlaceLine place={placeOf(item)} />
+        <PlaceLine place={place} />
       </span>
       {count > 0 ? <span className={styles.count}>placed {count}×</span> : null}
       <Menu
@@ -170,6 +172,12 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
         <MenuItem danger aria-label={`Delete ${item.name}`} onSelect={() => setDeleting(true)}>
           Delete
         </MenuItem>
+        {place ? (
+          <>
+            <MenuSeparator />
+            <OpenInMapsItems place={place} />
+          </>
+        ) : null}
       </Menu>
 
       {editing ? (

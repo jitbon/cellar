@@ -12,11 +12,12 @@ import {
   type TripState,
 } from '@cellar/core';
 import { CellPickerDialog } from '../CellPickerDialog';
+import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { placementDragId } from './dndIds';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import { Flag, Icon, MapPin, MoreHorizontal, Utensils } from '../ui/Icon';
-import { Menu, MenuItem } from '../ui/Menu';
+import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { TextField } from '../ui/TextField';
 import { Tooltip } from '../ui/Tooltip';
 import styles from './PlacementChip.module.css';
@@ -217,6 +218,12 @@ function PlacementChipImpl({
           >
             Remove
           </MenuItem>
+          {place ? (
+            <>
+              <MenuSeparator />
+              <OpenInMapsItems place={place} />
+            </>
+          ) : null}
         </Menu>
       </div>
       {editing ? (

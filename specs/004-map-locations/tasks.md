@@ -109,15 +109,15 @@ contract = `contracts/core.md`, DB contract = `contracts/database.md`, function 
 
 ### Tests for User Story 2
 
-- [ ] T037 [P] [US2] Write failing tests in `packages/core/tests/places-maplinks.test.ts`: `mapLinks(place)` returns exactly the three URLs from research R6 with values URI-encoded (Google `query` = `"<name>, <address>"` and `query_place_id` = id; Apple `q` = name and `ll` = `lat,lon`; Waze `ll` = `lat,lon` and `navigate=yes`); `orderMapApps(null)` → `['google','apple','waze']`; `orderMapApps('waze')` → `['waze','google','apple']`
-- [ ] T038 [P] [US2] Write failing tests in `apps/web/tests/OpenInMapsItems.test.tsx`: renders a `MenuLabel` "Open in maps" and three items labelled "Google Maps", "Apple Maps", "Waze" in `orderMapApps(stored)` order; selecting one calls `window.open(url, '_blank', 'noopener,noreferrer')` and writes `cellar.mapApp` to the fake `KeyValueStore`; an unknown stored value is ignored
+- [X] T037 [P] [US2] Write failing tests in `packages/core/tests/places-maplinks.test.ts`: `mapLinks(place)` returns exactly the three URLs from research R6 with values URI-encoded (Google `query` = `"<name>, <address>"` and `query_place_id` = id; Apple `q` = name and `ll` = `lat,lon`; Waze `ll` = `lat,lon` and `navigate=yes`); `orderMapApps(null)` → `['google','apple','waze']`; `orderMapApps('waze')` → `['waze','google','apple']`
+- [X] T038 [P] [US2] Write failing tests in `apps/web/tests/OpenInMapsItems.test.tsx`: renders a `MenuLabel` "Open in maps" and three items labelled "Google Maps", "Apple Maps", "Waze" in `orderMapApps(stored)` order; selecting one calls `window.open(url, '_blank', 'noopener,noreferrer')` and writes `cellar.mapApp` to the fake `KeyValueStore`; an unknown stored value is ignored
 
 ### Implementation for User Story 2
 
-- [ ] T039 [P] [US2] Implement `mapLinks` and `orderMapApps` in `packages/core/src/places/mapLinks.ts`; export from `packages/core/src/index.ts`; make T037 pass
-- [ ] T040 [US2] Implement `apps/web/src/components/places/OpenInMapsItems.tsx` (menu group for `Menu` from `components/ui/Menu.tsx`, reading/writing `cellar.mapApp` via `useServices().store`); make T038 pass
-- [ ] T041 [US2] Add `OpenInMapsItems` (only when `placeOf(row)` is not null) to the item row menu in `apps/web/src/components/list/ItemPanel.tsx` and the chip menu in `apps/web/src/components/grid/PlacementChip.tsx`, after a `MenuSeparator`; extend `ItemPanel.test.tsx` and `PlacementChip.test.tsx` to assert the group shows for linked rows and not for plain rows
-- [ ] T042 [US2] Add US2 tests to `apps/web/e2e/places.spec.ts`: quickstart scenarios 6–8 (stub `window.open` via `page.addInitScript` to capture URLs), and scenario 11's "Open in maps still works" with `mockPlaces(page, 'fail')`
+- [X] T039 [P] [US2] Implement `mapLinks` and `orderMapApps` in `packages/core/src/places/mapLinks.ts`; export from `packages/core/src/index.ts`; make T037 pass
+- [X] T040 [US2] Implement `apps/web/src/components/places/OpenInMapsItems.tsx` (menu group for `Menu` from `components/ui/Menu.tsx`, reading/writing `cellar.mapApp` via `useServices().store`); make T038 pass
+- [X] T041 [US2] Add `OpenInMapsItems` (only when `placeOf(row)` is not null) to the item row menu in `apps/web/src/components/list/ItemPanel.tsx` and the chip menu in `apps/web/src/components/grid/PlacementChip.tsx`, after a `MenuSeparator`; extend `ItemPanel.test.tsx` and `PlacementChip.test.tsx` to assert the group shows for linked rows and not for plain rows
+- [X] T042 [US2] Add US2 tests to `apps/web/e2e/places.spec.ts`: quickstart scenarios 6–8 (stub `window.open` via `page.addInitScript` to capture URLs), and scenario 11's "Open in maps still works" with `mockPlaces(page, 'fail')`
 
 **Checkpoint**: US1 + US2 deliver the full P1 value
 

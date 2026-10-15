@@ -13,7 +13,13 @@ import {
   type TripState,
 } from '@cellar/core';
 import { ItemPanel } from '../src/components/list/ItemPanel';
-import { chelseaPlace, chelseaSuggestion, fakePlaceSearch, withPlaces } from './setup';
+import {
+  chelseaPlace,
+  chelseaSuggestion,
+  fakePlaceSearch,
+  withPlaces,
+  withServices,
+} from './setup';
 
 const created = createTrip('u', 'Tokyo', '2027-04-01', '2027-04-03');
 if (!created.ok) throw new Error('fixture');
@@ -176,6 +182,32 @@ describe('ItemPanel', () => {
       expect(await screen.findByText('Place search unavailable')).toBeInTheDocument();
       await user.click(screen.getByRole('button', { name: 'Add to list' }));
       expect(names()).toContain('Sushi');
+    });
+  });
+
+  describe('open in maps', () => {
+    it('shows the group for linked items only', async () => {
+      const linked = apply(seeded, addItem('Chelsea Market', 'activity', null, null, chelseaPlace));
+      const store = { get: () => null, set: vi.fn(), remove: vi.fn() };
+      function LinkedHarness() {
+        const [state, setState] = useState(linked);
+        const dispatch = (command: Command) => {
+          const r = command(state);
+          if (r.ok) setState(r.state);
+          return r;
+        };
+        return <ItemPanel state={state} dispatch={dispatch} />;
+      }
+      render(<LinkedHarness />, { wrapper: withServices({ store }) });
+      const user = userEvent.setup();
+
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      expect(screen.getByText('Open in maps')).toBeVisible();
+      expect(screen.getByRole('menuitem', { name: 'Waze' })).toBeVisible();
+      await user.keyboard('{Escape}');
+
+      await user.click(screen.getByRole('button', { name: 'Actions for Museum' }));
+      expect(screen.queryByText('Open in maps')).toBeNull();
     });
   });
 });

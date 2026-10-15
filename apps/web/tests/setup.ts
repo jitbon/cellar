@@ -86,10 +86,13 @@ export function fakePlaceSearch(
   };
 }
 
-/** Wraps a component in services that only provide place search. */
-export function withPlaces(places: PlaceSearch) {
-  const services = { places } as unknown as Services;
-  return function PlacesWrapper({ children }: { children: ReactNode }) {
+/** Wraps a component in services where only the given ones exist. */
+export function withServices(partial: Partial<Services>) {
+  const services = partial as Services;
+  return function ServicesWrapper({ children }: { children: ReactNode }) {
     return createElement(ServicesProvider, { services, children });
   };
 }
+
+/** Wraps a component in services that only provide place search. */
+export const withPlaces = (places: PlaceSearch) => withServices({ places });

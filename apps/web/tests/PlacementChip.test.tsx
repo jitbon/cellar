@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { addTypedPlacement, createTrip, type Command } from '@cellar/core';
+import { addTypedPlacement, createTrip, type Command, type TripState } from '@cellar/core';
+import { chelseaPlace, withServices } from './setup';
 import { PlacementChip } from '../src/components/grid/PlacementChip';
 import { TooltipProvider } from '../src/components/ui/Tooltip';
 
@@ -68,5 +69,48 @@ describe('PlacementChip', () => {
     await user.click(screen.getByRole('button', { name: 'Actions for Coffee' }));
     await user.click(screen.getByRole('menuitem', { name: 'Move Coffee to another block' }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  describe('linked place', () => {
+    const linked = addTypedPlacement('2027-04-02', afternoon.id, 'Chelsea Market', undefined, {
+      place: chelseaPlace,
+    })(created.state);
+    if (!linked.ok) throw new Error('fixture');
+    const linkedState: TripState = linked.state;
+
+    function setupLinked() {
+      const dispatch = vi.fn((command: Command) => command(linkedState));
+      const store = { get: () => null, set: vi.fn(), remove: vi.fn() };
+      render(
+        <TooltipProvider>
+          <PlacementChip
+            state={linkedState}
+            placement={linkedState.placements[0]!}
+            dispatch={dispatch}
+          />
+        </TooltipProvider>,
+        { wrapper: withServices({ store }) },
+      );
+      return { dispatch, user: userEvent.setup() };
+    }
+
+    it('shows a pin on a linked chip but not on a plain one', () => {
+      setupLinked();
+      expect(screen.getByLabelText('Linked place')).toBeInTheDocument();
+    });
+
+    it('offers "Open in maps" for a linked chip', async () => {
+      const { user } = setupLinked();
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      expect(screen.getByText('Open in maps')).toBeVisible();
+      expect(screen.getByRole('menuitem', { name: 'Google Maps' })).toBeVisible();
+    });
+
+    it('does not offer "Open in maps" or a pin for a plain chip', async () => {
+      const { user } = setup();
+      expect(screen.queryByLabelText('Linked place')).toBeNull();
+      await user.click(screen.getByRole('button', { name: 'Actions for Coffee' }));
+      expect(screen.queryByText('Open in maps')).toBeNull();
+    });
   });
 });

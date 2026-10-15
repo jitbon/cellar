@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
+  admin,
   createAccount,
   createTrip,
   deleteAccount,
   goToDay,
   mockPlaces,
+  openChipMenu,
   setItemPanel,
   setTripLocationDirect,
   signIn,
@@ -139,5 +141,116 @@ test.describe('US1: place suggestions while typing', () => {
     const list = await openAddForm(page, 'NYC US1 g');
     await list.getByLabel('Name', { exact: true }).fill('zzzxqq');
     await expect(page.getByText('No places found')).toBeVisible();
+  });
+});
+
+/** Captures window.open calls so map links can be asserted without leaving the page. */
+async function captureOpens(page: Page) {
+  await page.addInitScript(() => {
+    const opened: string[][] = [];
+    (window as unknown as { __opened: string[][] }).__opened = opened;
+    window.open = (url?: string | URL, target?: string, features?: string) => {
+      opened.push([String(url), target ?? '', features ?? '']);
+      return null;
+    };
+  });
+  return () => page.evaluate(() => (window as unknown as { __opened: string[][] }).__opened);
+}
+
+/** A located trip with one linked chip ("Chelsea Market" in Apr 2 Lunch), ready to use. */
+async function tripWithLinkedChip(page: Page, name: string) {
+  await signIn(page, account);
+  await createTrip(page, name, '2027-04-01', '2027-04-05');
+  await setTripLocationDirect(tripIdOf(page.url()), NEW_YORK);
+  await page.reload();
+  await expect(page.getByRole('heading', { name })).toBeVisible();
+  await goToDay(page, 2);
+  await page.getByRole('button', { name: 'Add event to Lunch on 2027-04-02' }).click();
+  await page.getByRole('combobox', { name: /Add event to Lunch/ }).fill('chel');
+  await page.getByRole('option', { name: /Chelsea Market/ }).click();
+  await expect(page.getByTestId('chip').filter({ hasText: 'Chelsea Market' })).toBeVisible();
+}
+
+test.describe('US2: open a linked place in a map app', () => {
+  test('quickstart 6-7: each app opens its link in a new tab; last choice is listed first', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    const opened = await captureOpens(page);
+    await tripWithLinkedChip(page, 'NYC US2 a');
+
+    await openChipMenu(page, 'Chelsea Market');
+    await page.getByRole('menuitem', { name: 'Google Maps' }).click();
+    await openChipMenu(page, 'Chelsea Market');
+    await page.getByRole('menuitem', { name: 'Apple Maps' }).click();
+    await openChipMenu(page, 'Chelsea Market');
+    await page.getByRole('menuitem', { name: 'Waze' }).click();
+
+    const calls = await opened();
+    expect(calls.map((c) => c[1])).toEqual(['_blank', '_blank', '_blank']);
+    expect(calls.map((c) => c[2])).toEqual(Array(3).fill('noopener,noreferrer'));
+    expect(calls[0][0]).toContain(
+      'https://www.google.com/maps/search/?api=1&query=Chelsea%20Market',
+    );
+    expect(calls[0][0]).toContain('query_place_id=test-chelsea');
+    expect(calls[1][0]).toBe('https://maps.apple.com/?q=Chelsea%20Market&ll=40.7424,-74.0061');
+    expect(calls[2][0]).toBe('https://waze.com/ul?ll=40.7424,-74.0061&navigate=yes');
+
+    // Last choice (Waze) is now first.
+    await openChipMenu(page, 'Chelsea Market');
+    await expect(
+      page
+        .getByRole('menuitem')
+        .filter({ hasText: /Maps$|Waze$/ })
+        .first(),
+    ).toHaveText('Waze');
+  });
+
+  test('quickstart 8: a copy of a linked item keeps the place and Open in maps works', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    const opened = await captureOpens(page);
+    const list = await openAddForm(page, 'NYC US2 b');
+    await list.getByLabel('Name', { exact: true }).fill('Chelsea Mar');
+    await page.getByRole('option', { name: /Chelsea Market/ }).click();
+    await list.getByRole('button', { name: 'Add to list' }).click();
+    await list.getByRole('button', { name: 'Actions for Chelsea Market' }).click();
+    await page.getByRole('menuitem', { name: 'Place Chelsea Market in a block' }).click();
+    await page.getByRole('button', { name: 'Place', exact: true }).click();
+    await setItemPanel(page, false);
+
+    const chip = page.getByTestId('chip').filter({ hasText: 'Chelsea Market' });
+    await expect(chip.getByLabel('Linked place')).toBeVisible();
+    await openChipMenu(page, 'Chelsea Market');
+    await page.getByRole('menuitem', { name: 'Waze' }).click();
+    expect((await opened())[0][0]).toContain('https://waze.com/ul?ll=40.7424,-74.0061');
+  });
+
+  test('quickstart 11: Open in maps still works while place search is failing', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    const opened = await captureOpens(page);
+    await tripWithLinkedChip(page, 'NYC US2 c');
+    // Wait for the save to reach the database before reloading.
+    await expect
+      .poll(async () => {
+        const { data } = await admin
+          .from('placements')
+          .select('id')
+          .eq('trip_id', tripIdOf(page.url()));
+        return data?.length;
+      })
+      .toBe(1);
+    await page.unroute('**/functions/v1/places');
+    await mockPlaces(page, 'fail');
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'NYC US2 c' })).toBeVisible();
+    await goToDay(page, 2);
+
+    await openChipMenu(page, 'Chelsea Market');
+    await page.getByRole('menuitem', { name: 'Google Maps' }).click();
+    expect((await opened())[0][0]).toContain('query_place_id=test-chelsea');
   });
 });

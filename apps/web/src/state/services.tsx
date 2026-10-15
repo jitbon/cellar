@@ -46,6 +46,11 @@ export function usePlaceSearch(): PlaceSearch | null {
   return useContext(ServicesContext)?.places ?? null;
 }
 
+/** The device-local key-value store, or null outside a ServicesProvider. */
+export function useKeyValueStore(): KeyValueStore | null {
+  return useContext(ServicesContext)?.store ?? null;
+}
+
 /** Current user; `loading` is true until the stored session has been read. */
 export function useAuthUser(): { user: AuthUser | null; loading: boolean } {
   const { auth, ready } = useServices();
