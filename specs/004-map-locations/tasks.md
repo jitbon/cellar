@@ -201,3 +201,12 @@ Task: "T032 PlaceLine in apps/web/src/components/places/PlaceLine.tsx"
 
 US1 → US2 → US3, each a working increment; Polish last. Merge to `main` only after the user
 confirms the feature is finished (feature-branch workflow).
+
+---
+
+## Phase 7: Convergence
+
+- [ ] T054 Restrict CORS in `supabase/functions/places/handler.ts` to allowed origins instead of `*`: read a comma-separated `ALLOWED_ORIGINS` env (wired in `supabase/functions/places/index.ts`; default `http://localhost:5173`), echo the request `Origin` in `access-control-allow-origin` only when it is in the list (add `vary: origin`), omit the header otherwise; document `ALLOWED_ORIGINS` in `supabase/functions/.env.example` and `README.md`; extend `supabase/tests/places-handler.test.ts` for allowed and disallowed origins per plan: contracts/places-function.md (contradicts)
+- [ ] T055 [P] Show the linked-place pin on the drag preview: pass `linked={placeOf(source) !== null}` to `ChipFace` in `apps/web/src/components/grid/DragLayer.tsx`, with a test in `apps/web/tests/` that a linked placement's overlay renders the "Linked place" icon per FR-006 (partial)
+- [ ] T056 [P] Keep only options and groups inside `role="listbox"`: move the "No places found" / "Place search unavailable" `role="status"` notes and the "Powered by Google" attribution in `apps/web/src/components/places/PlaceOptions.tsx` (and wherever `CellSuggestions.tsx` and `PlaceNameField.tsx` host it) to siblings after the listbox, keeping them visible in the same popup; update `apps/web/tests/PlaceOptions.test.tsx` and run the axe checks in `apps/web/e2e/a11y.spec.ts` per Constitution II (partial)
+- [ ] T057 [P] Add a test to `apps/web/tests/Cell.test.tsx`: when the fake `PlaceSearch.details` rejects after picking a place, the typed text stays in the input, "Place search unavailable" is shown, no placement is created, and the highlighted option resets (`aria-activedescendant` cleared); fix `apps/web/src/components/grid/Cell.tsx` if it fails per T033 (partial)
