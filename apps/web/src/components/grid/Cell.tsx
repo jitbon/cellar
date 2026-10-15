@@ -13,7 +13,7 @@ import {
   type TripState,
 } from '@cellar/core';
 import { CellSuggestions, optionId } from './CellSuggestions';
-import { cellDropId, placementDragId } from './dndIds';
+import { cellDropId, placementDragId, useDragOverId } from './dndIds';
 import { WeatherIcon } from '../weather/WeatherIcon';
 import { CellListPopover } from './CellListPopover';
 import { PlacementChip, type Dispatch } from './PlacementChip';
@@ -42,7 +42,12 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
   const label = `Add event to ${blockName} on ${date}`;
-  const { setNodeRef, isOver } = useDroppable({ id: cellDropId(date, blockId) });
+  const { setNodeRef } = useDroppable({ id: cellDropId(date, blockId) });
+  const overId = useDragOverId();
+  const overCell = overId === cellDropId(date, blockId);
+  // Over the cell itself, or over one of its chips (the collision logic prefers chips).
+  const isOver =
+    overCell || (overId !== null && placements.some((p) => placementDragId(p.id) === overId));
   const greyed = isGreyed(state, date, blockId);
   const suggestions = adding ? suggestItems(state, text) : [];
 
@@ -134,6 +139,7 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
           ) : null}
         </div>
       ) : null}
+      {overCell && !adding ? <span className={styles.insertEnd} aria-hidden="true" /> : null}
       {adding ? (
         <div>
           <input

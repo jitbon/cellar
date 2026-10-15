@@ -133,3 +133,10 @@
   font-size: var(--font-size-sm);
   color: var(--color-danger);
 }
+
+.insertEnd {
+  height: 2px;
+  margin-top: calc(-1 * var(--space-1));
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+}

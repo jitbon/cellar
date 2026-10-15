@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type MouseEvent, type PointerEvent } from 'react';
+import { memo, useState, type FormEvent, type MouseEvent, type PointerEvent } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -97,7 +97,7 @@ function isTruncated(el: Element | null): boolean {
   return !!el && el.scrollWidth > el.clientWidth;
 }
 
-export function PlacementChip({
+function PlacementChipImpl({
   state,
   placement,
   dispatch,
@@ -117,6 +117,7 @@ export function PlacementChip({
     transform,
     transition,
     isDragging,
+    isOver,
   } = useSortable({ id: placementDragId(placement.id) });
   const style = { transform: CSS.Transform.toString(transform), transition };
   const tip = placement.notes ? `${placement.name} — ${placement.notes}` : placement.name;
@@ -133,6 +134,7 @@ export function PlacementChip({
         className={`${styles.chip} ${styles[placement.type]}`}
         data-testid="chip"
         data-placeholder={isDragging ? '' : undefined}
+        data-insert-before={isOver && !isDragging ? '' : undefined}
         {...listeners}
         onPointerDown={(e) => {
           if (inside(e)) listeners?.onPointerDown?.(e);
@@ -218,3 +220,16 @@ export function PlacementChip({
     </>
   );
 }
+
+/**
+ * A trip can hold hundreds of chips and every edit produces a new state, so chips re-render
+ * only when their own placement changes; `state` is read just to list blocks for "Move".
+ */
+export const PlacementChip = memo(
+  PlacementChipImpl,
+  (a, b) =>
+    a.placement === b.placement &&
+    a.dispatch === b.dispatch &&
+    a.state.blocks === b.state.blocks &&
+    a.state.trip === b.state.trip,
+);

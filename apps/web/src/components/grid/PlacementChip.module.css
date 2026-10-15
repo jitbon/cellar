@@ -129,3 +129,14 @@
   justify-content: flex-end;
   gap: var(--space-4);
 }
+
+.chip[data-insert-before]::before {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--space-2));
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-accent);
+}

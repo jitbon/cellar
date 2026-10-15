@@ -1,3 +1,4 @@
+import { createContext, useContext } from 'react';
 import type { ISODate } from '@cellar/core';
 
 export const cellDropId = (date: ISODate, blockId: string) => `cell|${date}|${blockId}`;
@@ -15,3 +16,7 @@ export function parseCellDropId(id: string): { date: ISODate; blockId: string } 
 export function parsePrefixed(id: string, prefix: 'placement' | 'item' | 'block'): string | null {
   return id.startsWith(`${prefix}:`) ? id.slice(prefix.length + 1) : null;
 }
+
+/** Id of the droppable currently under a dragged item (null when idle); changes only while dragging. */
+export const DragOverContext = createContext<string | null>(null);
+export const useDragOverId = () => useContext(DragOverContext);

@@ -1,0 +1,34 @@
+.lifted {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--size-chip);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-drag);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transform: scale(1.04) rotate(-1.5deg);
+  cursor: grabbing;
+}
+
+.flat {
+  transform: none;
+}
+
+.activity {
+  background-color: var(--color-activity-bg);
+  color: var(--color-activity);
+}
+
+.food {
+  background-color: var(--color-food-bg);
+  color: var(--color-food);
+}
+
+.lifted > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

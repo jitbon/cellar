@@ -104,6 +104,7 @@ test.describe('US1: weather icons on the grid', () => {
     await page.mouse.down();
     await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
     await page.mouse.up();
+    await expect(page.locator('[data-drag-overlay]')).toHaveCount(0);
     const after = (await page.getByText('Walk', { exact: true }).boundingBox())!;
     expect(after.y).toBeLessThan(from.y);
   });

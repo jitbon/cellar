@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   DndContext,
   KeyboardSensor,
@@ -12,6 +12,7 @@ import {
   type Announcements,
   type CollisionDetection,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import {
@@ -22,8 +23,23 @@ import {
   placeItem,
   type TripState,
 } from '@cellar/core';
-import { parseCellDropId, parsePrefixed } from './dndIds';
+import { DragOverContext, parseCellDropId, parsePrefixed } from './dndIds';
+import { DragLayer } from './DragLayer';
 import type { Dispatch } from './PlacementChip';
+
+/** Mouse and pen only: touch is handled by TouchSensor's long press, so scrolling still works. */
+class MousePointerSensor extends PointerSensor {
+  static activators: typeof PointerSensor.activators = [
+    {
+      eventName: 'onPointerDown',
+      handler: ({ nativeEvent: event }, { onActivation }) => {
+        if (event.pointerType === 'touch' || !event.isPrimary || event.button !== 0) return false;
+        onActivation?.({ event });
+        return true;
+      },
+    },
+  ];
+}
 
 /** Prefer a placement under the pointer (insert before it), else the cell. */
 const collisionDetection: CollisionDetection = (args) => {
@@ -50,8 +66,10 @@ interface Props {
 }
 
 export function DndProvider({ state, dispatch, children }: Props) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MousePointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
@@ -85,7 +103,13 @@ export function DndProvider({ state, dispatch, children }: Props) {
     onDragCancel: ({ active }) => `Cancelled moving ${nameOf(active.id)}.`,
   };
 
+  function onDragStart({ active }: DragStartEvent) {
+    setActiveId(String(active.id));
+  }
+
   function onDragEnd({ active, over }: DragEndEvent) {
+    setActiveId(null);
+    setOverId(null);
     if (!over) return;
     const activeId = String(active.id);
     const overId = String(over.id);
@@ -146,9 +170,17 @@ export function DndProvider({ state, dispatch, children }: Props) {
       sensors={sensors}
       collisionDetection={collisionDetection}
       accessibility={{ announcements }}
+      autoScroll={{ threshold: { x: 0.1, y: 0.1 } }}
+      onDragStart={onDragStart}
+      onDragOver={({ over }) => setOverId(over ? String(over.id) : null)}
       onDragEnd={onDragEnd}
+      onDragCancel={() => {
+        setActiveId(null);
+        setOverId(null);
+      }}
     >
-      {children}
+      <DragOverContext.Provider value={overId}>{children}</DragOverContext.Provider>
+      <DragLayer state={state} activeId={activeId} />
     </DndContext>
   );
 }

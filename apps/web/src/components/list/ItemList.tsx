@@ -99,7 +99,7 @@ function ItemForm({ item, submitLabel, onSubmit, onDone }: FormProps) {
 }
 
 function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; dispatch: Dispatch }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
     id: itemDragId(item.id),
   });
   const [editing, setEditing] = useState(false);
@@ -108,13 +108,17 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
   const count = placedCount(state, item.id);
 
   return (
-    <li ref={setNodeRef} className={`${styles.row} ${isDragging ? styles.dragging : ''}`}>
+    <li
+      ref={setNodeRef}
+      className={`${styles.row} ${isDragging ? styles.dragging : ''}`}
+      {...listeners}
+    >
       <button
         type="button"
         className={styles.handle}
         aria-label={`Drag ${item.name}`}
+        ref={setActivatorNodeRef}
         {...attributes}
-        {...listeners}
       >
         ⠿
       </button>
