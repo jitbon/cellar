@@ -17,6 +17,8 @@
 }
 
 .dismiss {
+  flex: none;
+  white-space: nowrap;
   color: var(--color-bg);
   font-weight: 600;
 }

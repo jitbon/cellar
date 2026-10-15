@@ -177,9 +177,9 @@ a menu, the menu item carries the old accessible name.
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T047 Remove CSS classes, components, and tokens made unused by this feature (`apps/web/src/**`); confirm with `pnpm --filter web typecheck` and `pnpm lint`
-- [ ] T048 Run all checks: `pnpm lint`, `pnpm --filter @cellar/core test`, `pnpm --filter web test`, `pnpm --filter web typecheck`, `pnpm --filter web build`, `pnpm test:db`, `pnpm --filter web e2e` (local Supabase); fix failures. Do not commit changes under `apps/web/dist`
-- [ ] T049 Walk through the 19 scenarios in `specs/003-ui-redesign/quickstart.md` against the running app and note any failures (scenario 19 is the user's side-by-side review)
+- [X] T047 Remove CSS classes, components, and tokens made unused by this feature (`apps/web/src/**`); confirm with `pnpm --filter web typecheck` and `pnpm lint`
+- [X] T048 Run all checks: `pnpm lint`, `pnpm --filter @cellar/core test`, `pnpm --filter web test`, `pnpm --filter web typecheck`, `pnpm --filter web build`, `pnpm test:db`, `pnpm --filter web e2e` (local Supabase); fix failures. Do not commit changes under `apps/web/dist`
+- [X] T049 Walk through the 19 scenarios in `specs/003-ui-redesign/quickstart.md` against the running app and note any failures (scenario 19 is the user's side-by-side review)
 
 ---
 
