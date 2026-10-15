@@ -1,8 +1,16 @@
+.wrap {
+  position: relative;
+  align-self: flex-end;
+}
+
+.meta {
+  color: var(--color-text-muted);
+}
+
 .icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: flex-end;
   width: var(--size-icon-button);
   height: var(--size-icon-button);
   padding: 0;

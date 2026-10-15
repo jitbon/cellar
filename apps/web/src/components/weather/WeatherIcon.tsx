@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import type { CellWeather, WeatherCondition } from '@cellar/core';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { formatTemp, temperatureUnit, type CellWeather, type WeatherCondition } from '@cellar/core';
+import { Popover } from '../ui/Popover';
 import styles from './WeatherIcon.module.css';
 
 export const CONDITION_LABEL: Record<WeatherCondition, string> = {
@@ -62,29 +63,97 @@ interface Props {
   weather: CellWeather;
 }
 
+const HOVER_DELAY_MS = 150;
+
+function forecastTime(fetchedAt: string): string {
+  return new Date(fetchedAt).toLocaleTimeString(navigator.language, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/** Corner icon for a cell; its details open on hover, keyboard focus, or tap. */
 export function WeatherIcon({ blockName, weather }: Props) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLSpanElement>(null);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const lastPointer = useRef('');
+  const popoverId = useId();
+  const close = useCallback(() => setOpen(false), []);
+  const clearTimer = () => clearTimeout(hoverTimer.current);
+  useEffect(() => clearTimer, []);
+
   return (
-    <button
-      type="button"
-      className={styles.icon}
-      aria-label={weatherLabel(blockName, weather)}
-      // The icon must never start a drag or take focus away from typing in the cell.
-      onPointerDown={(e) => e.stopPropagation()}
+    <span
+      ref={wrapRef}
+      className={styles.wrap}
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'touch') return;
+        clearTimer();
+        hoverTimer.current = setTimeout(() => setOpen(true), HOVER_DELAY_MS);
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === 'touch') return;
+        clearTimer();
+        setOpen(false);
+      }}
+      onFocus={() => {
+        // A tap focuses the button too; its click toggles instead.
+        if (lastPointer.current !== 'touch') setOpen(true);
+      }}
+      onBlur={(e) => {
+        if (!wrapRef.current?.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
     >
-      <svg
-        viewBox="0 0 24 24"
-        width="20"
-        height="20"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-        data-condition={weather.condition}
+      <button
+        type="button"
+        className={styles.icon}
+        aria-label={weatherLabel(blockName, weather)}
+        aria-describedby={open ? popoverId : undefined}
+        // The icon must never start a drag or take focus away from typing in the cell.
+        onPointerDown={(e) => {
+          lastPointer.current = e.pointerType;
+          e.stopPropagation();
+        }}
+        onClick={() => {
+          if (lastPointer.current === 'touch') setOpen((o) => !o);
+        }}
       >
-        {GLYPHS[weather.condition]}
-      </svg>
-    </button>
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          data-condition={weather.condition}
+        >
+          {GLYPHS[weather.condition]}
+        </svg>
+      </button>
+      {open ? (
+        <Popover id={popoverId} anchorRef={wrapRef} onClose={close}>
+          <strong>{CONDITION_LABEL[weather.condition]}</strong>
+          <span>{formatTemp(weather.tempC, temperatureUnit(navigator.language))}</span>
+          <span>
+            {weather.rainPct === null
+              ? 'Chance of rain unavailable'
+              : `${weather.rainPct}% chance of rain`}
+          </span>
+          <span className={styles.meta}>Forecast as of {forecastTime(weather.fetchedAt)}</span>
+          <a
+            className={styles.meta}
+            href="https://open-meteo.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Weather data by Open-Meteo.com
+          </a>
+        </Popover>
+      ) : null}
+    </span>
   );
 }

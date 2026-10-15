@@ -108,14 +108,14 @@ contract = `contracts/core.md`, DB contract = `contracts/database.md`.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T035 [P] [US2] Tests in `packages/core/tests/weather-units.test.ts`: `temperatureUnit` returns `F` for `en-US`, `es-US`, `en-PR`, `en-GU`, `en-VI`, `en-AS`, `en-MP`, `en-LR`, `my-MM`, and `C` for `en-GB`, `ja-JP`, `en` (no region); `formatTemp(22, 'C')` → "22°C", `formatTemp(22, 'F')` → "72°F" (rounded)
-- [ ] T036 [US2] Extend `apps/web/tests/WeatherIcon.test.tsx`: popover opens on mouse hover after 150 ms, on keyboard focus, and on tap (pointer type touch); closes on Escape, blur, and outside tap; shows condition label, formatted temperature, "N% chance of rain", "Forecast as of HH:MM", and a link "Weather data by Open-Meteo.com"; popover content is referenced by `aria-describedby`
+- [X] T035 [P] [US2] Tests in `packages/core/tests/weather-units.test.ts`: `temperatureUnit` returns `F` for `en-US`, `es-US`, `en-PR`, `en-GU`, `en-VI`, `en-AS`, `en-MP`, `en-LR`, `my-MM`, and `C` for `en-GB`, `ja-JP`, `en` (no region); `formatTemp(22, 'C')` → "22°C", `formatTemp(22, 'F')` → "72°F" (rounded)
+- [X] T036 [US2] Extend `apps/web/tests/WeatherIcon.test.tsx`: popover opens on mouse hover after 150 ms, on keyboard focus, and on tap (pointer type touch); closes on Escape, blur, and outside tap; shows condition label, formatted temperature, "N% chance of rain", "Forecast as of HH:MM", and a link "Weather data by Open-Meteo.com"; popover content is referenced by `aria-describedby`
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Implement `temperatureUnit` and `formatTemp` in `packages/core/src/weather/units.ts` and export them from `packages/core/src/index.ts` (make T035 pass)
-- [ ] T038 [P] [US2] Create a small `Popover` in `apps/web/src/components/ui/Popover.tsx` + `Popover.module.css` (anchored to a trigger, tokens only, rounded, Escape/outside-click to close, stays inside the viewport at 360 px)
-- [ ] T039 [US2] Wire the popover into `apps/web/src/components/weather/WeatherIcon.tsx`: open/close rules from T036; content = condition label, `formatTemp(tempC, temperatureUnit(navigator.language))`, chance of rain (or "Chance of rain unavailable"), "Forecast as of HH:MM" from `fetchedAt` in the viewer's local time, and the "Weather data by Open-Meteo.com" link to `https://open-meteo.com/` (research R1); make T036 pass
+- [X] T037 [P] [US2] Implement `temperatureUnit` and `formatTemp` in `packages/core/src/weather/units.ts` and export them from `packages/core/src/index.ts` (make T035 pass)
+- [X] T038 [P] [US2] Create a small `Popover` in `apps/web/src/components/ui/Popover.tsx` + `Popover.module.css` (anchored to a trigger, tokens only, rounded, Escape/outside-click to close, stays inside the viewport at 360 px)
+- [X] T039 [US2] Wire the popover into `apps/web/src/components/weather/WeatherIcon.tsx`: open/close rules from T036; content = condition label, `formatTemp(tempC, temperatureUnit(navigator.language))`, chance of rain (or "Chance of rain unavailable"), "Forecast as of HH:MM" from `fetchedAt` in the viewer's local time, and the "Weather data by Open-Meteo.com" link to `https://open-meteo.com/` (research R1); make T036 pass
 - [ ] T040 [US2] E2E in `apps/web/e2e/weather.spec.ts` (US2 block): mouse hover shows the popover with "70% chance of rain" on an Afternoon cell; at 360 px viewport a tap opens it and tapping elsewhere closes it; Tab to an icon opens it; with `locale: 'en-US'` the temperature ends in °F and with `en-GB` in °C
 
 **Checkpoint**: US1 + US2 — icons and details work with a DB-set location

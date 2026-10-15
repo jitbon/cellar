@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import {
   createAccount,
   createTrip,
@@ -116,5 +116,58 @@ test.describe('US1: weather icons on the grid', () => {
     await page.getByRole('button', { name: 'Edit time window for Lunch' }).click();
     await expect(page.getByLabel('Starts')).toHaveValue('12:00');
     await expect(page.getByLabel('Ends')).toHaveValue('14:00');
+  });
+});
+
+async function openTripWithWeather(page: Page, name: string) {
+  await mockOpenMeteo(page, 'ok');
+  await signIn(page, account);
+  await createTrip(page, name, day(0), day(2));
+  await setTripLocationDirect(tripIdOf(page.url()), KYOTO);
+  await page.reload();
+  await goToDay(page, 1);
+}
+
+const afternoonIcon = (page: Page) =>
+  page.getByRole('button', { name: /^Afternoon weather:/ }).first();
+
+test.describe('US2: forecast details', () => {
+  test.use({ locale: 'en-US' });
+
+  test('hover shows details in Fahrenheit', async ({ page }) => {
+    await openTripWithWeather(page, 'Hover details');
+    await afternoonIcon(page).hover();
+    await expect(page.getByText('70% chance of rain')).toBeVisible();
+    await expect(page.getByText(/^\d+°F$/)).toBeVisible();
+    await expect(page.getByText(/^Forecast as of /)).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Weather data by Open-Meteo.com' })).toBeVisible();
+  });
+
+  test('keyboard focus shows details', async ({ page }) => {
+    await openTripWithWeather(page, 'Focus details');
+    await afternoonIcon(page).focus();
+    await expect(page.getByText('70% chance of rain')).toBeVisible();
+  });
+});
+
+test.describe('US2: Celsius locale', () => {
+  test.use({ locale: 'en-GB' });
+
+  test('temperature is shown in Celsius', async ({ page }) => {
+    await openTripWithWeather(page, 'Celsius details');
+    await afternoonIcon(page).hover();
+    await expect(page.getByText(/^\d+°C$/)).toBeVisible();
+  });
+});
+
+test.describe('US2: touch at 360px', () => {
+  test.use({ viewport: { width: 360, height: 740 }, hasTouch: true });
+
+  test('tap opens the popover and tapping elsewhere closes it', async ({ page }) => {
+    await openTripWithWeather(page, 'Tap details');
+    await afternoonIcon(page).tap();
+    await expect(page.getByText('70% chance of rain')).toBeVisible();
+    await page.getByRole('heading', { name: 'Tap details' }).tap();
+    await expect(page.getByText('70% chance of rain')).toHaveCount(0);
   });
 });
