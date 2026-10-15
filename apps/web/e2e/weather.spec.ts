@@ -34,9 +34,11 @@ test.describe('US1: weather icons on the grid', () => {
     await setTripLocationDirect(tripIdOf(page.url()), KYOTO);
     await page.reload();
 
-    await expect(page.getByRole('button', { name: /^Morning weather: Clear/ })).toBeVisible();
     await expect(
-      page.getByRole('button', { name: /^Afternoon weather: Rain, 70% chance of rain/ }),
+      page.getByRole('button', { name: /^Morning weather: Clear/ }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /^Afternoon weather: Rain, 70% chance of rain/ }).first(),
     ).toBeVisible();
   });
 
@@ -69,7 +71,12 @@ test.describe('US1: weather icons on the grid', () => {
     await signIn(page, account);
     await createTrip(page, 'Offline weather', day(0), day(2));
     await setTripLocationDirect(tripIdOf(page.url()), KYOTO);
-    await page.evaluate(() => localStorage.clear());
+    // Drop cached forecasts only; clearing everything would also sign the user out.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('weather:')) localStorage.removeItem(key);
+      }
+    });
     await page.reload();
 
     await expect(page.getByText('Weather unavailable')).toBeVisible();
@@ -84,8 +91,9 @@ test.describe('US1: weather icons on the grid', () => {
     await expect(page.getByText('Walk', { exact: true })).toBeVisible();
 
     // drag the placement into Lunch
-    const card = page.getByText('Walk', { exact: true });
+    const card = page.getByRole('button', { name: 'Drag Walk' });
     const lunch = page.getByRole('button', { name: `Add event to Lunch on ${date}` });
+    await lunch.scrollIntoViewIfNeeded();
     const from = (await card.boundingBox())!;
     const to = (await lunch.boundingBox())!;
     await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
