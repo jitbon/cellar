@@ -1,5 +1,6 @@
 import { newId, positionBetween } from '../model/ids';
 import type { Block, ISODate, TripState } from '../model/types';
+import { DEFAULT_BLOCK_WINDOWS } from '../queries/window';
 import { validateDateRange, validateTripName } from '../model/validation';
 import type { Command, Ok, Result } from './command';
 import { commit } from './diff';
@@ -30,7 +31,15 @@ export function createTrip(ownerId: string, name: string, start: ISODate, end: I
   let prev: string | null = null;
   for (const blockName of DEFAULT_BLOCK_NAMES) {
     const position = positionBetween(prev, null);
-    blocks.push({ id: newId(), tripId, name: blockName, position, updatedAt: now });
+    blocks.push({
+      id: newId(),
+      tripId,
+      name: blockName,
+      position,
+      windowStartMin: DEFAULT_BLOCK_WINDOWS[blockName].startMin,
+      windowEndMin: DEFAULT_BLOCK_WINDOWS[blockName].endMin,
+      updatedAt: now,
+    });
     prev = position;
   }
   const state: TripState = {
@@ -41,6 +50,10 @@ export function createTrip(ownerId: string, name: string, start: ISODate, end: I
       startDate: start,
       endDate: end,
       deletedAt: null,
+      locationName: null,
+      locationLat: null,
+      locationLon: null,
+      locationTz: null,
       updatedAt: now,
     },
     blocks,

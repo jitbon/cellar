@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
 import { expect, type Page } from '@playwright/test';
 
@@ -59,4 +60,51 @@ export async function goToDay(page: Page, day: number): Promise<void> {
   const next = page.getByRole('button', { name: 'Next day' });
   if (!(await next.isVisible())) return;
   while (!(await page.getByText(`Day ${day} of`).isVisible())) await next.click();
+}
+
+const fixture = (name: string) =>
+  readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8');
+
+/** Calendar date (YYYY-MM-DD) `offset` days from today in the given time zone. */
+export function dateIn(tz: string, offset: number): string {
+  const ms = Date.now() + offset * 86_400_000;
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(ms);
+}
+
+/**
+ * Routes Open-Meteo to fixtures. The forecast fixture's dates are placeholders (day 0 to 15);
+ * they are rewritten to start today in the fixture's time zone.
+ */
+export async function mockOpenMeteo(page: Page, mode: 'ok' | 'fail'): Promise<void> {
+  await page.route('https://api.open-meteo.com/**', async (route) => {
+    if (mode === 'fail') return route.fulfill({ status: 503, body: 'unavailable' });
+    const body = JSON.parse(fixture('open-meteo-forecast.json'));
+    body.hourly.time = body.hourly.time.map(
+      (t: string, i: number) => `${dateIn(body.timezone, Math.floor(i / 24))}T${t.slice(11)}`,
+    );
+    return route.fulfill({ json: body });
+  });
+  await page.route('https://geocoding-api.open-meteo.com/**', async (route) => {
+    const name = new URL(route.request().url()).searchParams.get('name');
+    const file =
+      name === 'zzzxqq' ? 'open-meteo-geocode-empty.json' : 'open-meteo-geocode-kyoto.json';
+    return route.fulfill({ body: fixture(file), contentType: 'application/json' });
+  });
+}
+
+/** Sets a trip's location straight in the database (test setup only). */
+export async function setTripLocationDirect(
+  tripId: string,
+  loc: { name: string; lat: number; lon: number; tz: string },
+): Promise<void> {
+  const { error } = await admin
+    .from('trips')
+    .update({
+      location_name: loc.name,
+      location_lat: loc.lat,
+      location_lon: loc.lon,
+      location_tz: loc.tz,
+    })
+    .eq('id', tripId);
+  if (error) throw error;
 }

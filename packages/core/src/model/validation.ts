@@ -1,5 +1,5 @@
 import { validationError, type ValidationError } from './errors';
-import type { ISODate } from './types';
+import type { ISODate, Location, TimeWindow } from './types';
 
 export const MAX_TRIP_DAYS = 60;
 
@@ -49,6 +49,29 @@ export function validateDateRange(start: ISODate, end: ISODate): ValidationError
     return validationError('END_BEFORE_START', 'End date must be on or after the start date.');
   if (span > MAX_TRIP_DAYS - 1) {
     return validationError('RANGE_TOO_LONG', `A trip can span at most ${MAX_TRIP_DAYS} days.`);
+  }
+  return null;
+}
+
+export function validateLocation(loc: Location): ValidationError | null {
+  const name = loc.name.trim().length;
+  const valid =
+    name >= 1 &&
+    name <= 120 &&
+    Number.isFinite(loc.lat) &&
+    loc.lat >= -90 &&
+    loc.lat <= 90 &&
+    Number.isFinite(loc.lon) &&
+    loc.lon >= -180 &&
+    loc.lon <= 180 &&
+    loc.tz.length > 0;
+  return valid ? null : validationError('INVALID_LOCATION', 'That location is not valid.');
+}
+
+export function validateWindow(win: TimeWindow): ValidationError | null {
+  const inDay = (m: number) => Number.isInteger(m) && m >= 0 && m <= 1439;
+  if (!inDay(win.startMin) || !inDay(win.endMin) || win.startMin === win.endMin) {
+    return validationError('INVALID_WINDOW', 'The end time must differ from the start time.');
   }
   return null;
 }

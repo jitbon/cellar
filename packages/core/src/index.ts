@@ -21,9 +21,18 @@ export {
   renameBlock,
   moveBlock,
   removeBlock,
+  setBlockWindow,
   impactOfRemoveBlock,
 } from './commands/block';
 export { setDayWindow } from './commands/daySetting';
+export { setTripLocation, setDayLocation } from './commands/location';
+export { tripLocation, dayLocation, dayLocationOverride } from './queries/location';
+export { DEFAULT_BLOCK_WINDOWS, effectiveWindow, effectiveWindows } from './queries/window';
+export { conditionFromWmo } from './weather/wmo';
+export { summarizeWindow } from './weather/summarize';
+export { dayForecastStatus, forecastLocations, todayIn, locationKey } from './weather/status';
+export { temperatureUnit, formatTemp, type TemperatureUnit } from './weather/units';
+export { createForecastCache, type ForecastCache } from './weather/cache';
 export { isGreyed } from './queries/greyed';
 export { days } from './queries/days';
 export { cell, orderedBlocks } from './queries/cell';

@@ -1,5 +1,5 @@
 import type { Change } from './commands/command';
-import type { Trip, TripState } from './model/types';
+import type { Forecast, Location, Trip, TripState } from './model/types';
 
 export interface TripRepository {
   listTrips(): Promise<Trip[]>;
@@ -26,4 +26,19 @@ export interface AuthService {
   requestAccountDeletion(): Promise<void>;
   currentUser(): AuthUser | null;
   onAuthChange(cb: (user: AuthUser | null) => void): () => void;
+}
+
+export interface WeatherService {
+  /** Rejects on network/provider failure. */
+  forecast(location: Location): Promise<Forecast>;
+  /** Up to 5 matches; empty array when nothing matches. Rejects on failure. */
+  searchLocations(query: string, language: string): Promise<Location[]>;
+}
+
+export interface KeyValueStore {
+  /** Never throws; null on any failure. */
+  get(key: string): string | null;
+  /** Never throws. */
+  set(key: string, value: string): void;
+  remove(key: string): void;
 }

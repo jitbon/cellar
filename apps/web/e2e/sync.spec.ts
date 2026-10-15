@@ -1,5 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { createAccount, createTrip, deleteAccount, signIn, type Account } from './helpers';
+import {
+  createAccount,
+  createTrip,
+  dateIn,
+  deleteAccount,
+  mockOpenMeteo,
+  signIn,
+  type Account,
+} from './helpers';
 
 let account: Account;
 
@@ -47,4 +55,30 @@ test('FR-020: an offline edit shows "Not saved — retrying" and saves on reconn
 
   await page.reload();
   await expect(page.getByText('While offline')).toBeVisible();
+});
+
+test('FR-002: a trip location set in one browser appears in another within 5 s', async ({
+  browser,
+}) => {
+  test.skip(test.info().project.name !== 'desktop', 'sync is viewport independent');
+  const a = await (await browser.newContext()).newPage();
+  const b = await (await browser.newContext()).newPage();
+  await mockOpenMeteo(a, 'ok');
+  await mockOpenMeteo(b, 'ok');
+  await signIn(a, account);
+  await createTrip(a, 'Sync location', dateIn('Asia/Tokyo', 0), dateIn('Asia/Tokyo', 2));
+  await signIn(b, account);
+  await b.goto(a.url());
+  await expect(b.getByRole('heading', { name: 'Sync location' })).toBeVisible();
+
+  await a.getByRole('button', { name: 'Add a location' }).click();
+  await a.getByRole('combobox', { name: 'Search for a place' }).fill('Kyo');
+  await a.getByRole('option', { name: 'Kyoto, Japan' }).click();
+
+  await expect(b.getByRole('button', { name: 'Change trip location (Kyoto, Japan)' })).toBeVisible({
+    timeout: 5000,
+  });
+  await expect(b.getByRole('button', { name: /^Morning weather:/ }).first()).toBeVisible({
+    timeout: 5000,
+  });
 });

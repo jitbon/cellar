@@ -1,7 +1,15 @@
 export type ItemType = 'activity' | 'food';
 export type ISODate = string; // 'YYYY-MM-DD'
 
-export interface Trip {
+// Rows stay flat so the repository's generic column mapping keeps working.
+export interface LocationFields {
+  locationName: string | null;
+  locationLat: number | null;
+  locationLon: number | null;
+  locationTz: string | null;
+}
+
+export interface Trip extends LocationFields {
   id: string;
   ownerId: string;
   name: string;
@@ -16,10 +24,12 @@ export interface Block {
   tripId: string;
   name: string;
   position: string;
+  windowStartMin: number | null;
+  windowEndMin: number | null;
   updatedAt: string;
 }
 
-export interface DaySetting {
+export interface DaySetting extends LocationFields {
   tripId: string;
   date: ISODate;
   arrivalBlockId: string | null;
@@ -58,3 +68,46 @@ export interface TripState {
   items: Item[];
   placements: Placement[];
 }
+
+export interface Location {
+  name: string;
+  lat: number;
+  lon: number;
+  tz: string;
+}
+
+/** Minutes after local midnight, 0-1439. end < start means the window crosses midnight. */
+export interface TimeWindow {
+  startMin: number;
+  endMin: number;
+}
+
+export type WeatherCondition =
+  'clear' | 'partly-cloudy' | 'cloudy' | 'fog' | 'rain' | 'snow' | 'thunderstorm';
+
+export interface ForecastHour {
+  /** Local time at the location, 'YYYY-MM-DDTHH:00'. */
+  time: string;
+  code: number;
+  tempC: number;
+  rainPct: number | null;
+}
+
+export interface Forecast {
+  tz: string;
+  hours: ForecastHour[];
+  fetchedAt: string;
+}
+
+export interface CellWeather {
+  condition: WeatherCondition;
+  tempC: number;
+  rainPct: number | null;
+  fetchedAt: string;
+}
+
+export type DayForecastStatus =
+  | { kind: 'no-location' }
+  | { kind: 'past' }
+  | { kind: 'pending'; availableFrom: ISODate }
+  | { kind: 'in-range'; location: Location };

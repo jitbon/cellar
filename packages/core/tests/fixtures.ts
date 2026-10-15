@@ -1,6 +1,6 @@
 import { createTrip } from '../src/commands/trip';
 import type { Ok } from '../src/commands/command';
-import type { TripState } from '../src/model/types';
+import type { Location, TripState } from '../src/model/types';
 
 export function expectOk<T extends { ok: boolean }>(r: T): Extract<T, { ok: true }> {
   if (!r.ok) throw new Error('expected ok result: ' + JSON.stringify(r));
@@ -18,3 +18,24 @@ export function blockIdByName(state: TripState, name: string): string {
 }
 
 export type { Ok };
+
+/** Test shortcut: puts a per-day location override straight into the state. */
+export function setDayLocationRow(state: TripState, date: string, loc: Location): TripState {
+  return {
+    ...state,
+    daySettings: [
+      ...state.daySettings.filter((d) => d.date !== date),
+      {
+        tripId: state.trip.id,
+        date,
+        arrivalBlockId: null,
+        departureBlockId: null,
+        locationName: loc.name,
+        locationLat: loc.lat,
+        locationLon: loc.lon,
+        locationTz: loc.tz,
+        updatedAt: '',
+      },
+    ],
+  };
+}

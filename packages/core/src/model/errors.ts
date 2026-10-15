@@ -6,6 +6,8 @@ export type ValidationCode =
   | 'ARRIVAL_AFTER_DEPARTURE'
   | 'DATE_OUT_OF_RANGE'
   | 'INVALID_LINK'
+  | 'INVALID_LOCATION'
+  | 'INVALID_WINDOW'
   | 'NOT_FOUND';
 
 export interface ValidationError {

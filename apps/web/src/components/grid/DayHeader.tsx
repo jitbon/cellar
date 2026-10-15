@@ -1,7 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import { orderedBlocks, setDayWindow, type ISODate, type TripState } from '@cellar/core';
+import {
+  dayLocationOverride,
+  orderedBlocks,
+  setDayLocation,
+  setDayWindow,
+  type DayForecastStatus,
+  type ISODate,
+  type TripState,
+} from '@cellar/core';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
+import { LocationDialog } from '../weather/LocationDialog';
 import type { Dispatch } from './PlacementCard';
 import styles from './DayHeader.module.css';
 
@@ -10,6 +19,7 @@ interface Props {
   date: ISODate;
   weekday: string;
   dispatch: Dispatch;
+  forecastStatus?: DayForecastStatus;
 }
 
 function TravelDialog({
@@ -17,7 +27,7 @@ function TravelDialog({
   date,
   dispatch,
   onClose,
-}: Omit<Props, 'weekday'> & { onClose: () => void }) {
+}: Omit<Props, 'weekday' | 'forecastStatus'> & { onClose: () => void }) {
   const blocks = orderedBlocks(state);
   const setting = state.daySettings.find((d) => d.date === date);
   const [arrival, setArrival] = useState(setting?.arrivalBlockId ?? '');
@@ -88,8 +98,10 @@ function TravelDialog({
   );
 }
 
-export function DayHeader({ state, date, weekday, dispatch }: Props) {
+export function DayHeader({ state, date, weekday, dispatch, forecastStatus }: Props) {
   const [open, setOpen] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
+  const place = dayLocationOverride(state, date);
   const setting = state.daySettings.find((d) => d.date === date);
   const nameOf = (id: string | null) => state.blocks.find((b) => b.id === id)?.name;
   const arrival = nameOf(setting?.arrivalBlockId ?? null);
@@ -99,6 +111,10 @@ export function DayHeader({ state, date, weekday, dispatch }: Props) {
     <div className={styles.header}>
       <strong>{weekday}</strong>
       <span className={styles.date}>{date}</span>
+      {forecastStatus?.kind === 'pending' ? (
+        <span className={styles.date}>Forecast from {forecastStatus.availableFrom}</span>
+      ) : null}
+      {place ? <span className={styles.badge}>📍 {place.name}</span> : null}
       {arrival ? <span className={styles.badge}>✈ Arrive · {arrival}</span> : null}
       {departure ? <span className={styles.badge}>✈ Depart · {departure}</span> : null}
       <button
@@ -109,6 +125,32 @@ export function DayHeader({ state, date, weekday, dispatch }: Props) {
       >
         Travel…
       </button>
+      <button
+        type="button"
+        className={styles.menuButton}
+        aria-label={`Set location for ${date}`}
+        onClick={() => setLocationOpen(true)}
+      >
+        Location…
+      </button>
+      {place ? (
+        <button
+          type="button"
+          className={styles.menuButton}
+          aria-label={`Use trip location on ${date}`}
+          onClick={() => dispatch(setDayLocation(date, null))}
+        >
+          Use trip location
+        </button>
+      ) : null}
+      {locationOpen ? (
+        <LocationDialog
+          title={`Location for ${date}`}
+          current={place}
+          onSelect={(chosen) => dispatch(setDayLocation(date, chosen))}
+          onClose={() => setLocationOpen(false)}
+        />
+      ) : null}
       {open ? (
         <TravelDialog
           state={state}
