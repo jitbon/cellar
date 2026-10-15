@@ -1,70 +1,100 @@
 :root {
-  --color-surface: #faf8f5;
-  --color-surface-raised: #ffffff;
-  --color-text: #2b2623;
-  --color-text-muted: #5f5750;
-  --color-border: #ddd5cc;
-  --color-accent: #7a2e3b;
-  --color-accent-text: #ffffff;
-  --color-activity: #1f5f8b;
-  --color-activity-bg: #e4f0f8;
-  --color-food: #8a4b0f;
-  --color-food-bg: #fbeedd;
-  --color-greyed: #ece8e3;
-  --color-range-bg: #f3e3e6;
+  --color-bg: #ffffff;
+  --color-surface: #f3f5f9;
+  --color-border: #e4e8ef;
+  --color-border-strong: #c9d1de;
+  --color-text: #0d1b2e;
+  --color-text-muted: #5a6880;
+  --color-accent: #0b2d63;
+  --color-accent-soft: #e7eef9;
+  --color-on-accent: #ffffff;
+  --color-activity: #0b2d63;
+  --color-activity-bg: #edf2fa;
+  --color-food: #9a5b00;
+  --color-food-bg: #fbf1e1;
+  --color-header-bg: #0b2d63;
+  --color-header-text: #ffffff;
+  --color-header-muted: #b9c8e4;
+  --color-greyed-hatch: repeating-linear-gradient(
+    135deg,
+    #f3f5f9,
+    #f3f5f9 4px,
+    #e4e8ef 4px,
+    #e4e8ef 5px
+  );
   --color-danger: #b3261e;
   --color-danger-bg: #fdecea;
-  --color-focus: #1a73e8;
-  --color-backdrop: rgb(0 0 0 / 50%);
+  --color-focus: #1d6ff2;
+  --color-backdrop: rgb(13 27 46 / 50%);
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 24px;
+  --space-8: 32px;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
   --radius-pill: 999px;
 
-  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.25rem;
-  --font-size-xl: 1.75rem;
+  --font-family: 'Public Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 13px;
+  --font-size-lg: 15px;
+  --font-size-xl: 20px;
 
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 8%);
-  --shadow-md: 0 4px 16px rgb(0 0 0 / 14%);
+  --shadow-1: 0 2px 8px rgb(13 27 46 / 14%);
+  --shadow-2: 0 8px 24px rgb(13 27 46 / 20%);
+  --shadow-drag: 0 10px 24px -6px rgb(15 23 42 / 35%), 0 2px 6px rgb(15 23 42 / 15%);
 
-  --size-touch: 44px;
+  --size-chip: 24px;
+  --size-row-min: 36px;
+  --size-header: 48px;
+  --size-block-label: 112px;
+  --size-day-column: 168px;
+  --size-panel: 248px;
+  --size-icon: 14px;
   --size-icon-button: 24px;
+  --size-touch: 44px;
   --size-day-cell: 40px;
-  --size-block-label: 184px;
-  --size-day-column: 220px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-surface: #1c1917;
-    --color-surface-raised: #292421;
-    --color-text: #f3eee8;
-    --color-text-muted: #b9afa5;
-    --color-border: #4a423c;
-    --color-accent: #e8a0ab;
-    --color-accent-text: #1c1917;
-    --color-activity: #8cc4ec;
-    --color-activity-bg: #1f3444;
+    --color-bg: #0e1520;
+    --color-surface: #151e2c;
+    --color-border: #243247;
+    --color-border-strong: #3a4b66;
+    --color-text: #e8eef8;
+    --color-text-muted: #9fb0c9;
+    --color-accent: #8fb3ff;
+    --color-accent-soft: #1c2c4a;
+    --color-on-accent: #0e1520;
+    --color-activity: #8fb3ff;
+    --color-activity-bg: #1a2740;
     --color-food: #f0b878;
-    --color-food-bg: #43301a;
-    --color-greyed: #36302c;
-    --color-range-bg: #4a2d33;
+    --color-food-bg: #3a2a14;
+    --color-header-bg: #0a1a36;
+    --color-header-text: #ffffff;
+    --color-header-muted: #b9c8e4;
+    --color-greyed-hatch: repeating-linear-gradient(
+      135deg,
+      #151e2c,
+      #151e2c 4px,
+      #243247 4px,
+      #243247 5px
+    );
     --color-danger: #ff8a80;
     --color-danger-bg: #4a1f1c;
-    --color-focus: #8ab4f8;
+    --color-focus: #6aa3ff;
+    --color-backdrop: rgb(0 0 0 / 60%);
 
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
-    --shadow-md: 0 4px 16px rgb(0 0 0 / 55%);
+    --shadow-1: 0 2px 8px rgb(0 0 0 / 50%);
+    --shadow-2: 0 8px 24px rgb(0 0 0 / 60%);
   }
 }

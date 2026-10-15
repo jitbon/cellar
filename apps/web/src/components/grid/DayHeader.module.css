@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .date {
@@ -11,16 +11,16 @@
 }
 
 .badge {
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background-color: var(--color-greyed);
+  background-color: var(--color-surface);
   font-size: var(--font-size-sm);
 }
 
 .menuButton {
   min-height: var(--size-touch);
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-4);
   border: 0;
   background-color: transparent;
   color: var(--color-accent);
@@ -31,23 +31,23 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
 .select {
   min-height: var(--size-touch);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-bg);
 }
 
 .error {
@@ -58,5 +58,5 @@
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }

@@ -1,20 +1,20 @@
 .picker {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }
 
 .fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }
 
 .calendar {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
+  gap: var(--space-4);
+  padding: var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -23,7 +23,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .navButton {
@@ -38,7 +38,7 @@
 }
 
 .navButton:hover {
-  background-color: var(--color-greyed);
+  background-color: var(--color-surface);
 }
 
 .hint {
@@ -51,7 +51,7 @@
   display: flex;
   min-width: 0;
   justify-content: space-around;
-  gap: var(--space-5);
+  gap: var(--space-7);
 }
 
 .month {
@@ -59,7 +59,7 @@
 }
 
 .monthTitle {
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
   font-weight: 600;
   text-align: center;
 }
@@ -67,7 +67,7 @@
 .days {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, var(--size-day-cell)));
-  row-gap: var(--space-1);
+  row-gap: var(--space-2);
 }
 
 .weekday {
@@ -87,13 +87,13 @@
 }
 
 .day:hover {
-  background-color: var(--color-greyed);
+  background-color: var(--color-surface);
 }
 
 .inRange,
 .inRange:hover {
   border-radius: 0;
-  background-color: var(--color-range-bg);
+  background-color: var(--color-accent-soft);
 }
 
 .rangeStart {
@@ -109,13 +109,13 @@
 }
 
 .rangeEnd:not(.selected) {
-  background-color: var(--color-range-bg);
+  background-color: var(--color-accent-soft);
 }
 
 .selected,
 .selected:hover {
   background-color: var(--color-accent);
-  color: var(--color-accent-text);
+  color: var(--color-on-accent);
   font-weight: 600;
 }
 

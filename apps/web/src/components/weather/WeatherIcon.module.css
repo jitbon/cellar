@@ -22,6 +22,6 @@
 }
 
 .icon:hover {
-  background-color: var(--color-greyed);
+  background-color: var(--color-surface);
   color: var(--color-text);
 }

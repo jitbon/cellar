@@ -1,22 +1,22 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
   width: 320px;
   flex-shrink: 0;
   max-height: calc(100vh - 160px);
   overflow: auto;
-  padding: var(--space-4);
+  padding: var(--space-6);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .title {
@@ -30,29 +30,29 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
 .select,
 .textarea {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-bg);
 }
 
 .select {
@@ -62,28 +62,28 @@
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .chip {
   min-height: var(--size-touch);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-bg);
   cursor: pointer;
 }
 
 .chipActive {
   border-color: var(--color-accent);
   background-color: var(--color-accent);
-  color: var(--color-accent-text);
+  color: var(--color-on-accent);
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -93,11 +93,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2);
+  gap: var(--space-4);
+  padding: var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
 }
 
 .dragging {
@@ -144,8 +144,8 @@
     z-index: 50;
     width: auto;
     max-height: 55vh;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    box-shadow: var(--shadow-2);
   }
 
   .toggle {

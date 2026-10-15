@@ -1,12 +1,12 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--color-bg);
+  box-shadow: var(--shadow-1);
 }
 
 .activity {
@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .badge {
@@ -35,7 +35,7 @@
 
 .controls {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .iconButton {
@@ -48,7 +48,7 @@
 }
 
 .iconButton:hover {
-  background-color: var(--color-greyed);
+  background-color: var(--color-surface);
 }
 
 .name {
@@ -65,26 +65,26 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }
 
 .notesLabel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
 .notes {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-bg);
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }

@@ -1,4 +1,5 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
+import { TooltipProvider } from './components/ui/Tooltip';
 import { ResetPassword } from './pages/ResetPassword';
 import { Settings } from './pages/Settings';
 import { SignIn } from './pages/SignIn';
@@ -21,16 +22,18 @@ function RequireAuth() {
 
 export function App() {
   return (
-    <Routes>
-      <Route path="/signin" element={<SignIn />} />
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route element={<RequireAuth />}>
-        <Route path="/" element={<Trips />} />
-        <Route path="/trips/:tripId" element={<TripPlanner />} />
-        <Route path="/settings" element={<Settings />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <TooltipProvider>
+      <Routes>
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route element={<RequireAuth />}>
+          <Route path="/" element={<Trips />} />
+          <Route path="/trips/:tripId" element={<TripPlanner />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </TooltipProvider>
   );
 }

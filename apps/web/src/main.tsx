@@ -9,6 +9,7 @@ import { SupabaseAuthService } from './adapters/supabaseAuthService';
 import { SupabaseTripRepository } from './adapters/supabaseTripRepository';
 import { supabase } from './lib/supabaseClient';
 import { ServicesProvider } from './state/services';
+import '@fontsource-variable/public-sans';
 import './styles/tokens.css';
 import './styles/global.css';
 

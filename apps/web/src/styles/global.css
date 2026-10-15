@@ -6,11 +6,11 @@
 
 body {
   margin: 0;
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-family);
   font-size: var(--font-size-md);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 button,
@@ -22,7 +22,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-focus);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -40,4 +40,13 @@ h3 {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
