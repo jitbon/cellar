@@ -2,7 +2,8 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { PlaceSuggestion } from '@cellar/core';
-import { PlaceOptions } from '../src/components/places/PlaceOptions';
+import type { PlaceSuggestionStatus } from '../src/state/usePlaceSuggestions';
+import { PlaceNotes, PlaceOptions } from '../src/components/places/PlaceOptions';
 import { chelseaSuggestion } from './setup';
 
 const piers: PlaceSuggestion = {
@@ -12,18 +13,26 @@ const piers: PlaceSuggestion = {
   types: ['tourist_attraction'],
 };
 
-function renderOptions(props: Partial<React.ComponentProps<typeof PlaceOptions>> = {}) {
+type Opts = Partial<React.ComponentProps<typeof PlaceOptions>> & {
+  status?: PlaceSuggestionStatus;
+};
+
+function renderOptions({ status = 'ready', ...props }: Opts = {}) {
   const onChoose = vi.fn();
+  const all = {
+    id: 'places',
+    suggestions: [chelseaSuggestion, piers],
+    activeIndex: -1,
+    onChoose,
+    ...props,
+  };
+  // Hosts render the notes as a sibling after the listbox, never inside it.
   render(
-    <div role="listbox" aria-label="Suggestions">
-      <PlaceOptions
-        id="places"
-        suggestions={[chelseaSuggestion, piers]}
-        status="ready"
-        activeIndex={-1}
-        onChoose={onChoose}
-        {...props}
-      />
+    <div>
+      <div role="listbox" aria-label="Suggestions">
+        <PlaceOptions {...all} />
+      </div>
+      <PlaceNotes hasOptions={all.suggestions.length > 0} status={status} />
     </div>,
   );
   return { onChoose };
@@ -59,6 +68,20 @@ describe('PlaceOptions', () => {
 
   it('shows the Google attribution', () => {
     renderOptions();
+    expect(screen.getByText('Powered by Google')).toBeInTheDocument();
+  });
+
+  it('keeps notes and attribution outside the listbox', () => {
+    renderOptions({ suggestions: [], status: 'unavailable' });
+    const listbox = screen.getByRole('listbox');
+    expect(within(listbox).queryByRole('status')).toBeNull();
+    expect(screen.getByRole('status')).toHaveTextContent('Place search unavailable');
+    expect(listbox).toBeEmptyDOMElement();
+  });
+
+  it('keeps the attribution out of the listbox when there are options', () => {
+    renderOptions();
+    expect(within(screen.getByRole('listbox')).queryByText('Powered by Google')).toBeNull();
     expect(screen.getByText('Powered by Google')).toBeInTheDocument();
   });
 

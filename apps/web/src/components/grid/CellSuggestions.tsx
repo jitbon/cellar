@@ -1,6 +1,6 @@
 import type { Item, PlaceSuggestion } from '@cellar/core';
 import type { PlaceSuggestionStatus } from '../../state/usePlaceSuggestions';
-import { PlaceOptions } from '../places/PlaceOptions';
+import { PlaceNotes, PlaceOptions } from '../places/PlaceOptions';
 import { Icon } from '../ui/Icon';
 import { TYPE_ICON, TYPE_LABEL } from './PlacementChip';
 import styles from './CellSuggestions.module.css';
@@ -31,42 +31,43 @@ export function CellSuggestions({
   const hasOptions = items.length + places.length > 0;
   const hasNote = placeStatus === 'unavailable' || placeStatus === 'ready';
   if (!hasOptions && !hasNote) return null;
-  const placeGroup = (
-    <PlaceOptions
-      id={id}
-      suggestions={places}
-      status={placeStatus}
-      activeIndex={activeIndex}
-      offset={items.length}
-      onChoose={onChoosePlace}
-    />
-  );
-  // Notes without options (no matches, unavailable) sit outside the listbox.
-  if (!hasOptions) return <div className={styles.list}>{placeGroup}</div>;
+  // Notes and attribution are siblings after the listbox (it holds only options and groups),
+  // inside the same popup. With no options there is no listbox at all.
   return (
-    <div id={id} role="listbox" aria-label="Suggestions" className={styles.list}>
-      {items.length > 0 ? (
-        <div role="group" aria-label="From your list">
-          {items.map((item, i) => (
-            <div
-              key={item.id}
-              id={optionId(id, i)}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={`${styles.option} ${i === activeIndex ? styles.active : ''}`}
-              // mousedown (not click) so the input does not blur first
-              onMouseDown={(e) => {
-                e.preventDefault();
-                onChoose(item);
-              }}
-            >
-              <Icon as={TYPE_ICON[item.type]} /> {item.name}
-              <span className={styles.type}> · {TYPE_LABEL[item.type]}</span>
+    <div className={styles.list}>
+      {hasOptions ? (
+        <div id={id} role="listbox" aria-label="Suggestions">
+          {items.length > 0 ? (
+            <div role="group" aria-label="From your list">
+              {items.map((item, i) => (
+                <div
+                  key={item.id}
+                  id={optionId(id, i)}
+                  role="option"
+                  aria-selected={i === activeIndex}
+                  className={`${styles.option} ${i === activeIndex ? styles.active : ''}`}
+                  // mousedown (not click) so the input does not blur first
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onChoose(item);
+                  }}
+                >
+                  <Icon as={TYPE_ICON[item.type]} /> {item.name}
+                  <span className={styles.type}> · {TYPE_LABEL[item.type]}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : null}
+          <PlaceOptions
+            id={id}
+            suggestions={places}
+            activeIndex={activeIndex}
+            offset={items.length}
+            onChoose={onChoosePlace}
+          />
         </div>
       ) : null}
-      {placeGroup}
+      <PlaceNotes hasOptions={places.length > 0} status={placeStatus} />
     </div>
   );
 }

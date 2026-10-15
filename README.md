@@ -38,6 +38,10 @@ Setup, automated checks and manual validation scenarios:
      `supabase functions deploy places`.
   4. Locally, copy `supabase/functions/.env.example` to `supabase/functions/.env` (gitignored),
      fill in the key, and run `supabase functions serve places`.
+  5. CORS is limited to the origins in `ALLOWED_ORIGINS` (comma-separated, default
+     `http://localhost:5173`). Add each origin the app is served from, for example
+     `ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5199` locally, or set it for the
+     deployed function with `supabase secrets set ALLOWED_ORIGINS=https://your-app.example`.
 
   Only the typed text, an anonymous session token and the trip's coordinates are sent. Results
   are shown with "Powered by Google".

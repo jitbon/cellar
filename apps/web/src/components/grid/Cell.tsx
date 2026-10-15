@@ -113,7 +113,10 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
         reset();
       },
       // Keep the typed text so it can still be saved as a plain event.
-      () => setPickFailed(true),
+      () => {
+        setPickFailed(true);
+        setActiveIndex(-1);
+      },
     );
   }
 

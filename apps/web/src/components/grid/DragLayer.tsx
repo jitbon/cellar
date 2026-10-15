@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 import { DragOverlay } from '@dnd-kit/core';
-import type { TripState } from '@cellar/core';
+import { placeOf, type TripState } from '@cellar/core';
 import { ChipFace } from './PlacementChip';
 import { parsePrefixed } from './dndIds';
 import styles from './DragLayer.module.css';
@@ -32,7 +32,7 @@ export function DragLayer({ state, activeId }: { state: TripState; activeId: str
           className={`${styles.lifted} ${styles[source.type]} ${reduced ? styles.flat : ''}`}
           data-drag-overlay
         >
-          <ChipFace name={source.name} type={source.type} />
+          <ChipFace name={source.name} type={source.type} linked={placeOf(source) !== null} />
         </div>
       ) : null}
     </DragOverlay>,

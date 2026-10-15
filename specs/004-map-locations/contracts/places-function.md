@@ -7,7 +7,7 @@ Vitest); `index.ts` only wires it to `Deno.serve`.
 - **Auth**: `verify_jwt = true`; requests need the signed-in user's `Authorization: Bearer`.
 - **Secret**: `GOOGLE_PLACES_API_KEY` (`supabase secrets set`; locally
   `supabase/functions/.env`, gitignored).
-- **Method**: `POST`, JSON body, JSON response. CORS allows the app's origin.
+- **Method**: `POST`, JSON body, JSON response. CORS allows only origins listed in `ALLOWED_ORIGINS` (comma-separated, default `http://localhost:5173`); the request `Origin` is echoed with `vary: origin`, and the header is omitted otherwise.
 
 ## `{"action":"suggest"}`
 

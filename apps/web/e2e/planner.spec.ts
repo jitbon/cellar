@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import {
   createAccount,
   createTrip,
+  mockPlaces,
   deleteAccount,
   goToDay,
   openBlockMenu,
@@ -24,6 +25,7 @@ test.afterAll(async () => {
 
 test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
   test.setTimeout(90_000);
+  await mockPlaces(page, 'fail'); // never reach Google; also keeps the suggestion popup out of the way
   await signIn(page, account);
 
   // 2: create a 5-day trip with 10 default blocks
@@ -106,6 +108,7 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
 });
 
 test('quickstart 9 and 11: travel window greys cells; shrinking warns', async ({ page }) => {
+  await mockPlaces(page, 'fail'); // never reach Google; also keeps the suggestion popup out of the way
   await signIn(page, account);
   await createTrip(page, 'Osaka', '2027-05-01', '2027-05-03');
 
@@ -131,6 +134,7 @@ test('quickstart 9 and 11: travel window greys cells; shrinking warns', async ({
 });
 
 test('quickstart 16: another account cannot open the trip', async ({ page, browser }) => {
+  await mockPlaces(page, 'fail'); // never reach Google; also keeps the suggestion popup out of the way
   await signIn(page, account);
   await createTrip(page, 'Private', '2027-06-01', '2027-06-02');
   const tripUrl = page.url();

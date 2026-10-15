@@ -6,20 +6,22 @@ const BIAS_RADIUS_M = 30_000;
 const MAX_SUGGESTIONS = 5;
 const TIMEOUT_MS = 5000;
 
-const CORS = {
-  'access-control-allow-origin': '*',
+// CORS is limited to the configured app origins: the request Origin is echoed only when listed,
+// otherwise the allow-origin header is omitted so browsers block the response.
+const corsHeaders = (origin: string | null, allowed: string[]): Record<string, string> => ({
+  ...(origin && allowed.includes(origin) ? { 'access-control-allow-origin': origin } : {}),
+  vary: 'origin',
   'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
   'access-control-allow-methods': 'POST, OPTIONS',
-};
+});
 
-const json = (body: unknown, status = 200) =>
+type Cors = Record<string, string>;
+
+const json = (cors: Cors, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, 'content-type': 'application/json' },
+    headers: { ...cors, 'content-type': 'application/json' },
   });
-
-const badRequest = () => json({ error: 'bad_request' }, 400);
-const unavailable = () => json({ error: 'unavailable' }, 503);
 
 interface Prediction {
   placePrediction?: {
@@ -34,6 +36,9 @@ interface Near {
   lon: number;
 }
 
+const badRequest = (cors: Cors) => json(cors, { error: 'bad_request' }, 400);
+const unavailable = (cors: Cors) => json(cors, { error: 'unavailable' }, 503);
+
 const isString = (v: unknown): v is string => typeof v === 'string' && v.length > 0;
 
 function parseNear(v: unknown): Near | null | undefined {
@@ -45,14 +50,15 @@ function parseNear(v: unknown): Near | null | undefined {
 }
 
 async function suggest(
+  cors: Cors,
   body: Record<string, unknown>,
   key: string,
   fetchFn: typeof fetch,
 ): Promise<Response> {
   const input = body.input;
   const near = parseNear(body.near);
-  if (!isString(input) || input.length < 3 || input.length > 100) return badRequest();
-  if (!isString(body.sessionToken) || near === undefined) return badRequest();
+  if (!isString(input) || input.length < 3 || input.length > 100) return badRequest(cors);
+  if (!isString(body.sessionToken) || near === undefined) return badRequest(cors);
 
   const request: Record<string, unknown> = { input, sessionToken: body.sessionToken };
   if (near) {
@@ -66,7 +72,7 @@ async function suggest(
     body: JSON.stringify(request),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  if (!res.ok) return unavailable();
+  if (!res.ok) return unavailable(cors);
   const data = (await res.json()) as { suggestions?: Prediction[] };
   const suggestions = (data.suggestions ?? [])
     .flatMap((s) => {
@@ -82,16 +88,17 @@ async function suggest(
       ];
     })
     .slice(0, MAX_SUGGESTIONS);
-  return json({ suggestions });
+  return json(cors, { suggestions });
 }
 
 async function details(
+  cors: Cors,
   body: Record<string, unknown>,
   key: string,
   fetchFn: typeof fetch,
 ): Promise<Response> {
   const { placeId, sessionToken } = body;
-  if (!isString(placeId) || !isString(sessionToken)) return badRequest();
+  if (!isString(placeId) || !isString(sessionToken)) return badRequest(cors);
 
   const url = `${GOOGLE}/places/${encodeURIComponent(placeId)}?sessionToken=${encodeURIComponent(sessionToken)}`;
   const res = await fetchFn(url, {
@@ -99,15 +106,15 @@ async function details(
     headers: { 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': 'id,location,shortFormattedAddress' },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  if (!res.ok) return unavailable();
+  if (!res.ok) return unavailable(cors);
   const data = (await res.json()) as {
     id?: string;
     location?: { latitude?: number; longitude?: number };
     shortFormattedAddress?: string;
   };
   const { latitude, longitude } = data.location ?? {};
-  if (typeof latitude !== 'number' || typeof longitude !== 'number') return unavailable();
-  return json({
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') return unavailable(cors);
+  return json(cors, {
     place: {
       id: data.id ?? placeId,
       lat: latitude,
@@ -119,27 +126,29 @@ async function details(
 
 export async function handlePlaces(
   req: Request,
-  env: { key?: string },
+  env: { key?: string; allowedOrigins: string[] },
   fetchFn: typeof fetch,
 ): Promise<Response> {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+  const cors = corsHeaders(req.headers.get('origin'), env.allowedOrigins);
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
 
   let body: Record<string, unknown>;
   try {
     const parsed: unknown = await req.json();
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return badRequest();
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))
+      return badRequest(cors);
     body = parsed as Record<string, unknown>;
   } catch {
-    return badRequest();
+    return badRequest(cors);
   }
-  if (body.action !== 'suggest' && body.action !== 'details') return badRequest();
-  if (!env.key) return unavailable();
+  if (body.action !== 'suggest' && body.action !== 'details') return badRequest(cors);
+  if (!env.key) return unavailable(cors);
 
   try {
     return body.action === 'suggest'
-      ? await suggest(body, env.key, fetchFn)
-      : await details(body, env.key, fetchFn);
+      ? await suggest(cors, body, env.key, fetchFn)
+      : await details(cors, body, env.key, fetchFn);
   } catch {
-    return unavailable();
+    return unavailable(cors);
   }
 }

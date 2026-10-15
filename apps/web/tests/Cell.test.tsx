@@ -124,6 +124,21 @@ describe('Cell place suggestions', () => {
     expect(latest().placements[0]).toMatchObject({ name: 'chel', ...placeFields(null) });
   });
 
+  it('a failed pick keeps the typed text, shows unavailable, creates nothing and resets the highlight', async () => {
+    const places = fakePlaceSearch({ suggestions: [chelseaSuggestion] });
+    places.details.mockRejectedValue(new Error('unavailable'));
+    const { user, input, latest } = await typeInto(places, 'chel');
+    await screen.findByRole('option', { name: /Chelsea Market/ });
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-activedescendant');
+    await user.keyboard('{Enter}');
+    expect(await screen.findByText('Place search unavailable')).toBeInTheDocument();
+    expect(places.details).toHaveBeenCalledTimes(1);
+    expect(input).toHaveValue('chel');
+    expect(latest().placements).toHaveLength(0);
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
   it('shows "Place search unavailable" and still saves plain text', async () => {
     const { user, latest } = await typeInto(fakePlaceSearch({ fail: true }), 'chel');
     expect(await screen.findByText('Place search unavailable')).toBeInTheDocument();

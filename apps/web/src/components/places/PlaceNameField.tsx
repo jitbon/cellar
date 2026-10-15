@@ -4,7 +4,7 @@ import { usePlaceSuggestions } from '../../state/usePlaceSuggestions';
 import { Button } from '../ui/Button';
 import { TextField } from '../ui/TextField';
 import { PlaceLine } from './PlaceLine';
-import { PlaceOptions, placeOptionId } from './PlaceOptions';
+import { PlaceNotes, PlaceOptions, placeOptionId } from './PlaceOptions';
 import styles from './PlaceNameField.module.css';
 
 interface Props {
@@ -61,7 +61,10 @@ export function PlaceNameField({
         onChange(picked.name);
         onPick(picked, suggestion);
       },
-      () => setPickFailed(true),
+      () => {
+        setPickFailed(true);
+        setActiveIndex(-1);
+      },
     );
   }
 
@@ -111,20 +114,12 @@ export function PlaceNameField({
                 <PlaceOptions
                   id={listId}
                   suggestions={suggestions}
-                  status={status}
                   activeIndex={activeIndex}
                   onChoose={choose}
                 />
               </div>
-            ) : (
-              <PlaceOptions
-                id={listId}
-                suggestions={[]}
-                status={status}
-                activeIndex={-1}
-                onChoose={choose}
-              />
-            )}
+            ) : null}
+            <PlaceNotes hasOptions={hasOptions} status={status} />
           </div>
         ) : null}
       </div>

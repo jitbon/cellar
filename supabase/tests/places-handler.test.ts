@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { handlePlaces } from '../functions/places/handler';
 
-const env = { key: 'test-key' };
+const ORIGIN = 'http://localhost:5173';
+const env = { key: 'test-key', allowedOrigins: [ORIGIN, 'http://localhost:5199'] };
 
 const post = (body: unknown) =>
   new Request('http://localhost/places', {
@@ -183,14 +184,44 @@ describe('handlePlaces errors', () => {
     expect(await rejected.json()).toEqual({ error: 'unavailable' });
   });
 
-  it('answers OPTIONS with 204 and CORS headers', async () => {
+  it('answers OPTIONS with 204 and CORS headers for an allowed origin', async () => {
     const res = await handlePlaces(
-      new Request('http://localhost/places', { method: 'OPTIONS' }),
+      new Request('http://localhost/places', { method: 'OPTIONS', headers: { origin: ORIGIN } }),
       env,
       vi.fn(),
     );
     expect(res.status).toBe(204);
-    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(res.headers.get('access-control-allow-origin')).toBe(ORIGIN);
+    expect(res.headers.get('vary')).toBe('origin');
     expect(res.headers.get('access-control-allow-headers')).toContain('authorization');
+  });
+
+  it('echoes any origin in the allow-list on normal responses', async () => {
+    const res = await handlePlaces(
+      new Request('http://localhost/places', {
+        method: 'POST',
+        headers: { origin: 'http://localhost:5199' },
+        body: JSON.stringify({ action: 'nope' }),
+      }),
+      env,
+      vi.fn(),
+    );
+    expect(res.headers.get('access-control-allow-origin')).toBe('http://localhost:5199');
+    expect(res.headers.get('vary')).toBe('origin');
+  });
+
+  it('omits the allow-origin header for a disallowed or missing origin', async () => {
+    const bad = await handlePlaces(
+      new Request('http://localhost/places', {
+        method: 'OPTIONS',
+        headers: { origin: 'https://evil.example' },
+      }),
+      env,
+      vi.fn(),
+    );
+    expect(bad.headers.get('access-control-allow-origin')).toBeNull();
+    expect(bad.headers.get('vary')).toBe('origin');
+    const none = await handlePlaces(post({ action: 'nope' }), env, vi.fn());
+    expect(none.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
