@@ -21,3 +21,15 @@
   box-shadow: var(--shadow-1);
   font-size: var(--font-size-md);
 }
+
+.linked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.linked > :first-child {
+  flex: 1;
+  min-width: 0;
+}

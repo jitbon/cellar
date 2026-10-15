@@ -50,7 +50,8 @@ interface FormProps {
     type: ItemType;
     notes: string;
     link: string;
-    place: Place | null;
+    /** Undefined when the form's place is unchanged. */
+    place: Place | null | undefined;
   }) => string | null;
   onDone?: () => void;
   near: { lat: number; lon: number } | null;
@@ -66,35 +67,27 @@ function ItemForm({ item, submitLabel, onSubmit, onDone, near }: FormProps) {
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    const problem = onSubmit({ name, type, notes, link, place });
+    const changed = (place?.id ?? null) !== (item ? (placeOf(item)?.id ?? null) : null);
+    const problem = onSubmit({ name, type, notes, link, place: changed ? place : undefined });
     setError(problem);
     if (!problem) onDone?.();
   }
 
   return (
     <form className={styles.form} onSubmit={submit}>
-      {item ? (
-        <TextField
-          label="Name"
-          value={name}
-          autoFocus
-          onChange={(e) => setName(e.target.value)}
-          error={error}
-        />
-      ) : (
-        <PlaceNameField
-          value={name}
-          onChange={setName}
-          place={place}
-          near={near}
-          error={error}
-          autoFocus
-          onPick={(picked, suggestion) => {
-            setPlace(picked);
-            if (isFoodPlace(suggestion.types)) setType('food');
-          }}
-        />
-      )}
+      <PlaceNameField
+        value={name}
+        onChange={setName}
+        place={place}
+        near={near}
+        error={error}
+        autoFocus
+        onPick={(picked, suggestion) => {
+          setPlace(picked);
+          if (isFoodPlace(suggestion.types)) setType('food');
+        }}
+        onRemove={() => setPlace(null)}
+      />
       <label className={styles.field}>
         Type
         <select
@@ -169,6 +162,14 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
         <MenuItem aria-label={`Edit ${item.name}`} onSelect={() => setEditing(true)}>
           Edit
         </MenuItem>
+        {place ? (
+          <MenuItem
+            aria-label={`Remove place from ${item.name}`}
+            onSelect={() => dispatch(updateItem(item.id, { place: null }))}
+          >
+            Remove place
+          </MenuItem>
+        ) : null}
         <MenuItem danger aria-label={`Delete ${item.name}`} onSelect={() => setDeleting(true)}>
           Delete
         </MenuItem>
@@ -187,9 +188,15 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
             submitLabel="Save"
             near={suggestNear(state)}
             onDone={() => setEditing(false)}
-            onSubmit={({ name, type, notes, link }) => {
+            onSubmit={({ name, type, notes, link, place: picked }) => {
               const r = dispatch(
-                updateItem(item.id, { name, type, notes: notes || null, link: link || null }),
+                updateItem(item.id, {
+                  name,
+                  type,
+                  notes: notes || null,
+                  link: link || null,
+                  ...(picked !== undefined ? { place: picked } : {}),
+                }),
               );
               return r.ok ? null : r.error.message;
             }}

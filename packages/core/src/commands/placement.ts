@@ -69,6 +69,8 @@ export interface PlacementPatch {
   type?: ItemType;
   notes?: string | null;
   link?: string | null;
+  /** A place links the placement; null removes the link (the name stays). */
+  place?: Place | null;
 }
 
 export function updatePlacement(id: string, patch: PlacementPatch): Command {
@@ -78,11 +80,14 @@ export function updatePlacement(id: string, patch: PlacementPatch): Command {
     const error =
       (patch.name !== undefined ? validateItemName(patch.name) : null) ??
       (patch.notes !== undefined ? validateNotes(patch.notes) : null) ??
-      (patch.link !== undefined ? validateLink(patch.link) : null);
+      (patch.link !== undefined ? validateLink(patch.link) : null) ??
+      (patch.place !== undefined ? validatePlace(patch.place) : null);
     if (error) return { ok: false, error };
+    const { place, ...fields } = patch;
     const next: Placement = {
       ...existing,
-      ...patch,
+      ...fields,
+      ...(place !== undefined ? placeFields(place) : {}),
       name: patch.name !== undefined ? patch.name.trim() : existing.name,
       link: patch.link === '' ? null : patch.link !== undefined ? patch.link : existing.link,
       notes: patch.notes === '' ? null : patch.notes !== undefined ? patch.notes : existing.notes,

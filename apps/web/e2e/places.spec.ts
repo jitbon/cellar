@@ -254,3 +254,106 @@ test.describe('US2: open a linked place in a map app', () => {
     expect((await opened())[0][0]).toContain('query_place_id=test-chelsea');
   });
 });
+
+/** Adds a linked "Chelsea Market" item through the add form; returns the open item panel. */
+async function addLinkedItem(page: Page, tripName: string) {
+  const list = await openAddForm(page, tripName);
+  await list.getByLabel('Name', { exact: true }).fill('Chelsea Mar');
+  await page.getByRole('option', { name: /Chelsea Market/ }).click();
+  await list.getByRole('button', { name: 'Add to list' }).click();
+  await expect(
+    list.getByRole('listitem').filter({ hasText: 'Chelsea Market' }).getByLabel('Linked place'),
+  ).toBeVisible();
+  return list;
+}
+
+test.describe('US3: link, change or remove a place', () => {
+  test('quickstart 9: Remove place keeps the name; Undo restores the link', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    const list = await addLinkedItem(page, 'NYC US3 a');
+    const row = () => list.getByRole('listitem').filter({ hasText: 'Chelsea Market' });
+
+    await list.getByRole('button', { name: 'Actions for Chelsea Market' }).click();
+    await page.getByRole('menuitem', { name: 'Edit Chelsea Market' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Edit item' });
+    await dialog.getByRole('button', { name: 'Remove place' }).click();
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(row()).toBeVisible();
+    await expect(row().getByLabel('Linked place')).toHaveCount(0);
+    await expect(row()).not.toContainText('75 9th Ave');
+
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(row().getByLabel('Linked place')).toBeVisible();
+    await expect(row()).toContainText('75 9th Ave, New York');
+  });
+
+  test('quickstart 9: the row menu also removes the place', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    const list = await addLinkedItem(page, 'NYC US3 b');
+    await list.getByRole('button', { name: 'Actions for Chelsea Market' }).click();
+    await page.getByRole('menuitem', { name: 'Remove place from Chelsea Market' }).click();
+    await expect(
+      list.getByRole('listitem').filter({ hasText: 'Chelsea Market' }).getByLabel('Linked place'),
+    ).toHaveCount(0);
+  });
+
+  test('quickstart 10: renaming keeps the place; Google Maps still opens Chelsea Market', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    const opened = await captureOpens(page);
+    const list = await addLinkedItem(page, 'NYC US3 c');
+
+    await list.getByRole('button', { name: 'Actions for Chelsea Market' }).click();
+    await page.getByRole('menuitem', { name: 'Edit Chelsea Market' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Edit item' });
+    await dialog.getByLabel('Name', { exact: true }).fill('Chelsea Market lunch');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+
+    const row = list.getByRole('listitem').filter({ hasText: 'Chelsea Market lunch' });
+    await expect(row.getByLabel('Linked place')).toBeVisible();
+    await row.getByRole('button', { name: 'Actions for Chelsea Market lunch' }).click();
+    await page.getByRole('menuitem', { name: 'Google Maps' }).click();
+    const url = (await opened())[0][0];
+    expect(url).toContain('query=Chelsea%20Market%2C');
+    expect(url).toContain('query_place_id=test-chelsea');
+  });
+
+  test('editing a plain item and picking a place links it', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    const list = await openAddForm(page, 'NYC US3 d');
+    await list.getByLabel('Name', { exact: true }).fill('Joes Pizza');
+    await list.getByRole('button', { name: 'Add to list' }).click();
+    const row = list.getByRole('listitem').filter({ hasText: 'Joes Pizza' });
+    await expect(row).toBeVisible();
+
+    await row.getByRole('button', { name: 'Actions for Joes Pizza' }).click();
+    await page.getByRole('menuitem', { name: 'Edit Joes Pizza' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Edit item' });
+    await dialog.getByLabel('Name', { exact: true }).fill('Los Tacos');
+    await page.getByRole('option', { name: /Los Tacos No. 1/ }).click();
+    await expect(dialog.getByLabel('Type')).toHaveValue('food');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+
+    const linked = list.getByRole('listitem').filter({ hasText: 'Los Tacos No. 1' });
+    await expect(linked.getByLabel('Linked place')).toBeVisible();
+  });
+
+  test('a placed chip can be edited to another place', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    await tripWithLinkedChip(page, 'NYC US3 e');
+    await openChipMenu(page, 'Chelsea Market');
+    await page.getByRole('menuitem', { name: 'Edit Chelsea Market' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Edit event' });
+    await dialog.getByLabel('Name', { exact: true }).fill('taco');
+    await page.getByRole('option', { name: /Los Tacos No. 1/ }).click();
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    const chip = page.getByTestId('chip').filter({ hasText: 'Los Tacos No. 1' });
+    await expect(chip.getByLabel('Linked place')).toBeVisible();
+
+    await openChipMenu(page, 'Los Tacos No. 1');
+    await page.getByRole('menuitem', { name: 'Remove place from Los Tacos No. 1' }).click();
+    await expect(chip.getByLabel('Linked place')).toHaveCount(0);
+    await expect(chip).toBeVisible();
+  });
+});

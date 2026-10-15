@@ -2,17 +2,21 @@ import { memo, useState, type FormEvent, type MouseEvent, type PointerEvent } fr
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
+  isFoodPlace,
   movePlacement,
   placeOf,
   removePlacement,
+  suggestNear,
   updatePlacement,
   type Command,
+  type Place,
   type Placement,
   type Result,
   type TripState,
 } from '@cellar/core';
 import { CellPickerDialog } from '../CellPickerDialog';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
+import { PlaceNameField } from '../places/PlaceNameField';
 import { placementDragId } from './dndIds';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
@@ -28,23 +32,34 @@ export const TYPE_LABEL = { activity: 'Activity', food: 'Food place' } as const;
 export const TYPE_ICON = { activity: Flag, food: Utensils } as const;
 
 function EditDialog({
+  state,
   placement,
   dispatch,
   onClose,
 }: {
+  state: TripState;
   placement: Placement;
   dispatch: Dispatch;
   onClose: () => void;
 }) {
   const [name, setName] = useState(placement.name);
+  const [place, setPlace] = useState<Place | null>(placeOf(placement));
+  const [pickedFood, setPickedFood] = useState(false);
   const [notes, setNotes] = useState(placement.notes ?? '');
   const [link, setLink] = useState(placement.link ?? '');
   const [error, setError] = useState<string | null>(null);
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+    const changed = (place?.id ?? null) !== (placeOf(placement)?.id ?? null);
     const result = dispatch(
-      updatePlacement(placement.id, { name, notes: notes || null, link: link || null }),
+      updatePlacement(placement.id, {
+        name,
+        notes: notes || null,
+        link: link || null,
+        ...(changed ? { place } : {}),
+        ...(pickedFood && placement.type !== 'food' ? { type: 'food' as const } : {}),
+      }),
     );
     if (result.ok) onClose();
     else setError(result.error.message);
@@ -53,7 +68,20 @@ function EditDialog({
   return (
     <Dialog title="Edit event" onClose={onClose}>
       <form className={styles.form} onSubmit={onSubmit}>
-        <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <PlaceNameField
+          value={name}
+          onChange={setName}
+          place={place}
+          near={suggestNear(state, placement.date)}
+          onPick={(picked, suggestion) => {
+            setPlace(picked);
+            setPickedFood(isFoodPlace(suggestion.types));
+          }}
+          onRemove={() => {
+            setPlace(null);
+            setPickedFood(false);
+          }}
+        />
         <label className={styles.notesLabel}>
           Notes
           <textarea
@@ -203,6 +231,14 @@ function PlacementChipImpl({
           <MenuItem aria-label={`Edit ${placement.name}`} onSelect={() => setEditing(true)}>
             Edit
           </MenuItem>
+          {place ? (
+            <MenuItem
+              aria-label={`Remove place from ${placement.name}`}
+              onSelect={() => dispatch(updatePlacement(placement.id, { place: null }))}
+            >
+              Remove place
+            </MenuItem>
+          ) : null}
           {placement.link ? (
             <MenuItem
               aria-label={`Open link for ${placement.name}`}
@@ -227,7 +263,12 @@ function PlacementChipImpl({
         </Menu>
       </div>
       {editing ? (
-        <EditDialog placement={placement} dispatch={dispatch} onClose={() => setEditing(false)} />
+        <EditDialog
+          state={state}
+          placement={placement}
+          dispatch={dispatch}
+          onClose={() => setEditing(false)}
+        />
       ) : null}
       {moving ? (
         <CellPickerDialog
@@ -255,5 +296,6 @@ export const PlacementChip = memo(
     a.placement === b.placement &&
     a.dispatch === b.dispatch &&
     a.state.blocks === b.state.blocks &&
+    a.state.daySettings === b.state.daySettings &&
     a.state.trip === b.state.trip,
 );

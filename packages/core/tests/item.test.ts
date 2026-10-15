@@ -69,6 +69,66 @@ describe('addItem with a place', () => {
   });
 });
 
+describe('updateItem with a place', () => {
+  const other: Place = { ...chelsea, id: 'test-other', name: 'Other Place', category: null };
+
+  function plainItem() {
+    const s = expectOk(
+      addItem('Joes Pizza', 'food', 'thin crust', 'https://joes.example')(newTripState()),
+    );
+    return { state: s.state, id: s.state.items[0].id };
+  }
+
+  it('links a plain item', () => {
+    const { state, id } = plainItem();
+    const r = expectOk(updateItem(id, { place: chelsea })(state));
+    expect(placeOf(r.state.items[0])).toEqual(chelsea);
+    expect(r.changes).toHaveLength(1);
+  });
+
+  it('replaces a linked place', () => {
+    const { state, id } = plainItem();
+    const linked = expectOk(updateItem(id, { place: chelsea })(state)).state;
+    const r = expectOk(updateItem(id, { place: other })(linked));
+    expect(placeOf(r.state.items[0])).toEqual(other);
+  });
+
+  it('clears all seven fields with null and keeps name, type, notes and link', () => {
+    const { state, id } = plainItem();
+    const linked = expectOk(updateItem(id, { place: chelsea })(state)).state;
+    const r = expectOk(updateItem(id, { place: null })(linked));
+    expect(r.state.items[0]).toMatchObject({
+      ...placeFields(null),
+      name: 'Joes Pizza',
+      type: 'food',
+      notes: 'thin crust',
+      link: 'https://joes.example',
+    });
+  });
+
+  it('keeps the place when only the name changes', () => {
+    const { state, id } = plainItem();
+    const linked = expectOk(updateItem(id, { place: chelsea })(state)).state;
+    const r = expectOk(updateItem(id, { name: 'Chelsea Market lunch' })(linked));
+    expect(r.state.items[0].name).toBe('Chelsea Market lunch');
+    expect(placeOf(r.state.items[0])).toEqual(chelsea);
+  });
+
+  it('rejects an invalid place', () => {
+    const { state, id } = plainItem();
+    const r = updateItem(id, { place: { ...chelsea, name: '' } })(state);
+    expect(!r.ok && r.error.code).toBe('INVALID_PLACE');
+  });
+
+  it('is one undo step each', () => {
+    const { state, id } = plainItem();
+    const linked = expectOk(updateItem(id, { place: chelsea })(state));
+    expect(placeOf(expectOk(linked.inverse(linked.state)).state.items[0])).toBeNull();
+    const cleared = expectOk(updateItem(id, { place: null })(linked.state));
+    expect(placeOf(expectOk(cleared.inverse(cleared.state)).state.items[0])).toEqual(chelsea);
+  });
+});
+
 describe('updateItem / deleteItem never change placement content (FR-009)', () => {
   function withPlacement() {
     const s0 = newTripState();

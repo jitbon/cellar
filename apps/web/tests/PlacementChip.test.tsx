@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { useState } from 'react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { addTypedPlacement, createTrip, type Command, type TripState } from '@cellar/core';
-import { chelseaPlace, withServices } from './setup';
+import { chelseaPlace, chelseaSuggestion, fakePlaceSearch, withServices } from './setup';
 import { PlacementChip } from '../src/components/grid/PlacementChip';
 import { TooltipProvider } from '../src/components/ui/Tooltip';
 
@@ -12,6 +13,7 @@ const afternoon = created.state.blocks.find((b) => b.name === 'Afternoon')!;
 const added = addTypedPlacement('2027-04-02', afternoon.id, 'Coffee')(created.state);
 if (!added.ok) throw new Error('fixture');
 const state = added.state;
+const emptyState = created.state;
 const placement = state.placements[0]!;
 
 function setup() {
@@ -112,5 +114,85 @@ describe('PlacementChip', () => {
       await user.click(screen.getByRole('button', { name: 'Actions for Coffee' }));
       expect(screen.queryByText('Open in maps')).toBeNull();
     });
+  });
+
+  describe('link, change and remove a place', () => {
+    function Stateful({ initial }: { initial: TripState }) {
+      const [current, setCurrent] = useState(initial);
+      const dispatch = (command: Command) => {
+        const r = command(current);
+        if (r.ok) setCurrent(r.state);
+        return r;
+      };
+      return (
+        <TooltipProvider>
+          <PlacementChip state={current} placement={current.placements[0]!} dispatch={dispatch} />
+        </TooltipProvider>
+      );
+    }
+
+    const services = () => ({
+      places: fakePlaceSearch({ suggestions: [chelseaSuggestion] }),
+      store: { get: () => null, set: vi.fn(), remove: vi.fn() },
+    });
+
+    it('editing a plain chip and picking a place links it', async () => {
+      render(<Stateful initial={state} />, { wrapper: withServices(services()) });
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: 'Actions for Coffee' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Edit Coffee' }));
+      const dialog = screen.getByRole('dialog', { name: 'Edit event' });
+      const name = within(dialog).getByRole('combobox', { name: 'Name' });
+      await user.clear(name);
+      await user.type(name, 'Chelsea Mar');
+      await user.click(await screen.findByRole('option', { name: /Chelsea Market/ }));
+      expect(name).toHaveValue('Chelsea Market');
+      await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+      expect(screen.getByText('Chelsea Market')).toBeInTheDocument();
+      expect(screen.getByLabelText('Linked place')).toBeInTheDocument();
+    });
+
+    it('Remove place clears the link and keeps the name', async () => {
+      const linkedChip = linkedChipState();
+      render(<Stateful initial={linkedChip} />, { wrapper: withServices(services()) });
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Remove place from Chelsea Market' }));
+      expect(screen.queryByLabelText('Linked place')).toBeNull();
+      expect(screen.getByText('Chelsea Market')).toBeInTheDocument();
+    });
+
+    it('renaming a linked chip keeps the link', async () => {
+      render(<Stateful initial={linkedChipState()} />, { wrapper: withServices(services()) });
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Edit Chelsea Market' }));
+      const dialog = screen.getByRole('dialog', { name: 'Edit event' });
+      const name = within(dialog).getByRole('combobox', { name: 'Name' });
+      await user.clear(name);
+      await user.type(name, 'Lunch');
+      await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+      expect(screen.getByText('Lunch')).toBeInTheDocument();
+      expect(screen.getByLabelText('Linked place')).toBeInTheDocument();
+    });
+
+    it('Remove place in the edit dialog drops the held place before saving', async () => {
+      render(<Stateful initial={linkedChipState()} />, { wrapper: withServices(services()) });
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Edit Chelsea Market' }));
+      const dialog = screen.getByRole('dialog', { name: 'Edit event' });
+      await user.click(within(dialog).getByRole('button', { name: 'Remove place' }));
+      await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+      expect(screen.queryByLabelText('Linked place')).toBeNull();
+    });
+
+    function linkedChipState(): TripState {
+      const r = addTypedPlacement('2027-04-02', afternoon.id, 'Chelsea Market', undefined, {
+        place: chelseaPlace,
+      })(emptyState);
+      if (!r.ok) throw new Error('fixture');
+      return r.state;
+    }
   });
 });

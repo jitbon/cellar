@@ -42,6 +42,8 @@ export interface ItemPatch {
   type?: ItemType;
   notes?: string | null;
   link?: string | null;
+  /** A place links the item; null removes the link (the name stays). */
+  place?: Place | null;
 }
 
 /** Edits the list item only; placements already copied from it are never touched (FR-009). */
@@ -55,11 +57,14 @@ export function updateItem(id: string, patch: ItemPatch): Command {
         ? validationError('NOT_FOUND', 'Unknown item type.')
         : null) ??
       (patch.notes !== undefined ? validateNotes(patch.notes) : null) ??
-      (patch.link !== undefined ? validateLink(patch.link) : null);
+      (patch.link !== undefined ? validateLink(patch.link) : null) ??
+      (patch.place !== undefined ? validatePlace(patch.place) : null);
     if (error) return { ok: false, error };
+    const { place, ...fields } = patch;
     const next: Item = {
       ...existing,
-      ...patch,
+      ...fields,
+      ...(place !== undefined ? placeFields(place) : {}),
       name: patch.name !== undefined ? patch.name.trim() : existing.name,
       notes: patch.notes !== undefined ? patch.notes || null : existing.notes,
       link: patch.link !== undefined ? patch.link || null : existing.link,

@@ -210,4 +210,73 @@ describe('ItemPanel', () => {
       expect(screen.queryByText('Open in maps')).toBeNull();
     });
   });
+
+  describe('link, change and remove a place', () => {
+    const linked = apply(seeded, addItem('Chelsea Market', 'activity', null, null, chelseaPlace));
+
+    function setupLinked(
+      places: PlaceSearch = fakePlaceSearch({ suggestions: [chelseaSuggestion] }),
+    ) {
+      const store = { get: () => null, set: vi.fn(), remove: vi.fn() };
+      function LinkedHarness() {
+        const [state, setState] = useState(linked);
+        const dispatch = (command: Command) => {
+          const r = command(state);
+          if (r.ok) setState(r.state);
+          return r;
+        };
+        return <ItemPanel state={state} dispatch={dispatch} />;
+      }
+      render(<LinkedHarness />, { wrapper: withServices({ store, places }) });
+      return userEvent.setup();
+    }
+
+    it('editing a plain item and picking a place links it', async () => {
+      const user = setupLinked();
+      await user.click(screen.getByRole('button', { name: 'Actions for Museum' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Edit Museum' }));
+      const dialog = screen.getByRole('dialog', { name: 'Edit item' });
+      const name = within(dialog).getByLabelText('Name');
+      await user.clear(name);
+      await user.type(name, 'Chelsea Mar');
+      await user.click(await screen.findByRole('option', { name: /Chelsea Market/ }));
+      await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+      const row = within(panel())
+        .getAllByRole('listitem')
+        .find((li) => li.textContent?.includes('75 9th Ave'));
+      expect(row).toBeDefined();
+    });
+
+    it('Remove place in the row menu clears the link and keeps the name', async () => {
+      const user = setupLinked();
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Remove place from Chelsea Market' }));
+      expect(within(panel()).queryByLabelText('Linked place')).toBeNull();
+      expect(names()).toContain('Chelsea Market');
+    });
+
+    it('renaming a linked item keeps its place', async () => {
+      const user = setupLinked();
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Edit Chelsea Market' }));
+      const dialog = screen.getByRole('dialog', { name: 'Edit item' });
+      const name = within(dialog).getByLabelText('Name');
+      await user.clear(name);
+      await user.type(name, 'Chelsea Market lunch');
+      await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+      expect(names()).toContain('Chelsea Market lunch');
+      expect(within(panel()).getByLabelText('Linked place')).toBeInTheDocument();
+    });
+
+    it('the edit dialog has a Remove place button for a linked item', async () => {
+      const user = setupLinked();
+      await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+      await user.click(screen.getByRole('menuitem', { name: 'Edit Chelsea Market' }));
+      const dialog = screen.getByRole('dialog', { name: 'Edit item' });
+      await user.click(within(dialog).getByRole('button', { name: 'Remove place' }));
+      await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+      expect(within(panel()).queryByLabelText('Linked place')).toBeNull();
+      expect(names()).toContain('Chelsea Market');
+    });
+  });
 });

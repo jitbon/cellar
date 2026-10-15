@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import type { Place, PlaceSuggestion } from '@cellar/core';
 import { usePlaceSuggestions } from '../../state/usePlaceSuggestions';
+import { Button } from '../ui/Button';
 import { TextField } from '../ui/TextField';
 import { PlaceLine } from './PlaceLine';
 import { PlaceOptions, placeOptionId } from './PlaceOptions';
@@ -13,6 +14,8 @@ interface Props {
   place: Place | null;
   /** Called with the picked place (and its suggestion, for the food check) after details load. */
   onPick: (place: Place, suggestion: PlaceSuggestion) => void;
+  /** Drops the held place and keeps the typed name. */
+  onRemove: () => void;
   near: { lat: number; lon: number } | null;
   error?: string | null;
   autoFocus?: boolean;
@@ -22,12 +25,24 @@ interface Props {
  * The name field of an item or event form: a combobox that suggests real places while typing.
  * Ignoring the list keeps the typed text as a plain name.
  */
-export function PlaceNameField({ value, onChange, place, onPick, near, error, autoFocus }: Props) {
+export function PlaceNameField({
+  value,
+  onChange,
+  place,
+  onPick,
+  onRemove,
+  near,
+  error,
+  autoFocus,
+}: Props) {
   const listId = useId();
   const [open, setOpen] = useState(true);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [pickFailed, setPickFailed] = useState(false);
-  const search = usePlaceSuggestions(value, near, { quiet: place?.name ?? null });
+  // Opening an existing item, or filling in a picked place's name, must not start a search.
+  const [initial] = useState(value);
+  const quiet = value === initial || value === place?.name ? value : null;
+  const search = usePlaceSuggestions(value, near, { quiet });
   const { suggestions, pick } = search;
   const status = pickFailed ? 'unavailable' : search.status;
   const hasOptions = open && suggestions.length > 0;
@@ -113,7 +128,14 @@ export function PlaceNameField({ value, onChange, place, onPick, near, error, au
           </div>
         ) : null}
       </div>
-      <PlaceLine place={place} />
+      {place ? (
+        <div className={styles.linked}>
+          <PlaceLine place={place} />
+          <Button variant="ghost" onClick={onRemove}>
+            Remove place
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

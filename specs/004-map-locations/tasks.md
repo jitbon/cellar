@@ -131,15 +131,15 @@ contract = `contracts/core.md`, DB contract = `contracts/database.md`, function 
 
 ### Tests for User Story 3
 
-- [ ] T043 [P] [US3] Extend `packages/core/tests/item.test.ts`: `updateItem(id, { place })` links; `{ place: other }` replaces; `{ place: null }` clears all seven fields and keeps name, type, notes, link; `{ name: 'Chelsea Market lunch' }` keeps the place; invalid place → `INVALID_PLACE`; each is one undo step
-- [ ] T044 [P] [US3] Extend `packages/core/tests/placement-typed.test.ts` (or a new `placement-place.test.ts`) with the same cases for `updatePlacement(id, { place })`
+- [X] T043 [P] [US3] Extend `packages/core/tests/item.test.ts`: `updateItem(id, { place })` links; `{ place: other }` replaces; `{ place: null }` clears all seven fields and keeps name, type, notes, link; `{ name: 'Chelsea Market lunch' }` keeps the place; invalid place → `INVALID_PLACE`; each is one undo step
+- [X] T044 [P] [US3] Extend `packages/core/tests/placement-typed.test.ts` (or a new `placement-place.test.ts`) with the same cases for `updatePlacement(id, { place })`
 
 ### Implementation for User Story 3
 
-- [ ] T045 [US3] Add `place?: Place | null` to `ItemPatch` in `packages/core/src/commands/item.ts` and to `PlacementPatch` in `packages/core/src/commands/placement.ts`; validate with `validatePlace` and spread `placeFields(place)` only when `place !== undefined`; make T043–T044 pass
-- [ ] T046 [US3] In `ItemPanel.tsx`'s edit dialog (`ItemForm` with an existing item): start with the item's `placeOf(item)`; same combobox as the add form; a "Remove place" text button next to `PlaceLine` clears it in form state; Save sends `place` to `updateItem` only when it changed; add a "Remove place" `MenuItem` to the row menu for linked items that dispatches `updateItem(id, { place: null })`
-- [ ] T047 [US3] In `PlacementChip.tsx`'s edit form: same combobox, `PlaceLine` and "Remove place" button, saving via `updatePlacement`; add a "Remove place" `MenuItem` for linked chips; `near = suggestNear(state, placement.date)`
-- [ ] T048 [US3] Extend `ItemPanel.test.tsx` and `PlacementChip.test.tsx`: editing a plain row and picking links it; Remove place clears it and keeps the name; and add US3 e2e tests (quickstart scenarios 9–10, including Undo) to `apps/web/e2e/places.spec.ts`
+- [X] T045 [US3] Add `place?: Place | null` to `ItemPatch` in `packages/core/src/commands/item.ts` and to `PlacementPatch` in `packages/core/src/commands/placement.ts`; validate with `validatePlace` and spread `placeFields(place)` only when `place !== undefined`; make T043–T044 pass
+- [X] T046 [US3] In `ItemPanel.tsx`'s edit dialog (`ItemForm` with an existing item): start with the item's `placeOf(item)`; same combobox as the add form; a "Remove place" text button next to `PlaceLine` clears it in form state; Save sends `place` to `updateItem` only when it changed; add a "Remove place" `MenuItem` to the row menu for linked items that dispatches `updateItem(id, { place: null })`
+- [X] T047 [US3] In `PlacementChip.tsx`'s edit form: same combobox, `PlaceLine` and "Remove place" button, saving via `updatePlacement`; add a "Remove place" `MenuItem` for linked chips; `near = suggestNear(state, placement.date)`
+- [X] T048 [US3] Extend `ItemPanel.test.tsx` and `PlacementChip.test.tsx`: editing a plain row and picking links it; Remove place clears it and keeps the name; and add US3 e2e tests (quickstart scenarios 9–10, including Undo) to `apps/web/e2e/places.spec.ts`
 
 **Checkpoint**: All three stories work independently
 
