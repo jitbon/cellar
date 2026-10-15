@@ -14,6 +14,17 @@ the user puts in something like "Chelsea Market" it should be replacable (sugges
 Google Maps location. whatever map app is fine, I think some apps do the option to open in
 google maps/apple maps/waze?"
 
+## Clarifications
+
+### Session 2026-10-15
+
+- Q: Should this feature include an in-app map of linked items, or only linking items to places
+  and opening them in an outside map app? → A: No in-app map. Link to places and "Open in maps"
+  only; a map view can be a later feature.
+- Q: When should place suggestions appear: live while typing, a "Did you mean…?" prompt after
+  saving, or only on a "Find place" button? → A: Live list under the name field while typing;
+  ignoring it saves plain text.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Get a place suggestion while typing an item (Priority: P1)
@@ -132,8 +143,9 @@ linked. Choose "Remove place": it is plain again, keeping its current name and n
 - **FR-001**: Adding an item MUST still default to a plain, user-typed item. A place link MUST
   be optional and only added when the traveler picks a suggestion.
 - **FR-002**: When the traveler types 3 or more characters into an item's name (on create or
-  edit), the system MUST offer up to 5 matching real-world places, each showing name and short
-  address.
+  edit) and pauses typing briefly, the system MUST show a live list of up to 5 matching
+  real-world places under the name field, each showing name and short address. The list MUST
+  NOT block typing or saving, and there is no separate prompt after saving.
 - **FR-003**: Suggestions MUST favor places near the trip's location (or the day's location
   override, when adding from a specific day) when one is set.
 - **FR-004**: Picking a suggestion MUST set the item's name to the place's name and link the
@@ -194,8 +206,9 @@ linked. Choose "Remove place": it is plain again, keeping its current name and n
   Principle IV it sits behind an adapter so another provider could be swapped in later.
 - Map apps covered are Google Maps, Apple Maps and Waze, since the user named them. Others are
   out of scope.
-- An in-app map view (showing items as pins on a map, or routes between them) is out of scope
-  for this feature.
+- An in-app map view (showing items as pins on a map, per day or per trip, or routes between
+  them) is out of scope for this feature (confirmed in Clarifications); it may be a later
+  feature built on the linked places.
 - Travel time or distance between items is out of scope.
 - Place details are saved once when linked and not refreshed; showing live hours, ratings,
   photos or reviews is out of scope.
