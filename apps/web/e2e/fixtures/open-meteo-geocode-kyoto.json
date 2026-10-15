@@ -1,0 +1,31 @@
+{
+  "results": [
+    {
+      "id": 1,
+      "name": "Kyoto",
+      "latitude": 35.0211,
+      "longitude": 135.7538,
+      "timezone": "Asia/Tokyo",
+      "country": "Japan",
+      "admin1": "Kyoto"
+    },
+    {
+      "id": 2,
+      "name": "Osaka",
+      "latitude": 34.6937,
+      "longitude": 135.5022,
+      "timezone": "Asia/Tokyo",
+      "country": "Japan",
+      "admin1": "Osaka"
+    },
+    {
+      "id": 3,
+      "name": "Sapporo",
+      "latitude": 43.0618,
+      "longitude": 141.3545,
+      "timezone": "Asia/Tokyo",
+      "country": "Japan",
+      "admin1": "Hokkaido"
+    }
+  ]
+}

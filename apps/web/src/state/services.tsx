@@ -1,11 +1,19 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { AuthService, AuthUser, TripRepository } from '@cellar/core';
+import type {
+  AuthService,
+  AuthUser,
+  KeyValueStore,
+  TripRepository,
+  WeatherService,
+} from '@cellar/core';
 import type { Outbox } from '../adapters/outbox';
 
 export interface Services {
   auth: AuthService;
   repo: TripRepository;
   outbox: Outbox;
+  weather: WeatherService;
+  store: KeyValueStore;
   /** Resolves once the persisted session has been read. */
   ready: Promise<void>;
 }

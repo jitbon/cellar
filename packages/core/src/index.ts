@@ -24,6 +24,8 @@ export {
   impactOfRemoveBlock,
 } from './commands/block';
 export { setDayWindow } from './commands/daySetting';
+export { setTripLocation } from './commands/location';
+export { tripLocation, dayLocation, dayLocationOverride } from './queries/location';
 export { isGreyed } from './queries/greyed';
 export { days } from './queries/days';
 export { cell, orderedBlocks } from './queries/cell';

@@ -40,6 +40,10 @@ export function setDayWindow(
       date,
       arrivalBlockId,
       departureBlockId,
+      locationName: null,
+      locationLat: null,
+      locationLon: null,
+      locationTz: null,
       updatedAt: '',
     };
     return commit(state, { ...state, daySettings: [...others, setting] });

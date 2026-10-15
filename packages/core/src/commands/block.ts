@@ -24,6 +24,8 @@ export function addBlock(name: string, afterBlockId?: string): Command {
       tripId: state.trip.id,
       name: name.trim(),
       position: positionAmong(sortedBlocks(state), { afterId: afterBlockId }),
+      windowStartMin: null,
+      windowEndMin: null,
       updatedAt: '',
     };
     return commit(state, { ...state, blocks: [...state.blocks, block] });
