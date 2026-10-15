@@ -1,5 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { createAccount, createTrip, deleteAccount, goToDay, signIn, type Account } from './helpers';
+import {
+  createAccount,
+  createTrip,
+  deleteAccount,
+  goToDay,
+  openBlockMenu,
+  openChipMenu,
+  signIn,
+  type Account,
+} from './helpers';
 
 let account: Account;
 
@@ -43,8 +52,11 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
   await expect(page.getByText('Coffee', { exact: true })).toBeVisible();
 
   // 4: switch Coffee to Food place
-  await page.getByRole('button', { name: 'Switch Coffee to Food place' }).click();
-  await expect(page.getByRole('button', { name: 'Switch Coffee to Activity' })).toBeVisible();
+  await openChipMenu(page, 'Coffee');
+  await page.getByRole('menuitem', { name: 'Switch Coffee to Food place' }).click();
+  await openChipMenu(page, 'Coffee');
+  await expect(page.getByRole('menuitem', { name: 'Switch Coffee to Activity' })).toBeVisible();
+  await page.keyboard.press('Escape');
 
   // 5: add a list item and use the suggestion
   // On narrow screens the list is a bottom sheet that covers the grid: open it only when needed.
@@ -83,7 +95,8 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
 
   // 8: add a block
   await closeList();
-  await page.getByRole('button', { name: 'Add block below Afternoon' }).click();
+  await openBlockMenu(page, 'Afternoon');
+  await page.getByRole('menuitem', { name: 'Add block below Afternoon' }).click();
   await page.getByLabel('Block name').fill('Tea');
   await page.getByRole('button', { name: 'Add block', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Rename Tea' })).toBeVisible();

@@ -9,7 +9,7 @@ import {
 } from '@cellar/core';
 import { DndProvider } from '../components/grid/DndProvider';
 import { Grid } from '../components/grid/Grid';
-import type { Dispatch } from '../components/grid/PlacementCard';
+import type { Dispatch } from '../components/grid/PlacementChip';
 import { ItemList } from '../components/list/ItemList';
 import { SaveStatusBanner } from '../components/SaveStatusBanner';
 import { LocationDialog } from '../components/weather/LocationDialog';

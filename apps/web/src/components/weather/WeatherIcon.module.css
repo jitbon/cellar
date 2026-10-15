@@ -1,6 +1,5 @@
 .wrap {
   position: relative;
-  align-self: flex-end;
 }
 
 .meta {
@@ -11,8 +10,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
+  position: relative;
+  width: 20px;
+  height: 20px;
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
@@ -24,4 +24,16 @@
 .icon:hover {
   background-color: var(--color-surface);
   color: var(--color-text);
+}
+
+@media (pointer: coarse) {
+  .icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--size-touch);
+    height: var(--size-touch);
+    transform: translate(-50%, -50%);
+  }
 }

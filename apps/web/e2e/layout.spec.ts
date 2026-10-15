@@ -1,0 +1,118 @@
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { createAccount, createTrip, deleteAccount, signIn, type Account } from './helpers';
+
+let account: Account;
+
+test.beforeAll(async () => {
+  account = await createAccount();
+});
+test.afterAll(async () => {
+  await deleteAccount(account);
+});
+
+const DESKTOP = { width: 1440, height: 900 };
+
+/** Opens or closes the item panel via the header toggle (no-op if there is no toggle yet). */
+async function setPanel(page: Page, open: boolean) {
+  const toggle = page.getByRole('button', { name: 'Show list' });
+  if ((await toggle.count()) === 0) return;
+  const expanded = (await toggle.getAttribute('aria-expanded')) === 'true';
+  if (expanded !== open) await toggle.click();
+}
+
+async function fullyInViewport(page: Page, locator: Locator) {
+  const view = page.viewportSize()!;
+  const count = await locator.count();
+  let inside = 0;
+  for (let i = 0; i < count; i++) {
+    const box = await locator.nth(i).boundingBox();
+    if (
+      box &&
+      box.x >= 0 &&
+      box.y >= 0 &&
+      box.x + box.width <= view.width &&
+      box.y + box.height <= view.height
+    ) {
+      inside++;
+    }
+  }
+  return inside;
+}
+
+test.describe('layout (desktop)', () => {
+  test.skip(({ hasTouch }) => hasTouch, 'measured on desktop');
+  test.use({ viewport: DESKTOP });
+
+  test('SC-001: 5 days and 8 blocks fit with the panel closed; 4 days with it open', async ({
+    page,
+  }) => {
+    await signIn(page, account);
+    await createTrip(page, 'Layout', '2027-04-01', '2027-04-05');
+
+    await setPanel(page, false);
+    expect(await fullyInViewport(page, page.getByTestId('day-header'))).toBeGreaterThanOrEqual(5);
+    expect(
+      await fullyInViewport(page, page.getByRole('button', { name: /^Rename / })),
+    ).toBeGreaterThanOrEqual(8);
+
+    await setPanel(page, true);
+    expect(await fullyInViewport(page, page.getByTestId('day-header'))).toBeGreaterThanOrEqual(4);
+  });
+
+  test('block names stay on one line and show no time range', async ({ page }) => {
+    await signIn(page, account);
+    await createTrip(page, 'Labels', '2027-04-01', '2027-04-03');
+    const labels = page.getByRole('button', { name: /^Rename / });
+    const count = await labels.count();
+    expect(count).toBeGreaterThanOrEqual(10);
+    for (let i = 0; i < count; i++) {
+      const el = labels.nth(i);
+      expect(await el.evaluate((n) => n.scrollHeight <= n.clientHeight + 1)).toBe(true);
+      expect(await el.innerText()).not.toMatch(/\d{1,2}\s*[–-]\s*\d{1,2}/);
+    }
+  });
+
+  test('SC-002: chips are one line, columns keep their width, rows grow to 3 lines then "+N more"', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    await signIn(page, account);
+    await createTrip(page, 'Chips', '2027-04-01', '2027-04-05');
+    await setPanel(page, false);
+
+    const headers = page.getByTestId('day-header');
+    const widths = async () => {
+      const out: number[] = [];
+      for (let i = 0; i < (await headers.count()); i++) {
+        out.push(Math.round((await headers.nth(i).boundingBox())!.width));
+      }
+      return out;
+    };
+    const before = await widths();
+    const cell = page.getByTestId('cell:2027-04-02:Afternoon');
+    const heightFor = (lines: number) => 24 * lines + 4 * (lines - 1) + 12;
+    const expectedLines = [1, 2, 3, 3, 3];
+
+    for (let n = 1; n <= 5; n++) {
+      await page.getByRole('button', { name: 'Add event to Afternoon on 2027-04-02' }).click();
+      await page
+        .getByRole('combobox', { name: /Add event to Afternoon/ })
+        .fill(`Event number ${n}`);
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Escape');
+
+      const box = (await cell.boundingBox())!;
+      expect(Math.abs(box.height - heightFor(expectedLines[n - 1]!))).toBeLessThanOrEqual(4);
+      expect(await widths()).toEqual(before);
+    }
+
+    await expect(
+      page.getByRole('button', { name: 'Show all 5 events in Afternoon on 2027-04-02' }),
+    ).toHaveText('+3 more');
+    const chips = cell.getByTestId('chip');
+    await expect(chips).toHaveCount(2);
+    for (let i = 0; i < 2; i++) {
+      expect((await chips.nth(i).boundingBox())!.height).toBeLessThanOrEqual(32);
+    }
+  });
+});

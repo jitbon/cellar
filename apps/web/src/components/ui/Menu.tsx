@@ -8,15 +8,21 @@ import styles from './Menu.module.css';
 interface MenuProps {
   trigger: ReactElement;
   children: ReactNode;
+  onCloseAutoFocus?: (event: Event) => void;
 }
 
 /** A token-styled dropdown menu: keyboard navigation, Escape, and focus return come from Radix. */
-export function Menu({ trigger, children }: MenuProps) {
+export function Menu({ trigger, children, onCloseAutoFocus }: MenuProps) {
   return (
     <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
       <DropdownMenu.Portal>
-        <DropdownMenu.Content className={styles.content} sideOffset={4} align="end">
+        <DropdownMenu.Content
+          className={styles.content}
+          sideOffset={4}
+          align="end"
+          onCloseAutoFocus={onCloseAutoFocus}
+        >
           {children}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>

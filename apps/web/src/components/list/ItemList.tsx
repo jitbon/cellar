@@ -13,7 +13,8 @@ import {
 } from '@cellar/core';
 import { CellPickerDialog } from '../CellPickerDialog';
 import { itemDragId } from '../grid/dndIds';
-import { TYPE_ICON, TYPE_LABEL, type Dispatch } from '../grid/PlacementCard';
+import { Icon } from '../ui/Icon';
+import { TYPE_ICON, TYPE_LABEL, type Dispatch } from '../grid/PlacementChip';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Dialog } from '../ui/Dialog';
@@ -120,8 +121,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
       <div className={styles.rowBody}>
         <strong className={styles.rowName}>{item.name}</strong>
         <span className={styles.meta}>
-          <span aria-hidden="true">{TYPE_ICON[item.type]}</span> {TYPE_LABEL[item.type]} · placed{' '}
-          {count}×
+          <Icon as={TYPE_ICON[item.type]} /> {TYPE_LABEL[item.type]} · placed {count}×
         </span>
       </div>
       <div className={styles.rowActions}>

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -14,9 +14,12 @@ import {
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Dialog } from '../ui/Dialog';
+import { GripVertical, Icon, MoreHorizontal } from '../ui/Icon';
+import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
+import { Tooltip } from '../ui/Tooltip';
 import { TextField } from '../ui/TextField';
 import { blockDragId } from './dndIds';
-import type { Dispatch } from './PlacementCard';
+import type { Dispatch } from './PlacementChip';
 import styles from './BlockLabel.module.css';
 
 interface Props {
@@ -134,10 +137,17 @@ export function BlockLabel({ state, block, dispatch }: Props) {
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [editingWindow, setEditingWindow] = useState(false);
+  const renameRequested = useRef(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: blockDragId(block.id),
   });
   const style = { transform: CSS.Transform.toString(transform), transition };
+
+  function startRename() {
+    renameRequested.current = true;
+    setName(block.name);
+    setRenaming(true);
+  }
 
   function commitRename() {
     if (name.trim() === block.name) {
@@ -167,15 +177,6 @@ export function BlockLabel({ state, block, dispatch }: Props) {
       className={`${styles.label} ${isDragging ? styles.dragging : ''}`}
     >
       <div className={styles.nameRow}>
-        <button
-          type="button"
-          className={styles.iconButton}
-          aria-label={`Reorder ${block.name}`}
-          {...attributes}
-          {...listeners}
-        >
-          ⠿
-        </button>
         {renaming ? (
           <div className={styles.renameField}>
             <input
@@ -202,48 +203,70 @@ export function BlockLabel({ state, block, dispatch }: Props) {
             ) : null}
           </div>
         ) : (
-          <button
-            type="button"
-            className={styles.nameButton}
-            aria-label={`Rename ${block.name}`}
-            onClick={() => {
-              setName(block.name);
-              setRenaming(true);
-            }}
-          >
-            {block.name}
-          </button>
+          <Tooltip label={block.name} when={(el) => el.scrollWidth > el.clientWidth}>
+            <button
+              type="button"
+              className={styles.nameButton}
+              aria-label={`Rename ${block.name}`}
+              onClick={startRename}
+            >
+              {block.name}
+            </button>
+          </Tooltip>
         )}
         {renaming ? null : (
           <div className={styles.controls}>
             <button
               type="button"
               className={styles.iconButton}
-              aria-label={`Edit time window for ${block.name}`}
-              title="Edit time window (used for the weather forecast)"
-              onClick={() => setEditingWindow(true)}
+              aria-label={`Reorder ${block.name}`}
+              {...attributes}
+              {...listeners}
             >
-              <span aria-hidden="true">🕒</span>
+              <Icon as={GripVertical} />
             </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              aria-label={`Add block below ${block.name}`}
-              title="Add block below"
-              onClick={() => setAdding(true)}
+            <Menu
+              onCloseAutoFocus={(e) => {
+                if (renameRequested.current) {
+                  e.preventDefault();
+                  renameRequested.current = false;
+                }
+              }}
+              trigger={
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  aria-label={`Options for ${block.name}`}
+                >
+                  <Icon as={MoreHorizontal} />
+                </button>
+              }
             >
-              +
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              aria-label={`Remove ${block.name}`}
-              disabled={lastBlock}
-              title={lastBlock ? 'A trip needs at least one time block' : 'Remove block'}
-              onClick={() => setRemoving(true)}
-            >
-              ✕
-            </button>
+              <MenuItem aria-label={`Rename ${block.name}`} onSelect={startRename}>
+                Rename
+              </MenuItem>
+              <MenuItem
+                aria-label={`Edit time window for ${block.name}`}
+                onSelect={() => setEditingWindow(true)}
+              >
+                Edit time window
+              </MenuItem>
+              <MenuItem
+                aria-label={`Add block below ${block.name}`}
+                onSelect={() => setAdding(true)}
+              >
+                Add block below
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem
+                danger
+                disabled={lastBlock}
+                aria-label={`Remove ${block.name}`}
+                onSelect={() => setRemoving(true)}
+              >
+                Remove
+              </MenuItem>
+            </Menu>
           </div>
         )}
       </div>

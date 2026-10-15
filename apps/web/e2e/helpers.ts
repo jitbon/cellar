@@ -108,3 +108,13 @@ export async function setTripLocationDirect(
     .eq('id', tripId);
   if (error) throw error;
 }
+
+/** Opens the "⋯" actions menu of a placement chip. */
+export async function openChipMenu(page: Page, name: string): Promise<void> {
+  await page.getByRole('button', { name: `Actions for ${name}` }).click();
+}
+
+/** Opens the "⋯" options menu of a block label. */
+export async function openBlockMenu(page: Page, block: string): Promise<void> {
+  await page.getByRole('button', { name: `Options for ${block}`, exact: true }).click();
+}

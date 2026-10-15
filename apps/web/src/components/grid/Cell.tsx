@@ -15,7 +15,10 @@ import {
 import { CellSuggestions, optionId } from './CellSuggestions';
 import { cellDropId, placementDragId } from './dndIds';
 import { WeatherIcon } from '../weather/WeatherIcon';
-import { PlacementCard, type Dispatch } from './PlacementCard';
+import { CellListPopover } from './CellListPopover';
+import { PlacementChip, type Dispatch } from './PlacementChip';
+import { PlaneTakeoff, Icon, Plus } from '../ui/Icon';
+import { visibleChips } from '../../lib/cellOverflow';
 import styles from './Cell.module.css';
 
 interface Props {
@@ -29,6 +32,9 @@ interface Props {
 
 export function Cell({ state, date, blockId, blockName, dispatch, weather = null }: Props) {
   const placements = cell(state, date, blockId);
+  const { shown, more } = visibleChips(placements.length);
+  const [listOpen, setListOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -82,21 +88,52 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
     <div
       ref={setNodeRef}
       className={`${styles.cell} ${isOver ? styles.over : ''} ${greyed ? styles.greyed : ''}`}
+      data-drop-target={isOver ? 'true' : undefined}
+      data-testid={`cell:${date}:${blockName}`}
     >
-      {weather ? <WeatherIcon blockName={blockName} weather={weather} /> : null}
+      {weather ? (
+        <span className={styles.weather}>
+          <WeatherIcon blockName={blockName} weather={weather} />
+        </span>
+      ) : null}
       {greyed ? (
         <span className={styles.travelNote} role="img" aria-label="Outside travel window">
-          ✈ Outside travel window
+          <Icon as={PlaneTakeoff} size="small" />
         </span>
       ) : null}
       <SortableContext
-        items={placements.map((p) => placementDragId(p.id))}
+        items={placements.slice(0, shown).map((p) => placementDragId(p.id))}
         strategy={verticalListSortingStrategy}
       >
-        {placements.map((p) => (
-          <PlacementCard key={p.id} state={state} placement={p} dispatch={dispatch} />
+        {placements.slice(0, shown).map((p) => (
+          <PlacementChip key={p.id} state={state} placement={p} dispatch={dispatch} />
         ))}
       </SortableContext>
+      {more > 0 ? (
+        <div ref={moreRef} className={styles.moreWrap}>
+          <button
+            type="button"
+            className={styles.more}
+            aria-label={`Show all ${placements.length} events in ${blockName} on ${date}`}
+            aria-expanded={listOpen}
+            onClick={() => setListOpen((o) => !o)}
+          >
+            +{more} more
+          </button>
+          {listOpen ? (
+            <CellListPopover
+              state={state}
+              date={date}
+              blockId={blockId}
+              blockName={blockName}
+              placements={placements}
+              dispatch={dispatch}
+              anchorRef={moreRef}
+              onClose={() => setListOpen(false)}
+            />
+          ) : null}
+        </div>
+      ) : null}
       {adding ? (
         <div>
           <input
@@ -149,11 +186,12 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
       ) : (
         <button
           type="button"
-          className={styles.add}
+          className={`${styles.add} ${placements.length === 0 ? styles.addEmpty : styles.addCorner}`}
           aria-label={label}
           onClick={() => setAdding(true)}
         >
-          +
+          <Icon as={Plus} size="small" />
+          {placements.length === 0 ? <span>Add</span> : null}
         </button>
       )}
     </div>

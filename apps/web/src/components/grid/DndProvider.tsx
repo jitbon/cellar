@@ -23,7 +23,7 @@ import {
   type TripState,
 } from '@cellar/core';
 import { parseCellDropId, parsePrefixed } from './dndIds';
-import type { Dispatch } from './PlacementCard';
+import type { Dispatch } from './PlacementChip';
 
 /** Prefer a placement under the pointer (insert before it), else the cell. */
 const collisionDetection: CollisionDetection = (args) => {
@@ -40,7 +40,7 @@ const collisionDetection: CollisionDetection = (args) => {
   const placement = all.find(
     (c) => String(c.id).startsWith('placement:') && c.id !== args.active.id,
   );
-  return placement ? [placement] : all.filter((c) => String(c.id).startsWith('cell|'));
+  return placement ? [placement] : all.filter((c) => /^cell(list)?\|/.test(String(c.id)));
 };
 
 interface Props {

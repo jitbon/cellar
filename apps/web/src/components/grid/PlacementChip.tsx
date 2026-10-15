@@ -1,0 +1,220 @@
+import { useState, type FormEvent, type MouseEvent, type PointerEvent } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
+  movePlacement,
+  removePlacement,
+  updatePlacement,
+  type Command,
+  type Placement,
+  type Result,
+  type TripState,
+} from '@cellar/core';
+import { CellPickerDialog } from '../CellPickerDialog';
+import { placementDragId } from './dndIds';
+import { Button } from '../ui/Button';
+import { Dialog } from '../ui/Dialog';
+import { Flag, Icon, MoreHorizontal, Utensils } from '../ui/Icon';
+import { Menu, MenuItem } from '../ui/Menu';
+import { TextField } from '../ui/TextField';
+import { Tooltip } from '../ui/Tooltip';
+import styles from './PlacementChip.module.css';
+
+export type Dispatch = (command: Command) => Result;
+
+export const TYPE_LABEL = { activity: 'Activity', food: 'Food place' } as const;
+export const TYPE_ICON = { activity: Flag, food: Utensils } as const;
+
+function EditDialog({
+  placement,
+  dispatch,
+  onClose,
+}: {
+  placement: Placement;
+  dispatch: Dispatch;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(placement.name);
+  const [notes, setNotes] = useState(placement.notes ?? '');
+  const [link, setLink] = useState(placement.link ?? '');
+  const [error, setError] = useState<string | null>(null);
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    const result = dispatch(
+      updatePlacement(placement.id, { name, notes: notes || null, link: link || null }),
+    );
+    if (result.ok) onClose();
+    else setError(result.error.message);
+  }
+
+  return (
+    <Dialog title="Edit event" onClose={onClose}>
+      <form className={styles.form} onSubmit={onSubmit}>
+        <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <label className={styles.notesLabel}>
+          Notes
+          <textarea
+            className={styles.notes}
+            value={notes}
+            rows={4}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </label>
+        <TextField
+          label="Link"
+          type="url"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          error={error}
+        />
+        <div className={styles.dialogActions}>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="submit" variant="primary">
+            Save
+          </Button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
+/** The chip's look without any behavior: used inside the drag overlay. */
+export function ChipFace({ name, type }: { name: string; type: Placement['type'] }) {
+  return (
+    <>
+      <span className={styles.typeIcon}>
+        <Icon as={TYPE_ICON[type]} />
+      </span>
+      <span className={styles.name} data-chip-name>
+        {name}
+      </span>
+    </>
+  );
+}
+
+function isTruncated(el: Element | null): boolean {
+  return !!el && el.scrollWidth > el.clientWidth;
+}
+
+export function PlacementChip({
+  state,
+  placement,
+  dispatch,
+}: {
+  state: TripState;
+  placement: Placement;
+  dispatch: Dispatch;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const other = placement.type === 'activity' ? 'food' : 'activity';
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: placementDragId(placement.id) });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  const tip = placement.notes ? `${placement.name} — ${placement.notes}` : placement.name;
+
+  // Menus and dialogs render in portals, but React events still bubble through them.
+  const inside = (e: MouseEvent | PointerEvent) =>
+    (e.currentTarget as HTMLElement).contains(e.target as Node);
+
+  return (
+    <>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`${styles.chip} ${styles[placement.type]}`}
+        data-testid="chip"
+        data-placeholder={isDragging ? '' : undefined}
+        {...listeners}
+        onPointerDown={(e) => {
+          if (inside(e)) listeners?.onPointerDown?.(e);
+        }}
+        onClick={(e) => {
+          if (inside(e)) setEditing(true);
+        }}
+      >
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          className="visually-hidden"
+          aria-label={`Drag ${placement.name}`}
+          {...attributes}
+        />
+        <Tooltip
+          label={tip}
+          when={(el) => !!placement.notes || isTruncated(el.querySelector('[data-chip-name]'))}
+        >
+          <span className={styles.face}>
+            <ChipFace name={placement.name} type={placement.type} />
+          </span>
+        </Tooltip>
+        <Menu
+          trigger={
+            <button
+              type="button"
+              className={styles.actions}
+              aria-label={`Actions for ${placement.name}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Icon as={MoreHorizontal} />
+            </button>
+          }
+        >
+          <MenuItem
+            aria-label={`Switch ${placement.name} to ${TYPE_LABEL[other]}`}
+            onSelect={() => dispatch(updatePlacement(placement.id, { type: other }))}
+          >
+            Switch to {TYPE_LABEL[other]}
+          </MenuItem>
+          <MenuItem
+            aria-label={`Move ${placement.name} to another block`}
+            onSelect={() => setMoving(true)}
+          >
+            Move to another block
+          </MenuItem>
+          <MenuItem aria-label={`Edit ${placement.name}`} onSelect={() => setEditing(true)}>
+            Edit
+          </MenuItem>
+          {placement.link ? (
+            <MenuItem
+              aria-label={`Open link for ${placement.name}`}
+              onSelect={() => window.open(placement.link!, '_blank', 'noreferrer')}
+            >
+              Open link
+            </MenuItem>
+          ) : null}
+          <MenuItem
+            danger
+            aria-label={`Remove ${placement.name}`}
+            onSelect={() => dispatch(removePlacement(placement.id))}
+          >
+            Remove
+          </MenuItem>
+        </Menu>
+      </div>
+      {editing ? (
+        <EditDialog placement={placement} dispatch={dispatch} onClose={() => setEditing(false)} />
+      ) : null}
+      {moving ? (
+        <CellPickerDialog
+          title={`Move “${placement.name}”`}
+          confirmLabel="Move"
+          state={state}
+          onClose={() => setMoving(false)}
+          onPick={(date, blockId) => {
+            dispatch(movePlacement(placement.id, date, blockId));
+            setMoving(false);
+          }}
+        />
+      ) : null}
+    </>
+  );
+}

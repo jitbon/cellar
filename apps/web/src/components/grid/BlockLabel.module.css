@@ -1,6 +1,7 @@
 .label {
+  position: relative;
   height: 100%;
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border-right: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-bg);
@@ -12,8 +13,8 @@
 
 .nameRow {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--size-icon-button);
 }
 
 .renameField {
@@ -24,37 +25,51 @@
 .nameButton {
   flex: 1;
   min-width: 0;
-  min-height: var(--size-icon-button);
-  padding: 0 var(--space-2);
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
   background-color: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
   font-weight: 600;
+  letter-spacing: 0.06em;
   line-height: var(--size-icon-button);
   text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: text;
-  overflow-wrap: anywhere;
-}
-
-.nameButton:hover {
-  background-color: var(--color-surface);
 }
 
 .input {
   width: 100%;
   min-height: var(--size-icon-button);
   padding: 0 var(--space-2);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   background-color: var(--color-bg);
+  font-size: var(--font-size-sm);
 }
 
 .controls {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
   display: flex;
-  flex-shrink: 0;
+  transform: translateY(-50%);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  opacity: 0;
+}
+
+.label:hover .controls,
+.label:focus-within .controls,
+.controls:has([data-state='open']) {
+  opacity: 1;
 }
 
 .iconButton {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -65,8 +80,6 @@
   border-radius: var(--radius-sm);
   background-color: transparent;
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  line-height: 1;
   cursor: pointer;
 }
 
@@ -75,9 +88,20 @@
   color: var(--color-text);
 }
 
-.iconButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+@media (pointer: coarse) {
+  .controls {
+    opacity: 1;
+  }
+
+  .iconButton::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--size-touch);
+    height: var(--size-touch);
+    transform: translate(-50%, -50%);
+  }
 }
 
 .error {

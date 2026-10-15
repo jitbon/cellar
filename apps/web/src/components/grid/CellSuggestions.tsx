@@ -1,5 +1,6 @@
 import type { Item } from '@cellar/core';
-import { TYPE_ICON, TYPE_LABEL } from './PlacementCard';
+import { Icon } from '../ui/Icon';
+import { TYPE_ICON, TYPE_LABEL } from './PlacementChip';
 import styles from './CellSuggestions.module.css';
 
 interface Props {
@@ -29,7 +30,7 @@ export function CellSuggestions({ id, items, activeIndex, onChoose }: Props) {
             onChoose(item);
           }}
         >
-          <span aria-hidden="true">{TYPE_ICON[item.type]}</span> {item.name}
+          <Icon as={TYPE_ICON[item.type]} /> {item.name}
           <span className={styles.type}> · {TYPE_LABEL[item.type]}</span>
         </li>
       ))}

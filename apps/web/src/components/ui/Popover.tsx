@@ -19,7 +19,10 @@ export function Popover({ id, anchorRef, onClose, children }: Props) {
       if (e.key === 'Escape') onClose();
     }
     function onPointerDown(e: PointerEvent) {
-      if (!anchorRef.current?.contains(e.target as Node)) onClose();
+      const target = e.target as Element;
+      // Menus and dialogs opened from inside the popover live in portals.
+      if (target.closest?.('[role="menu"], [role="dialog"]')) return;
+      if (!anchorRef.current?.contains(target)) onClose();
     }
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('pointerdown', onPointerDown);

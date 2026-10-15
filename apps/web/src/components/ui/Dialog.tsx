@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './Dialog.module.css';
 
 interface Props {
@@ -44,7 +45,8 @@ export function Dialog({ title, wide, onClose, children }: Props) {
     }
   }
 
-  return (
+  // Portaled so no sticky or transformed ancestor can trap or clip the modal.
+  return createPortal(
     <div className={styles.backdrop} onKeyDown={onKeyDown}>
       <div
         ref={ref}
@@ -59,6 +61,7 @@ export function Dialog({ title, wide, onClose, children }: Props) {
         </h2>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

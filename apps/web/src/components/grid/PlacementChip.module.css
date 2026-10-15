@@ -1,0 +1,131 @@
+.chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--size-chip);
+  min-width: 0;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-radius: var(--radius-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: grab;
+  touch-action: manipulation;
+}
+
+.activity {
+  background-color: var(--color-activity-bg);
+  color: var(--color-activity);
+}
+
+.food {
+  background-color: var(--color-food-bg);
+  color: var(--color-food);
+}
+
+.chip:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.chip[data-placeholder] {
+  outline: 1px dashed var(--color-border-strong);
+  opacity: 0.5;
+}
+
+.face {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.typeIcon {
+  display: inline-flex;
+  flex: none;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon-button);
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background-color: transparent;
+  color: inherit;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chip:hover .actions,
+.chip:focus-within .actions,
+.actions[data-state='open'] {
+  opacity: 1;
+}
+
+.actions:hover {
+  background-color: var(--color-bg);
+}
+
+@media (pointer: coarse) {
+  .actions {
+    opacity: 1;
+  }
+
+  .actions::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--size-touch);
+    height: var(--size-touch);
+    transform: translate(-50%, -50%);
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.notesLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.notes {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  font-size: var(--font-size-md);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-text);
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-4);
+}

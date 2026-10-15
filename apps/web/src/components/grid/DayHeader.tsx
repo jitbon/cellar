@@ -11,7 +11,7 @@ import {
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import { LocationDialog } from '../weather/LocationDialog';
-import type { Dispatch } from './PlacementCard';
+import type { Dispatch } from './PlacementChip';
 import styles from './DayHeader.module.css';
 
 interface Props {
@@ -108,7 +108,7 @@ export function DayHeader({ state, date, weekday, dispatch, forecastStatus }: Pr
   const departure = nameOf(setting?.departureBlockId ?? null);
 
   return (
-    <div className={styles.header}>
+    <div className={styles.header} data-testid="day-header">
       <strong>{weekday}</strong>
       <span className={styles.date}>{date}</span>
       {forecastStatus?.kind === 'pending' ? (

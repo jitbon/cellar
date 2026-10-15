@@ -6,6 +6,7 @@ import {
   deleteAccount,
   goToDay,
   mockOpenMeteo,
+  openBlockMenu,
   setTripLocationDirect,
   signIn,
   type Account,
@@ -91,7 +92,7 @@ test.describe('US1: weather icons on the grid', () => {
     await expect(page.getByText('Walk', { exact: true })).toBeVisible();
 
     // drag the placement into Lunch
-    const card = page.getByRole('button', { name: 'Drag Walk' });
+    const card = page.getByText('Walk', { exact: true });
     const lunch = page.getByRole('button', { name: `Add event to Lunch on ${date}` });
     await lunch.scrollIntoViewIfNeeded();
     const from = (await card.boundingBox())!;
@@ -109,19 +110,22 @@ test.describe('US1: weather icons on the grid', () => {
     await signIn(page, account);
     await createTrip(page, 'Window edit', day(0), day(1));
 
-    await page.getByRole('button', { name: 'Edit time window for Lunch' }).click();
+    await openBlockMenu(page, 'Lunch');
+    await page.getByRole('menuitem', { name: 'Edit time window for Lunch' }).click();
     await expect(page.getByLabel('Starts')).toHaveValue('12:00');
     await page.getByLabel('Starts').fill('13:00');
     await page.getByLabel('Ends').fill('15:00');
     await page.getByRole('button', { name: 'Save' }).click();
 
-    await page.getByRole('button', { name: 'Edit time window for Lunch' }).click();
+    await openBlockMenu(page, 'Lunch');
+    await page.getByRole('menuitem', { name: 'Edit time window for Lunch' }).click();
     await expect(page.getByLabel('Starts')).toHaveValue('13:00');
     await expect(page.getByLabel('Ends')).toHaveValue('15:00');
     await page.getByRole('button', { name: 'Cancel' }).click();
 
     await page.getByRole('button', { name: 'Undo' }).click();
-    await page.getByRole('button', { name: 'Edit time window for Lunch' }).click();
+    await openBlockMenu(page, 'Lunch');
+    await page.getByRole('menuitem', { name: 'Edit time window for Lunch' }).click();
     await expect(page.getByLabel('Starts')).toHaveValue('12:00');
     await expect(page.getByLabel('Ends')).toHaveValue('14:00');
   });

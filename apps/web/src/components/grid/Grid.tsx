@@ -2,12 +2,13 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { days, orderedBlocks, type TripState } from '@cellar/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '../ui/Button';
+import { ChevronLeft, ChevronRight, Icon } from '../ui/Icon';
 import { BlockLabel } from './BlockLabel';
 import { Cell } from './Cell';
 import { DayHeader } from './DayHeader';
 import type { Forecasts } from '../../state/useForecasts';
 import { blockDragId } from './dndIds';
-import type { Dispatch } from './PlacementCard';
+import type { Dispatch } from './PlacementChip';
 import styles from './Grid.module.css';
 
 const NARROW = '(max-width: 639px)';
@@ -48,7 +49,7 @@ export function Grid({ state, dispatch, forecasts }: Props) {
             onClick={() => setDayIndex(index - 1)}
             aria-label="Previous day"
           >
-            ‹
+            <Icon as={ChevronLeft} />
           </Button>
           <span aria-live="polite">
             Day {index + 1} of {allDays.length}
@@ -58,17 +59,15 @@ export function Grid({ state, dispatch, forecasts }: Props) {
             onClick={() => setDayIndex(index + 1)}
             aria-label="Next day"
           >
-            ›
+            <Icon as={ChevronRight} />
           </Button>
         </div>
       ) : null}
       <div className={styles.scroller}>
-        <div
-          className={styles.grid}
-
-          style={{ '--day-count': visible.length } as CSSProperties}
-        >
-          <div className={`${styles.corner} ${styles.headerCell}`}>Time block</div>
+        <div className={styles.grid} style={{ '--day-count': visible.length } as CSSProperties}>
+          <div className={`${styles.corner} ${styles.headerCell}`}>
+            <span className={styles.cornerLabel}>Time block</span>
+          </div>
           {visible.map((d) => (
             <div key={d.date} className={styles.headerCell}>
               <DayHeader
@@ -90,7 +89,7 @@ export function Grid({ state, dispatch, forecasts }: Props) {
                   <BlockLabel state={state} block={block} dispatch={dispatch} />
                 </div>
                 {visible.map((d) => (
-                  <div key={d.date}>
+                  <div key={d.date} className={styles.cellWrap}>
                     <Cell
                       state={state}
                       date={d.date}

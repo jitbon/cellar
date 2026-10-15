@@ -62,7 +62,8 @@ test('a typed placement appears within 100 ms on a 60-day x 10-block x 300-place
         const observer = new MutationObserver(() => {
           if (document.body.textContent?.includes('Timed event')) {
             // Only count once the card (not the input value) is rendered.
-            if (document.querySelector('[class*="PlacementCard"], [class*="card"]')) {
+            const chips = [...document.querySelectorAll('[data-testid="chip"]')];
+            if (chips.some((c) => c.textContent?.includes('Timed event'))) {
               observer.disconnect();
               resolve(performance.now() - t0);
             }
