@@ -27,6 +27,14 @@
   --color-focus: #1d6ff2;
   --color-backdrop: rgb(13 27 46 / 50%);
 
+  --color-weather-clear: #b76e00;
+  --color-weather-partly-cloudy: #a07a1a;
+  --color-weather-cloudy: #64748b;
+  --color-weather-fog: #6f8a8a;
+  --color-weather-rain: #1f6fd1;
+  --color-weather-snow: #0e8fb3;
+  --color-weather-thunderstorm: #7b3fc4;
+
   --space-1: 2px;
   --space-2: 4px;
   --space-3: 6px;
@@ -93,6 +101,14 @@
     --color-danger-bg: #4a1f1c;
     --color-focus: #6aa3ff;
     --color-backdrop: rgb(0 0 0 / 60%);
+
+    --color-weather-clear: #f5b83d;
+    --color-weather-partly-cloudy: #d9b25a;
+    --color-weather-cloudy: #9fb0c9;
+    --color-weather-fog: #8fb0ad;
+    --color-weather-rain: #6aa8ff;
+    --color-weather-snow: #7fd6f0;
+    --color-weather-thunderstorm: #c39bff;
 
     --shadow-1: 0 2px 8px rgb(0 0 0 / 50%);
     --shadow-2: 0 8px 24px rgb(0 0 0 / 60%);

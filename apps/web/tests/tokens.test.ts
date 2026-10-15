@@ -89,4 +89,21 @@ describe('design tokens', () => {
       });
     }
   }
+
+  // Weather glyphs are non-text graphics: WCAG 1.4.11 asks for 3:1 against what they sit on.
+  const weather = ['clear', 'partly-cloudy', 'cloudy', 'fog', 'rain', 'snow', 'thunderstorm'];
+  for (const [theme, values] of [
+    ['light', light],
+    ['dark', dark],
+  ] as const) {
+    for (const w of weather) {
+      for (const bg of ['bg', 'surface', 'accent-soft']) {
+        it(`${theme}: weather-${w} on ${bg} meets 3:1`, () => {
+          const fg = values[`--color-weather-${w}`];
+          expect(fg, `--color-weather-${w}`).toBeDefined();
+          expect(contrast(fg!, values[`--color-${bg}`]!)).toBeGreaterThanOrEqual(3);
+        });
+      }
+    }
+  }
 });

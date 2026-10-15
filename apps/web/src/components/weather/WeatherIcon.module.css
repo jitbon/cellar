@@ -23,7 +23,35 @@
 
 .icon:hover {
   background-color: var(--color-surface);
-  color: var(--color-text);
+}
+
+/* Color reinforces the glyph's shape; the shape and aria-label still carry the meaning. */
+.icon [data-condition='clear'] {
+  color: var(--color-weather-clear);
+}
+
+.icon [data-condition='partly-cloudy'] {
+  color: var(--color-weather-partly-cloudy);
+}
+
+.icon [data-condition='cloudy'] {
+  color: var(--color-weather-cloudy);
+}
+
+.icon [data-condition='fog'] {
+  color: var(--color-weather-fog);
+}
+
+.icon [data-condition='rain'] {
+  color: var(--color-weather-rain);
+}
+
+.icon [data-condition='snow'] {
+  color: var(--color-weather-snow);
+}
+
+.icon [data-condition='thunderstorm'] {
+  color: var(--color-weather-thunderstorm);
 }
 
 @media (pointer: coarse) {
