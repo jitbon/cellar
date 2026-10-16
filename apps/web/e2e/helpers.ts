@@ -34,6 +34,10 @@ export async function deleteAccount(account: Account): Promise<void> {
 }
 
 export async function signIn(page: Page, account: Account): Promise<void> {
+  // The item panel (Popular tab, quick-add suggestions) calls the `places` function, which on a
+  // developer machine holds a real Google key. A spec that did not choose a mock gets a failing
+  // one, so no test can reach Google.
+  if (!placesMocked.has(page)) await mockPlaces(page, 'fail');
   await page.goto('/signin');
   await page.getByLabel('Email').fill(account.email);
   await page.getByLabel('Password').fill(account.password);
@@ -92,6 +96,8 @@ export async function mockOpenMeteo(page: Page, mode: 'ok' | 'fail'): Promise<vo
   });
 }
 
+const placesMocked = new WeakSet<Page>();
+
 export interface PlacesRequest {
   action: 'suggest' | 'details' | 'popular';
   [key: string]: unknown;
@@ -102,6 +108,7 @@ export interface PlacesRequest {
  * request bodies seen, in order, so tests can assert what was sent (FR-014).
  */
 export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<PlacesRequest[]> {
+  placesMocked.add(page);
   const requests: PlacesRequest[] = [];
   await page.route('**/functions/v1/places', async (route) => {
     const request = route.request();

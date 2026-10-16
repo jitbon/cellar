@@ -228,3 +228,52 @@ for (const scheme of ['light', 'dark'] as const) {
     await expectNoSeriousViolations(page); // empty note
   });
 }
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`axe (${scheme}): Popular tab, card menu, unavailable state and quick-add suggestions`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await page.emulateMedia({ colorScheme: scheme });
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, `Axe popular ${scheme}`, '2027-04-01', '2027-04-03');
+    await setTripLocationDirect(page.url().split('/').pop()!, {
+      name: 'New York, USA',
+      lat: 40.7128,
+      lon: -74.006,
+      tz: 'America/New_York',
+    });
+    await page.reload();
+    await setItemPanel(page, true);
+    const list = page.getByRole('complementary', { name: 'Activities and food' });
+    const line = list.getByRole('combobox', { name: 'Add or filter items' });
+
+    await list.getByRole('tab', { name: 'Popular' }).click();
+    await expect(list.getByText('The Metropolitan Museum of Art')).toBeVisible();
+    await expectNoSeriousViolations(page); // Popular tab with results
+
+    await list.getByRole('button', { name: 'Actions for The Metropolitan Museum of Art' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Place in a block' })).toBeVisible();
+    await expectNoSeriousViolations(page); // open card menu
+    await page.getByRole('menuitem', { name: 'Place in a block' }).click();
+    await page.getByRole('button', { name: 'Place', exact: true }).click();
+    await expect(list.getByText('The Metropolitan Museum of Art, placed')).toBeAttached();
+    await expectNoSeriousViolations(page); // struck-through card
+
+    await list.getByRole('tab', { name: 'My list' }).click();
+    await line.fill('Chelsea Mar');
+    await expect(page.getByRole('option', { name: /Chelsea Market/ })).toBeVisible();
+    await expectNoSeriousViolations(page); // quick-add suggestions
+    await page.keyboard.press('Escape');
+
+    // A fresh page load forgets the session's lists, so the next request fails.
+    await page.unroute('**/functions/v1/places');
+    await mockPlaces(page, 'fail');
+    await list.getByRole('tab', { name: 'Popular' }).click();
+    await page.reload();
+    await setItemPanel(page, true);
+    await expect(list.getByText('Popular places unavailable right now')).toBeVisible();
+    await expectNoSeriousViolations(page); // unavailable state
+  });
+}

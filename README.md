@@ -4,7 +4,8 @@ A block-based vacation planner. Lay out a trip on a grid of days × time blocks 
 Lunch, Afternoon, …), type events straight into cells or drag them in from a per-trip list of
 activities and food places, customize the blocks, mark arrival/departure days, and undo freely.
 Items can be linked to real places while you type, and opened in Google Maps, Apple Maps or
-Waze. Trips sync across your devices. Each block shows a weather forecast icon for its time window,
+Waze. A Popular tab suggests well-known things to do and places to eat in the trip's city, ready
+to drag onto the schedule. Trips sync across your devices. Each block shows a weather forecast icon for its time window,
 with details on hover or tap.
 
 - `packages/core` — platform-agnostic domain logic (commands, queries, undo/redo, merge)
@@ -14,7 +15,8 @@ with details on hover or tap.
 Setup, automated checks and manual validation scenarios:
 [specs/001-block-trip-planner/quickstart.md](specs/001-block-trip-planner/quickstart.md) and
 [specs/002-weather-forecast/quickstart.md](specs/002-weather-forecast/quickstart.md), and
-[specs/004-map-locations/quickstart.md](specs/004-map-locations/quickstart.md).
+[specs/004-map-locations/quickstart.md](specs/004-map-locations/quickstart.md), and
+[specs/006-popular-places/quickstart.md](specs/006-popular-places/quickstart.md).
 
 ## Integrations
 
@@ -45,3 +47,14 @@ Setup, automated checks and manual validation scenarios:
 
   Only the typed text, an anonymous session token and the trip's coordinates are sent. Results
   are shown with "Powered by Google".
+
+  The **Popular** tab of the item panel uses the same function and key (the `popular` action):
+  Google **Text Search**, two requests (things to do, food) per city per browser session. Because
+  the fields include rating and review count, these requests are billed in the Text Search
+  **Enterprise** tier, with 1,000 free requests per month (check Google's current pricing). Also
+  set a daily quota cap on Text Search as a cost backstop, for example about 100 per day. Google's
+  terms do not allow storing place details, so popular results are kept in memory for the session
+  only (never in local storage or the database) and are fetched again after a reload. Only the
+  city name and its coordinates are sent. After updating, restart `supabase functions serve places`
+  so the running function picks up the new action. Setup details:
+  [specs/006-popular-places/quickstart.md](specs/006-popular-places/quickstart.md).

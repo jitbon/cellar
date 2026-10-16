@@ -8,6 +8,7 @@ import {
   goToDay,
   openDayMenu,
   setItemPanel,
+  setTripLocationDirect,
   signIn,
   type Account,
 } from './helpers';
@@ -208,6 +209,44 @@ test.describe('layout (360 px)', () => {
     const formBox = (await formGroup.boundingBox())!;
     expect(formBox.x).toBeGreaterThanOrEqual(0);
     expect(formBox.x + formBox.width).toBeLessThanOrEqual(360);
+    expect(await pageScrolls()).toBe(false);
+  });
+
+  test('quickstart 14: the tabs and Popular cards fit without horizontal scroll', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'Phone popular', '2027-04-01', '2027-04-03');
+    await setTripLocationDirect(page.url().split('/').pop()!, {
+      name: 'New York, USA',
+      lat: 40.7128,
+      lon: -74.006,
+      tz: 'America/New_York',
+    });
+    await page.reload();
+    await setItemPanel(page, true);
+    const list = page.getByRole('complementary', { name: 'Activities and food' });
+    const inside = async (locator: Locator) => {
+      const box = (await locator.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(360);
+    };
+    const pageScrolls = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      );
+
+    await inside(list.getByRole('tablist'));
+    await list.getByRole('tab', { name: 'Popular' }).click();
+    await expect(list.getByText('The Metropolitan Museum of Art')).toBeVisible();
+    const cards = list.getByRole('listitem');
+    expect(await cards.count()).toBe(6);
+    for (let i = 0; i < 6; i++) await inside(cards.nth(i));
+    expect(await pageScrolls()).toBe(false);
+
+    await list.getByRole('button', { name: 'Actions for The Metropolitan Museum of Art' }).click();
+    await inside(page.getByRole('menu'));
     expect(await pageScrolls()).toBe(false);
   });
 });

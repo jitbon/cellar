@@ -132,10 +132,10 @@ code this builds on: `PlaceSearch`, `Place`, `placeFields`, `isFoodPlace`, `Open
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T033 [P] Add the Popular tab (results, unavailable state, open card menu) and the quick-add suggestions to the axe checks in `apps/web/e2e/a11y.spec.ts` in light and dark, and a 360 px check in `apps/web/e2e/layout.spec.ts` that the tabs and cards fit without horizontal scroll (quickstart 14)
-- [ ] T034 [P] Document in `README.md`: the Popular tab uses Google Text Search (Enterprise tier, 1,000 free requests/month), recommended daily quota cap (~100/day on Text Search), and that results are kept in memory for the session only (Google terms)
-- [ ] T035 Make sure e2e specs that render the item panel mock `places` (`mockPlaces(page, 'fail')` at least) so no test can reach Google through the Popular tab
-- [ ] T036 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and `pnpm --filter web e2e`; fix failures
+- [X] T033 [P] Add the Popular tab (results, unavailable state, open card menu) and the quick-add suggestions to the axe checks in `apps/web/e2e/a11y.spec.ts` in light and dark, and a 360 px check in `apps/web/e2e/layout.spec.ts` that the tabs and cards fit without horizontal scroll (quickstart 14)
+- [X] T034 [P] Document in `README.md`: the Popular tab uses Google Text Search (Enterprise tier, 1,000 free requests/month), recommended daily quota cap (~100/day on Text Search), and that results are kept in memory for the session only (Google terms)
+- [X] T035 Make sure e2e specs that render the item panel mock `places` (`mockPlaces(page, 'fail')` at least) so no test can reach Google through the Popular tab
+- [X] T036 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and `pnpm --filter web e2e`; fix failures
 - [ ] T037 Walk through quickstart.md manual scenarios 1–14 with the real key (or record which ones need the user)
 
 ---
