@@ -44,6 +44,8 @@ export function DragLayer({
   return createPortal(
     <DragOverlay
       zIndex={200}
+      // Hit-testing must see through the lifted chip to what is under the pointer.
+      style={{ pointerEvents: 'none' }}
       dropAnimation={reduced ? null : { duration: 180, easing: 'ease-out' }}
     >
       {face ? (

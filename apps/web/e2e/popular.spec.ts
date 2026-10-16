@@ -38,11 +38,11 @@ const card = (page: Page, name: string) =>
 async function openPopular(
   page: Page,
   name: string,
-  opts: { located?: boolean; days?: Record<string, typeof BOSTON> } = {},
+  opts: { located?: boolean; days?: Record<string, typeof BOSTON>; end?: string } = {},
 ) {
-  const { located = true, days = {} } = opts;
+  const { located = true, days = {}, end = '2027-04-05' } = opts;
   await signIn(page, account);
-  await createTrip(page, name, '2027-04-01', '2027-04-05');
+  await createTrip(page, name, '2027-04-01', end);
   const id = tripIdOf(page.url());
   if (located) await setTripLocationDirect(id, NEW_YORK);
   for (const [date, loc] of Object.entries(days)) await setDayLocationDirect(id, date, loc);
@@ -96,6 +96,27 @@ async function removeEvent(page: Page, date: string, block: string, name: string
 }
 
 test.describe('US2: placed cards are struck through', () => {
+  test('dropping a card back over the panel places nothing, even over hidden grid columns', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    // Two weeks: on desktop the later day columns scroll off to the right, behind the panel;
+    // on a phone the panel is a sheet over the grid.
+    await openPopular(page, 'NYC pop drop', { end: '2027-04-14' });
+    const met = card(page, MET);
+    const box = (await met.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let i = 1; i <= 10; i++) await page.mouse.move(x, y + i * 15);
+    await page.mouse.up();
+
+    await expect(page.getByTestId('chip')).toHaveCount(0);
+    await expect(struck(met)).toHaveCount(0);
+    await expect(met).not.toContainText('placed');
+  });
+
   test('quickstart 2 and 3: a placed popular card is struck through and can be placed again', async ({
     page,
   }) => {

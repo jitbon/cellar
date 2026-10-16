@@ -64,7 +64,7 @@ export function Grid({ state, dispatch, forecasts }: Props) {
           </Button>
         </div>
       ) : null}
-      <div className={styles.scroller}>
+      <div className={styles.scroller} data-drop-area>
         <div className={styles.grid} style={{ '--day-count': visible.length } as CSSProperties}>
           <div className={`${styles.corner} ${styles.headerCell}`} />
           {visible.map((d) => (

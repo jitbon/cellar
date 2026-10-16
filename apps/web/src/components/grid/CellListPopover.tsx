@@ -38,6 +38,7 @@ export function CellListPopover({
       <div
         ref={setNodeRef}
         className={styles.list}
+        data-drop-area
         data-drop-target={isOver ? 'true' : undefined}
         role="group"
         aria-label={`All events in ${blockName} on ${date}`}

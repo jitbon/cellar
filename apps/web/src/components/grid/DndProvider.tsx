@@ -45,6 +45,20 @@ class MousePointerSensor extends PointerSensor {
 }
 
 /** Prefer a placement under the pointer (insert before it), else the cell. */
+/**
+ * Whether the pointer is over a place where things can be dropped: the visible grid or an open
+ * cell list. Droppable cells keep their layout position when they are scrolled out of the grid
+ * (e.g. later days behind the item panel), so their rectangles alone are not enough.
+ */
+function pointerOverDropArea({ x, y }: { x: number; y: number }): boolean {
+  if (typeof document === 'undefined' || typeof document.elementsFromPoint !== 'function') {
+    return true;
+  }
+  // The lifted card follows the pointer, so look beneath it.
+  const under = document.elementsFromPoint(x, y).find((el) => !el.closest('[data-drag-overlay]'));
+  return !!under?.closest('[data-drop-area]');
+}
+
 const collisionDetection: CollisionDetection = (args) => {
   if (String(args.active.id).startsWith('block:')) {
     return closestCenter({
@@ -54,6 +68,9 @@ const collisionDetection: CollisionDetection = (args) => {
       ),
     });
   }
+  // A pointer drag that ends outside the grid (over the item panel, say) drops nowhere. Keyboard
+  // drags have no pointer and keep using the dragged item's position.
+  if (args.pointerCoordinates && !pointerOverDropArea(args.pointerCoordinates)) return [];
   const hits = pointerWithin(args);
   const all = hits.length > 0 ? hits : rectIntersection(args);
   const placement = all.find(
