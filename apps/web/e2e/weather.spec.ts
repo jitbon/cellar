@@ -239,6 +239,42 @@ test.describe('US2: forecast details', () => {
   });
 });
 
+test.describe('Popover placement', () => {
+  test.use({ viewport: { width: 1280, height: 480 } });
+
+  test('a bottom-row popover is fully on screen and drawn over the neighbouring icons', async ({
+    page,
+  }) => {
+    await openTripWithWeather(page, 'Popover placement');
+    // The "Trip created" notice is meant to sit above everything; keep it out of the way.
+    await page.addStyleTag({ content: '[role="status"] { display: none !important; }' });
+    const icon = page.getByRole('button', { name: /^Night weather:/ }).first();
+    await icon.scrollIntoViewIfNeeded();
+    await icon.hover();
+    const popover = page.locator('[data-popover]');
+    await expect(popover).toBeVisible();
+    const box = (await popover.boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(480);
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    // Every corner and the middle of the panel belong to the panel, not to a cell or icon above it.
+    const points = [
+      [box.x + 4, box.y + 4],
+      [box.x + box.width - 4, box.y + 4],
+      [box.x + 4, box.y + box.height - 4],
+      [box.x + box.width - 4, box.y + box.height - 4],
+      [box.x + box.width / 2, box.y + box.height / 2],
+    ];
+    for (const [x, y] of points) {
+      const onTop = await page.evaluate(
+        ([px, py]) => !!document.elementFromPoint(px!, py!)?.closest('[data-popover]'),
+        [x, y],
+      );
+      expect(onTop, `popover on top at ${x},${y}`).toBe(true);
+    }
+  });
+});
+
 test.describe('US2: Celsius locale', () => {
   test.use({ locale: 'en-GB' });
 

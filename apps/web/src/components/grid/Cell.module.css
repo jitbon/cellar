@@ -42,6 +42,11 @@
   display: inline-flex;
 }
 
+/* An open details popover must sit above the other cells' icons and the sticky headers. */
+.weather:has([data-popover]) {
+  z-index: 4;
+}
+
 .add {
   display: inline-flex;
   align-items: center;
