@@ -12,6 +12,17 @@ banner on the trip page, (3) small photo thumbnails on Popular cards, (4) a deta
 big photo when a Popular card is clicked. Also adds a "today" highlight on the grid, as shown in
 the mockup.
 
+## Clarifications
+
+### Session 2026-10-16
+
+- Q: Where should Popular card and detail photos come from? → A: The place provider's own photo
+  of each place (accurate), loaded only for cards in view and one per detail view; Wikimedia is
+  used only for city photos.
+- Q: Can the traveler change a trip's cover photo? → A: Yes. The automatic city photo is the
+  default; "Change cover photo" offers a few more photos of the same city to pick from. The
+  choice is saved with the trip. No uploads.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Trip cards show a photo of the trip's city (Priority: P1)
@@ -37,7 +48,11 @@ placeholder; every card still opens its trip.
 3. **Given** no photo is found for a city or the photo service is unavailable, **Then** the card
    shows the placeholder (without the "set a location" text) and nothing else is affected.
 4. **Given** the trip's location changes, **Then** its card shows the new city's photo the next
-   time "Your trips" is shown.
+   time "Your trips" is shown (a previously chosen cover photo is dropped).
+5. **Given** a located trip, **When** the traveler chooses "Change cover photo" (trip card menu
+   or trip menu), **Then** up to 6 photos of the same city are offered with their credits;
+   picking one makes it the trip's cover on the card and the banner, saved with the trip,
+   synced to other devices and undoable. "Use automatic photo" returns to the default.
 
 ---
 
@@ -123,6 +138,8 @@ does.
 
 - **Offline or photo service down**: every photo spot falls back to its placeholder; planning
   is never blocked (constitution IV).
+- **Chosen cover photo no longer available** (removed from the free source): the trip falls back
+  to the automatic photo, then the placeholder.
 - **Same city on many trips**: each card shows that city's photo; repeated lookups are avoided
   within a session.
 - **Ambiguous city names** ("Paris" in Texas vs France): the photo lookup uses the trip
@@ -141,6 +158,9 @@ does.
   photo credit.
 - **FR-002**: City photos (cards and banner) MUST come from a free, openly licensed source and
   be credited as that source requires.
+- **FR-002a**: The traveler MUST be able to change a trip's cover photo by picking from up to 6
+  photos of the same city, or return to the automatic photo; the choice MUST be saved with the
+  trip, sync like other trip changes and be undoable. Changing the trip's location MUST clear it.
 - **FR-003**: The trip page MUST show a city banner (photo, overlay, city, progress text, credit)
   under the header for located trips with a photo, hideable per device from the trip menu.
 - **FR-004**: The grid MUST highlight today's day header with a "Today" label when today is
@@ -162,7 +182,9 @@ does.
 ### Key Entities
 
 - **City photo**: For one city name: an image link, its credit text and license link. Looked up
-  when needed; not part of the trip's saved data.
+  when needed.
+- **Chosen cover photo** (on the trip): an optional reference to one of the city's photos picked
+  by the traveler; empty means the automatic photo.
 - **Place photo**: For one popular place: an image of the place and its required attribution.
   Fetched when shown; not stored.
 - **Banner preference**: Per device, whether the city banner is hidden.
@@ -185,8 +207,9 @@ does.
 
 - City photos come from Wikipedia / Wikimedia Commons lead images for the city (free, openly
   licensed, credited), the source used in the mockups.
-- Place photos come from the same provider as Popular places (feature 006), through the same
-  server-side relay, so no key reaches the browser.
+- Place photos (Popular thumbnails and the detail view) come only from the same provider as
+  Popular places (feature 006), through the same server-side relay, so no key reaches the
+  browser; free sources are not used for places (confirmed in Clarifications).
 - The detail view replaces nothing: the card menu stays as the quick path.
 - No photos inside schedule cells or chips.
 - No uploading your own trip photos (possible later feature).
