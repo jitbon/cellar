@@ -131,8 +131,8 @@ list as an Activity and the line clears, ready for the next one.
 - **Phone width (360 px)**: tabs and cards fit; drag uses the existing long-press, and the card
   menu is the non-drag path.
 - **Undo**: placing from Popular and quick-adding are each one undo step.
-- **Stale data**: popular lists are reused for a while instead of being fetched on every visit,
-  and show their source and when they were fetched (e.g. "Popular on Google · updated today").
+- **Stale data**: popular lists are reused for the session instead of being fetched on every
+  visit, and show their source and when they were fetched (e.g. "Popular on Google · 10:42").
 
 ## Requirements *(mandatory)*
 
@@ -158,12 +158,13 @@ list as an Activity and the line clears, ready for the next one.
   trimmed, non-empty), clear itself and keep focus; it MUST offer the feature 004 place
   suggestions; while it holds text the list MUST narrow to matching item names (combined with
   the filters), replacing the separate search box.
-- **FR-010**: Popular results MUST be reused for at least 7 days per city before being fetched
-  again, and MUST show their source and fetch date.
+- **FR-010**: Popular results MUST be reused for the rest of the session per city (not stored
+  on the device or server, because the provider's terms don't allow storing place details), and
+  MUST show their source and fetch time.
 - **FR-011**: When popular places are unavailable, slow or not configured, the tab MUST show a
   clear unavailable message; the list tab and planning MUST be unaffected.
-- **FR-012**: Only the selected city's location MUST be sent to the popular-places service; no
-  other trip data.
+- **FR-012**: Only the selected city's name and location MUST be sent to the popular-places
+  service; no other trip data.
 - **FR-013**: Placing from Popular, "Add to my list" and quick-add MUST each be one undoable step.
 
 ### Key Entities
@@ -172,8 +173,8 @@ list as an Activity and the line clears, ready for the next one.
   address, coordinates, rating, review count, and whether it is food. Not stored in the trip
   unless the traveler places it or adds it to their list (then it becomes a normal linked
   item or event, feature 004).
-- **Popular list (cached)**: For one city: things to do and food places, with source and fetch
-  time.
+- **Popular list (session only)**: For one city: things to do and food places, with source and
+  fetch time; kept in memory for the session, never stored.
 - **List item / Event** (existing): unchanged; "placed" is derived, not stored.
 
 ## Success Criteria *(mandatory)*
@@ -182,8 +183,8 @@ list as an Activity and the line clears, ready for the next one.
 
 - **SC-001**: From opening the Popular tab, a traveler can put a popular place on the schedule
   in one drag (or 3 actions via the card menu).
-- **SC-002**: The Popular tab shows results within 2 seconds of opening for a city not seen
-  before, and instantly for a city seen in the last 7 days.
+- **SC-002**: The Popular tab shows results within 2 seconds of opening for a city not yet
+  loaded, and instantly for a city already loaded in this session.
 - **SC-003**: A traveler can tell placed from unplaced cards at a glance, with no number to
   read.
 - **SC-004**: Quick-adding a plain item takes one line of typing and Enter, with no dialog.
