@@ -14,6 +14,17 @@ count (placed x3). They can be struck through but also draggable again. this app
 current list too. I also think rather than "search" that free input line should be for
 quick-adding events."
 
+## Clarifications
+
+### Session 2026-10-15
+
+- Q: When a popular place is dragged onto the schedule, should it also be saved to the
+  traveler's list? → A: No. Only the event is created; "Add to my list" in the card menu is the
+  way to save it to the list.
+- Q: As the traveler types in the quick-add line, should the list narrow to matching items like
+  search did? → A: Yes. Typing narrows the list to matches; Enter adds the new item; clearing
+  the line shows everything again.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Browse popular places for the trip's city and drag them in (Priority: P1)
@@ -86,7 +97,9 @@ stays struck through. Remove both events: the strikethrough disappears.
 ### User Story 3 - The panel's top line quick-adds instead of searching (Priority: P2)
 
 The free text line at the top of the traveler's list, today a "Search" box, becomes a quick-add
-line: type a name and press Enter to add it to the list right away. While typing, the same
+line: type a name and press Enter to add it to the list right away. While typing, the list
+narrows to items matching the text (so an existing "Ramen" is visible before adding another),
+and the same
 place suggestions as elsewhere (feature 004) appear, so "Katz's" can become the real place in
 one pick. Ignoring them adds a plain item.
 
@@ -103,8 +116,9 @@ list as an Activity and the line clears, ready for the next one.
 2. **Given** place suggestions are showing, **When** the traveler picks one, **Then** the item
    is added linked to that place (Food for food places).
 3. **Given** an empty line, **When** Enter is pressed, **Then** nothing is added.
-4. **Given** the change, **Then** the list no longer has a search box; the All / Activities /
-   Food / Not yet placed filters remain.
+4. **Given** text in the line, **Then** the list shows only items whose names match it,
+   combined with the All / Activities / Food / Not yet placed filters; clearing the line shows
+   all items again. There is no separate search box.
 
 ### Edge Cases
 
@@ -131,7 +145,7 @@ list as an Activity and the line clears, ready for the next one.
   overrides, the traveler MUST be able to switch among the trip's distinct cities.
 - **FR-004**: Popular cards MUST be draggable onto schedule cells, creating an event linked to
   the place (name, address, coordinates as in feature 004), typed Food for food places and
-  Activity otherwise.
+  Activity otherwise. Dragging MUST NOT add the place to the traveler's list.
 - **FR-005**: Each Popular card MUST offer a menu with "Place in a block", "Add to my list" and
   "Open in maps", so every action is possible without dragging.
 - **FR-006**: List and Popular cards MUST show placed state as a strikethrough of the name plus
@@ -142,7 +156,8 @@ list as an Activity and the line clears, ready for the next one.
 - **FR-008**: Struck-through cards MUST remain draggable and usable like any other card.
 - **FR-009**: The list tab's top text line MUST add a new item on Enter (Activity by default,
   trimmed, non-empty), clear itself and keep focus; it MUST offer the feature 004 place
-  suggestions; the search box MUST be removed and the filters kept.
+  suggestions; while it holds text the list MUST narrow to matching item names (combined with
+  the filters), replacing the separate search box.
 - **FR-010**: Popular results MUST be reused for at least 7 days per city before being fetched
   again, and MUST show their source and fetch date.
 - **FR-011**: When popular places are unavailable, slow or not configured, the tab MUST show a
@@ -183,6 +198,7 @@ list as an Activity and the line clears, ready for the next one.
 - Up to 20 per group keeps cost and scrolling reasonable; paging or "load more" is out of scope.
 - Photos, opening hours, prices and reviews text are out of scope.
 - Filtering inside Popular (beyond the Things to do / Food split) is out of scope.
-- Losing the search box is acceptable: the list is short per trip and the filters remain.
+- The quick-add line takes over search's job (narrowing by name), so no separate search box is
+  needed.
 - The "Not yet placed" filter keeps its meaning (items with no events).
 - No new account or permission is needed; device location is not used (the trip's city is).
