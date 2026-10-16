@@ -122,6 +122,7 @@
   background-color: var(--color-bg);
   font-size: var(--font-size-sm);
   cursor: grab;
+  user-select: none;
   touch-action: manipulation;
 }
 

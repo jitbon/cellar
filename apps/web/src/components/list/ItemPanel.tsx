@@ -137,6 +137,10 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
       ref={setNodeRef}
       className={`${styles.row} ${isDragging ? styles.dragging : ''}`}
       {...listeners}
+      // Mouse shortcut for "Edit" (the menu item stays the keyboard path); not from buttons.
+      onDoubleClick={(e) => {
+        if (!(e.target as HTMLElement).closest('button')) setEditing(true);
+      }}
     >
       <button
         type="button"

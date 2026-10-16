@@ -402,6 +402,15 @@ test.describe('US3: the top line quick-adds and filters', () => {
     }
   }
 
+  test('double-clicking a list item opens its edit dialog', async ({ page }) => {
+    await mockPlaces(page, 'fail');
+    await openList(page, 'NYC dblclick');
+    await rows(page).filter({ hasText: 'Museum day' }).getByText('Museum day').dblclick();
+    const dialog = page.getByRole('dialog', { name: 'Edit item' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Name', { exact: true })).toHaveValue('Museum day');
+  });
+
   test('quickstart 8: typing narrows the list, Enter adds an Activity and clears the line', async ({
     page,
   }) => {

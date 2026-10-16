@@ -164,6 +164,19 @@ describe('ItemPanel', () => {
     expect(screen.getByRole('menuitem', { name: 'Place Museum in a block' })).toBeVisible();
   });
 
+  it('opens the edit dialog when a row is double-clicked', async () => {
+    const user = setup();
+    await user.dblClick(screen.getByText('Museum'));
+    const dialog = screen.getByRole('dialog', { name: 'Edit item' });
+    expect(within(dialog).getByLabelText('Name')).toHaveValue('Museum');
+  });
+
+  it('does not open the edit dialog when the actions button is double-clicked', async () => {
+    const user = setup();
+    await user.dblClick(screen.getByRole('button', { name: 'Actions for Museum' }));
+    expect(screen.queryByRole('dialog', { name: 'Edit item' })).toBeNull();
+  });
+
   describe('tabs', () => {
     const memoryStore = (initial: Record<string, string> = {}) => {
       const data = { ...initial };
