@@ -30,6 +30,69 @@
   white-space: nowrap;
 }
 
+/* The name is a button: click to rename in place. */
+.nameButton {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+}
+
+.nameButton:hover {
+  border-color: var(--color-header-muted);
+}
+
+.nameButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.nameEdit {
+  position: relative;
+  display: inline-flex;
+}
+
+.nameInput {
+  width: 20ch;
+  max-width: 100%;
+  min-height: var(--size-control);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-header-muted);
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--color-header-text);
+  font: inherit;
+}
+
+.nameInput:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+/* Shown just under the bar so the 48 px header keeps its height. */
+.nameError {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  white-space: nowrap;
+  box-shadow: var(--shadow-1);
+}
+
 .chip {
   position: relative;
   display: inline-flex;

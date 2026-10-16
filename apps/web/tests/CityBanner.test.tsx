@@ -39,13 +39,21 @@ function setup(
     store?: KeyValueStore;
     cityPhotos?: ReturnType<typeof fakeCityPhotos>;
     onChangePhoto?: () => void;
+    onEditLocation?: () => void;
   } = {},
 ) {
   const cityPhotos = opts.cityPhotos ?? fakeCityPhotos();
   const store = opts.store ?? memoryStore();
-  render(<CityBanner state={state} onChangePhoto={opts.onChangePhoto} />, {
-    wrapper: withServices({ cityPhotos, store }),
-  });
+  render(
+    <CityBanner
+      state={state}
+      onChangePhoto={opts.onChangePhoto}
+      onEditLocation={opts.onEditLocation}
+    />,
+    {
+      wrapper: withServices({ cityPhotos, store }),
+    },
+  );
   return { cityPhotos };
 }
 
@@ -141,5 +149,34 @@ describe('CityBanner', () => {
     const { cityPhotos } = setup(stateOf(true), { store });
     expect(screen.queryByTestId('city-banner')).toBeNull();
     expect(cityPhotos.lead).not.toHaveBeenCalled();
+  });
+});
+
+describe('CityBanner city name', () => {
+  it('is the button that changes the trip location', async () => {
+    vi.useRealTimers();
+    const onEditLocation = vi.fn();
+    setup(stateOf(true), { onEditLocation });
+    await bannerImage();
+    await userEvent
+      .setup()
+      .click(screen.getByRole('button', { name: 'Change trip location (Kyoto, Japan)' }));
+    expect(onEditLocation).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CityBanner while the photo loads', () => {
+  it('already shows the city button and progress, without credit or photo', async () => {
+    const cityPhotos = fakeCityPhotos();
+    cityPhotos.lead.mockReturnValue(new Promise(() => {}));
+    const onEditLocation = vi.fn();
+    setup(stateOf(true), { cityPhotos, onEditLocation });
+    const banner = await screen.findByTestId('city-banner');
+    expect(
+      screen.getByRole('button', { name: 'Change trip location (Kyoto, Japan)' }),
+    ).toBeInTheDocument();
+    expect(banner).toHaveTextContent('In 12 days');
+    expect(banner.querySelector('img')).toBeNull();
+    expect(screen.queryByRole('link', { name: /^Photo:/ })).toBeNull();
   });
 });

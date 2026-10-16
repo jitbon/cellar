@@ -229,12 +229,18 @@ export function TripPlanner() {
         onEditLocation={() => setLocationOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
         onChangeBannerPhoto={() => setBannerPicker(true)}
+        onRename={(next) => {
+          const renamed = dispatch(renameTrip(next));
+          return renamed.ok ? null : renamed.error.message;
+        }}
+        showLocation={!bannerShown}
         panel={{ open: panelOpen, onToggle: () => togglePanel(!panelOpen) }}
       />
       <CityBanner
         state={state}
         onShownChange={setBannerShown}
         onChangePhoto={() => setBannerPicker(true)}
+        onEditLocation={() => setLocationOpen(true)}
       />
       {bannerPicker && tripPlace ? (
         <CoverPhotoPicker

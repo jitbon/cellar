@@ -40,6 +40,27 @@
   white-space: nowrap;
 }
 
+.cityButton {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dashed transparent;
+  background-color: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cityButton:hover {
+  border-bottom-color: var(--color-on-photo);
+}
+
+.cityButton:focus-visible {
+  outline: 2px solid var(--color-on-photo);
+  outline-offset: 2px;
+}
+
 .status {
   font-size: var(--font-size-sm);
   font-weight: 600;

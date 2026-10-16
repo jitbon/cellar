@@ -20,7 +20,13 @@ function memoryStore(initial: Record<string, string> = {}) {
 }
 
 function setup(
-  opts: { hidden?: boolean; locationName?: string | null; onChangeBannerPhoto?: () => void } = {},
+  opts: {
+    hidden?: boolean;
+    locationName?: string | null;
+    onChangeBannerPhoto?: () => void;
+    onRename?: (name: string) => string | null;
+    showLocation?: boolean;
+  } = {},
 ) {
   const { store, map } = memoryStore(opts.hidden ? { [KEY]: '1' } : {});
   const Wrapper = withServices({ store });
@@ -39,6 +45,8 @@ function setup(
           onEditLocation={vi.fn()}
           onOpenSettings={vi.fn()}
           onChangeBannerPhoto={opts.onChangeBannerPhoto ?? vi.fn()}
+          onRename={opts.onRename ?? vi.fn(() => null)}
+          showLocation={opts.showLocation}
         />
       </TooltipProvider>
     </MemoryRouter>,
@@ -88,5 +96,67 @@ describe('TripHeader banner photo', () => {
     await openMenu(hidden.user);
     await screen.findByRole('menuitem', { name: 'Show city banner' });
     expect(screen.queryByRole('menuitem', { name: 'Change banner photo' })).toBeNull();
+  });
+});
+
+describe('TripHeader rename by clicking the name', () => {
+  it('turns the name into a field; Enter saves the trimmed name', async () => {
+    const onRename = vi.fn(() => null);
+    const { user } = setup({ onRename });
+    await user.click(screen.getByRole('button', { name: 'Rename trip (Japan)' }));
+    const field = screen.getByRole('textbox', { name: 'Trip name' });
+    expect(field).toHaveValue('Japan');
+    expect(field).toHaveFocus();
+    await user.clear(field);
+    await user.type(field, '  Japan spring {Enter}');
+    expect(onRename).toHaveBeenCalledWith('Japan spring');
+    expect(screen.queryByRole('textbox', { name: 'Trip name' })).toBeNull();
+  });
+
+  it('saves when the field loses focus', async () => {
+    const onRename = vi.fn(() => null);
+    const { user } = setup({ onRename });
+    await user.click(screen.getByRole('button', { name: 'Rename trip (Japan)' }));
+    await user.type(screen.getByRole('textbox', { name: 'Trip name' }), ' trip');
+    await user.tab();
+    expect(onRename).toHaveBeenCalledWith('Japan trip');
+  });
+
+  it('Escape cancels without saving', async () => {
+    const onRename = vi.fn(() => null);
+    const { user } = setup({ onRename });
+    await user.click(screen.getByRole('button', { name: 'Rename trip (Japan)' }));
+    await user.type(screen.getByRole('textbox', { name: 'Trip name' }), ' trip{Escape}');
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Rename trip (Japan)' })).toBeInTheDocument();
+  });
+
+  it('does not save an unchanged name and keeps the field open on an error', async () => {
+    const onRename = vi.fn(() => 'Please enter a name.');
+    const { user } = setup({ onRename });
+    await user.click(screen.getByRole('button', { name: 'Rename trip (Japan)' }));
+    await user.keyboard('{Enter}');
+    expect(onRename).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Rename trip (Japan)' }));
+    await user.clear(screen.getByRole('textbox', { name: 'Trip name' }));
+    await user.keyboard('x{Enter}');
+    expect(onRename).toHaveBeenCalledWith('x');
+    expect(screen.getByRole('alert')).toHaveTextContent('Please enter a name.');
+    expect(screen.getByRole('textbox', { name: 'Trip name' })).toBeInTheDocument();
+  });
+});
+
+describe('TripHeader location chip', () => {
+  it('shows the location chip by default', () => {
+    setup();
+    expect(
+      screen.getByRole('button', { name: 'Change trip location (Kyoto, Japan)' }),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves the chip out when the banner shows the city', () => {
+    setup({ showLocation: false });
+    expect(screen.queryByRole('button', { name: /Change trip location/ })).toBeNull();
   });
 });
