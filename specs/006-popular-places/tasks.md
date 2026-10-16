@@ -95,14 +95,14 @@ code this builds on: `PlaceSearch`, `Place`, `placeFields`, `isFoodPlace`, `Open
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Write failing tests in `packages/core/tests/placed.test.ts`: `isItemPlaced` false with no events, true after `placeItem`, false again after removing its events; `isPlacePlaced(state, placeId)` true when any item or any placement has that `placeId`, false otherwise
-- [ ] T023 [P] [US2] Extend `apps/web/tests/ItemPanel.test.tsx` and `apps/web/tests/PopularTab.test.tsx`: placed cards have the strikethrough class and an accessible name ending in ", placed"; no "placed N×" text anywhere; struck-through cards keep their drag handle and menu
+- [X] T022 [P] [US2] Write failing tests in `packages/core/tests/placed.test.ts`: `isItemPlaced` false with no events, true after `placeItem`, false again after removing its events; `isPlacePlaced(state, placeId)` true when any item or any placement has that `placeId`, false otherwise
+- [X] T023 [P] [US2] Extend `apps/web/tests/ItemPanel.test.tsx` and `apps/web/tests/PopularTab.test.tsx`: placed cards have the strikethrough class and an accessible name ending in ", placed"; no "placed N×" text anywhere; struck-through cards keep their drag handle and menu
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Implement `isItemPlaced` and `isPlacePlaced` in new `packages/core/src/queries/placed.ts`; export them; make T022 pass
-- [ ] T025 [US2] In `ItemPanel.tsx` replace the `placed {count}×` span with a `.placed` class on the name (`text-decoration: line-through` and muted color via tokens) plus a visually hidden ", placed"; apply the same to `PopularCard.tsx` using `isPlacePlaced`; make T023 pass
-- [ ] T026 [US2] Add US2 e2e tests to `apps/web/e2e/popular.spec.ts`: quickstart 2, 3 and 7 (strikethrough appears, re-drag works, strikethrough clears when all events are removed)
+- [X] T024 [US2] Implement `isItemPlaced` and `isPlacePlaced` in new `packages/core/src/queries/placed.ts`; export them; make T022 pass
+- [X] T025 [US2] In `ItemPanel.tsx` replace the `placed {count}×` span with a `.placed` class on the name (`text-decoration: line-through` and muted color via tokens) plus a visually hidden ", placed"; apply the same to `PopularCard.tsx` using `isPlacePlaced`; make T023 pass
+- [X] T026 [US2] Add US2 e2e tests to `apps/web/e2e/popular.spec.ts`: quickstart 2, 3 and 7 (strikethrough appears, re-drag works, strikethrough clears when all events are removed)
 
 **Checkpoint**: US1 + US2 deliver the full P1 value
 

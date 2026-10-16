@@ -50,6 +50,11 @@
   white-space: nowrap;
 }
 
+.placed {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
 .meta {
   display: flex;
   align-items: center;

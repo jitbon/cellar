@@ -56,6 +56,11 @@ async function placeFromMenu(page: Page, name: string, date: string, block: stri
     .getByRole('button', { name: `Actions for ${name}` })
     .click();
   await page.getByRole('menuitem', { name: 'Place in a block' }).click();
+  await pickCell(page, name, date, block);
+}
+
+/** Fills the day and block pickers of the open "Place “name”" dialog and confirms. */
+async function pickCell(page: Page, name: string, date: string, block: string) {
   const dialog = page.getByRole('dialog', { name: `Place “${name}”` });
   await dialog.getByLabel('Day').selectOption(date);
   await dialog.getByLabel('Time block').selectOption({ label: block });
@@ -72,6 +77,106 @@ async function center(locator: Locator) {
   const box = (await locator.boundingBox())!;
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
+
+/** The struck-through name element of a card, if it has one. */
+const struck = (row: Locator) => row.locator('[class*="placed"]');
+
+/** Removes the event named `name` from the given cell via its chip menu. */
+async function removeEvent(page: Page, date: string, block: string, name: string) {
+  const cell = cellOf(page, date, block);
+  await cell.getByRole('button', { name: `Actions for ${name}` }).click();
+  await page.getByRole('menuitem', { name: `Remove ${name}`, exact: true }).click();
+  await expect(cell.getByTestId('chip')).toHaveCount(0);
+}
+
+test.describe('US2: placed cards are struck through', () => {
+  test('quickstart 2 and 3: a placed popular card is struck through and can be placed again', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await openPopular(page, 'NYC pop i');
+    const met = card(page, MET);
+    await expect(struck(met)).toHaveCount(0);
+
+    await placeFromMenu(page, MET, '2027-04-01', 'Afternoon');
+    await expect(struck(met)).toHaveCSS('text-decoration-line', 'line-through');
+    await expect(met).toContainText(`${MET}, placed`);
+    await expect(met).not.toContainText('×');
+
+    // Still usable: a second event from the same struck-through card.
+    await placeFromMenu(page, MET, '2027-04-02', 'Morning');
+    await expect(struck(met)).toHaveCSS('text-decoration-line', 'line-through');
+
+    await showGrid(page, 1);
+    await expect(cellOf(page, '2027-04-01', 'Afternoon').getByTestId('chip')).toContainText(MET);
+    await goToDay(page, 2);
+    await expect(cellOf(page, '2027-04-02', 'Morning').getByTestId('chip')).toContainText(MET);
+  });
+
+  test('quickstart 7: a placed list item is struck through without a count, and clears when its events go', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'NYC pop j', '2027-04-01', '2027-04-05');
+    await setItemPanel(page, true);
+    await list(page).getByRole('button', { name: 'Add', exact: true }).click();
+    await list(page).getByLabel('Name', { exact: true }).fill('Rest day');
+    await list(page).getByRole('button', { name: 'Add to list' }).click();
+    const row = list(page).getByRole('listitem').filter({ hasText: 'Rest day' });
+    await expect(row).toBeVisible();
+    await expect(struck(row)).toHaveCount(0);
+
+    await row.getByRole('button', { name: 'Actions for Rest day' }).click();
+    await page.getByRole('menuitem', { name: 'Place Rest day in a block' }).click();
+    await pickCell(page, 'Rest day', '2027-04-01', 'Morning');
+    await expect(struck(row)).toHaveCSS('text-decoration-line', 'line-through');
+    await expect(row).toContainText('Rest day, placed');
+    await expect(list(page).getByText(/placed \d+×/)).toHaveCount(0);
+
+    // Place it a second time: still one strikethrough, no count.
+    await row.getByRole('button', { name: 'Actions for Rest day' }).click();
+    await page.getByRole('menuitem', { name: 'Place Rest day in a block' }).click();
+    await pickCell(page, 'Rest day', '2027-04-02', 'Morning');
+    await expect(list(page).getByText(/placed \d+×/)).toHaveCount(0);
+
+    await showGrid(page, 1);
+    await removeEvent(page, '2027-04-01', 'Morning', 'Rest day');
+    await goToDay(page, 2);
+    await removeEvent(page, '2027-04-02', 'Morning', 'Rest day');
+    await setItemPanel(page, true);
+    await expect(struck(row)).toHaveCount(0);
+    await expect(row).not.toContainText('placed');
+  });
+
+  test.describe('dragging (desktop)', () => {
+    test.skip(({ hasTouch }) => hasTouch, 'mouse drag is exercised on desktop');
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test('quickstart 3: a struck-through card can be dragged again', async ({ page }) => {
+      test.setTimeout(60_000);
+      await mockPlaces(page, 'ok');
+      await openPopular(page, 'NYC pop k');
+      await placeFromMenu(page, MET, '2027-04-01', 'Afternoon');
+      await expect(struck(card(page, MET))).toHaveCSS('text-decoration-line', 'line-through');
+
+      const from = await center(card(page, MET));
+      const target = cellOf(page, '2027-04-02', 'Morning');
+      const to = await center(target);
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      for (let i = 1; i <= 12; i++) {
+        await page.mouse.move(
+          from.x + ((to.x - from.x) * i) / 12,
+          from.y + ((to.y - from.y) * i) / 12,
+        );
+      }
+      await page.mouse.up();
+      await expect(target.getByTestId('chip')).toContainText(MET);
+      await expect(struck(card(page, MET))).toHaveCSS('text-decoration-line', 'line-through');
+    });
+  });
+});
 
 test.describe('US1: browse popular places and place them', () => {
   test('quickstart 1 and FR-012: both groups load with details, sending only the city', async ({

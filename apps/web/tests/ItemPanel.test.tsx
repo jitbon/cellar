@@ -70,11 +70,30 @@ const names = () =>
     .map((n) => n.textContent);
 
 describe('ItemPanel', () => {
-  it('lists all items and shows "placed N×" only when placed', () => {
+  it('lists all items; placed ones are struck through with a text equivalent, not a count', () => {
     setup();
     expect(names()).toEqual(['Ramen', 'RAMÉN Bar', 'Museum']);
-    expect(within(panel()).getByText('placed 2×')).toBeInTheDocument();
-    expect(within(panel()).queryAllByText(/placed 0×/)).toHaveLength(0);
+    const rowOf = (name: string) =>
+      within(panel())
+        .getAllByRole('listitem')
+        .find((li) => within(li).queryByTestId('item-name')?.textContent === name)!;
+    expect(rowOf('Ramen')).toHaveTextContent('Ramen, placed');
+    expect(within(rowOf('Ramen')).getByTestId('item-name').parentElement!.className).toMatch(
+      /placed/,
+    );
+    for (const name of ['RAMÉN Bar', 'Museum']) {
+      expect(rowOf(name)).not.toHaveTextContent('placed');
+      expect(within(rowOf(name)).getByTestId('item-name').parentElement!.className).not.toMatch(
+        /placed/,
+      );
+    }
+    expect(within(panel()).queryAllByText(/placed \d+×/)).toHaveLength(0);
+  });
+
+  it('keeps a placed item draggable and its menu available', () => {
+    setup();
+    expect(screen.getByRole('button', { name: 'Drag Ramen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Actions for Ramen' })).toBeInTheDocument();
   });
 
   it('searches by name ignoring case and accents', async () => {

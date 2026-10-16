@@ -184,11 +184,9 @@
   white-space: nowrap;
 }
 
-.count {
-  flex: none;
+.placed {
   color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  font-variant-numeric: tabular-nums;
+  text-decoration: line-through;
 }
 
 .actions {

@@ -80,7 +80,9 @@ test('quickstart scenarios 2-11: plan a trip end to end', async ({ page }) => {
   await page.getByRole('combobox', { name: /Add event to Lunch/ }).fill('ichi');
   await page.getByRole('option', { name: /Ichiran Ramen/ }).click();
   await openList();
-  await expect(list.getByText(/placed 1×/)).toBeVisible();
+  await expect(
+    list.getByRole('listitem').filter({ hasText: 'Ichiran Ramen, placed' }),
+  ).toBeVisible();
 
   // 7: deleting the list item keeps the placement
   await list.getByRole('button', { name: 'Actions for Ichiran Ramen' }).click();

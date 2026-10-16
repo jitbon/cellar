@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import {
   addItem,
+  isPlacePlaced,
   placePlace,
   popularToPlace,
   type ItemType,
@@ -42,6 +43,7 @@ export function PopularCard({ state, place, type, dispatch }: Props) {
   const linked = popularToPlace(place);
   const meta = [place.kind, place.address].filter(Boolean).join(' · ');
   const rating = ratingText(place);
+  const placed = isPlacePlaced(state, place.placeId);
 
   return (
     <li
@@ -60,7 +62,10 @@ export function PopularCard({ state, place, type, dispatch }: Props) {
         <Icon as={TYPE_ICON[type]} />
       </span>
       <span className={styles.text}>
-        <span className={styles.name}>{place.name}</span>
+        <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
+          {place.name}
+          {placed ? <span className="visually-hidden">, placed</span> : null}
+        </span>
         {meta ? <span className={styles.meta}>{meta}</span> : null}
         {rating ? (
           <span className={styles.meta}>

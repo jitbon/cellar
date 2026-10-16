@@ -3,7 +3,9 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  addItem,
   createTrip,
+  placePlace,
   popularToPlace,
   setDayLocation,
   setTripLocation,
@@ -191,5 +193,45 @@ describe('PopularTab', () => {
       await screen.findByRole('button', { name: `Drag ${metPopular.name}` }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: `Drag ${katzPopular.name}` })).toBeInTheDocument();
+  });
+
+  describe('placed state', () => {
+    const metPlaced = apply(
+      located,
+      placePlace(popularToPlace(metPopular), 'activity', '2027-04-01', located.blocks[0].id),
+    );
+    const katzListed = apply(
+      located,
+      addItem(katzPopular.name, 'food', null, null, popularToPlace(katzPopular)),
+    );
+    const nameOf = (name: string) => screen.getByText(name, { selector: 'span' });
+
+    it('strikes through a card whose place is on the schedule, with hidden text', async () => {
+      setup(metPlaced);
+      await screen.findByText(katzPopular.name);
+      const met = screen.getByText(metPopular.name).closest('li')!;
+      expect(met).toHaveTextContent(`${metPopular.name}, placed`);
+      expect(nameOf(metPopular.name).className).toMatch(/placed/);
+      const katz = screen.getByText(katzPopular.name).closest('li')!;
+      expect(katz).not.toHaveTextContent('placed');
+      expect(nameOf(katzPopular.name).className).not.toMatch(/placed/);
+    });
+
+    it('also strikes through a card whose place is in the list', async () => {
+      setup(katzListed);
+      await screen.findByText(katzPopular.name);
+      expect(screen.getByText(katzPopular.name).closest('li')).toHaveTextContent(
+        `${katzPopular.name}, placed`,
+      );
+    });
+
+    it('shows no count and keeps the drag handle and menu on a struck-through card', async () => {
+      const user = setup(metPlaced);
+      await screen.findByText(metPopular.name);
+      expect(screen.queryByText(/placed \d+×/)).toBeNull();
+      expect(screen.getByRole('button', { name: `Drag ${metPopular.name}` })).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: `Actions for ${metPopular.name}` }));
+      expect(screen.getByRole('menuitem', { name: 'Place in a block' })).toBeVisible();
+    });
   });
 });

@@ -76,7 +76,9 @@ test('SC-006: create trip, add item, place item, edit block using only the keybo
   await page.getByLabel('Time block').selectOption({ label: 'Breakfast' });
   await page.getByRole('button', { name: 'Place', exact: true }).focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByText(/placed 1×/)).toBeVisible();
+  await expect(
+    page.getByRole('listitem').filter({ hasText: 'Tsukiji Market, placed' }),
+  ).toBeVisible();
   await setItemPanel(page, false);
 
   // Rename a block.

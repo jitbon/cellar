@@ -6,7 +6,7 @@ import {
   filterItems,
   placeItem,
   isFoodPlace,
-  placedCount,
+  isItemPlaced,
   placeOf,
   suggestNear,
   updateItem,
@@ -132,7 +132,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
   const [editing, setEditing] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const count = placedCount(state, item.id);
+  const placed = isItemPlaced(state, item.id);
   const place = placeOf(item);
 
   return (
@@ -152,12 +152,12 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
         <Icon as={TYPE_ICON[item.type]} />
       </span>
       <span className={styles.text}>
-        <span className={styles.name} data-testid="item-name">
-          {item.name}
+        <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
+          <span data-testid="item-name">{item.name}</span>
+          {placed ? <span className="visually-hidden">, placed</span> : null}
         </span>
         <PlaceLine place={place} />
       </span>
-      {count > 0 ? <span className={styles.count}>placed {count}×</span> : null}
       <Menu
         trigger={
           <button type="button" className={styles.actions} aria-label={`Actions for ${item.name}`}>
