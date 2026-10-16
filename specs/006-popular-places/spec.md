@@ -24,6 +24,8 @@ quick-adding events."
 - Q: As the traveler types in the quick-add line, should the list narrow to matching items like
   search did? → A: Yes. Typing narrows the list to matches; Enter adds the new item; clearing
   the line shows everything again.
+- Q: How should the two Popular groups be laid out? → A: As two sub-tabs, "THINGS TO DO" on the
+  left and "FOOD" on the right, showing one group at a time (Things to do first).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -140,7 +142,9 @@ list as an Activity and the line clears, ready for the next one.
 
 - **FR-001**: The sidebar MUST have two tabs: the traveler's list (existing) and **Popular**.
 - **FR-002**: Popular MUST show up to 20 things to do and up to 20 food places for the selected
-  city, each with name, kind, short address, rating and review count, ordered by popularity.
+  city, each with name, kind, short address, rating and review count, ordered by popularity, as
+  two sub-tabs ("THINGS TO DO" left, "FOOD" right; one group visible at a time, Things to do
+  first, arrow keys switch).
 - **FR-003**: The selected city MUST default to the trip location; when days have location
   overrides, the traveler MUST be able to switch among the trip's distinct cities.
 - **FR-004**: Popular cards MUST be draggable onto schedule cells, creating an event linked to

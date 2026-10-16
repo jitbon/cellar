@@ -237,13 +237,22 @@ test.describe('layout (360 px)', () => {
         () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
       );
 
-    await inside(list.getByRole('tablist'));
+    await inside(list.getByRole('tablist', { name: 'List views' }));
     await list.getByRole('tab', { name: 'Popular' }).click();
     await expect(list.getByText('The Metropolitan Museum of Art')).toBeVisible();
+    const groups = list.getByRole('tablist', { name: 'Popular groups' });
+    await inside(groups);
     const cards = list.getByRole('listitem');
-    expect(await cards.count()).toBe(6);
-    for (let i = 0; i < 6; i++) await inside(cards.nth(i));
+    expect(await cards.count()).toBe(3);
+    for (let i = 0; i < 3; i++) await inside(cards.nth(i));
     expect(await pageScrolls()).toBe(false);
+
+    await groups.getByRole('tab', { name: 'Food', exact: true }).click();
+    await expect(list.getByText("Katz's Delicatessen")).toBeVisible();
+    expect(await cards.count()).toBe(3);
+    for (let i = 0; i < 3; i++) await inside(cards.nth(i));
+    expect(await pageScrolls()).toBe(false);
+    await groups.getByRole('tab', { name: 'Things to do' }).click();
 
     await list.getByRole('button', { name: 'Actions for The Metropolitan Museum of Art' }).click();
     await inside(page.getByRole('menu'));

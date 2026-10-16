@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState, type KeyboardEvent } from 'react';
 import { locationKey, tripCities, type PopularPlace, type TripState } from '@cellar/core';
 import type { Dispatch } from '../grid/PlacementChip';
 import { Button } from '../ui/Button';
@@ -13,6 +13,13 @@ function fetchedTime(fetchedAt: string): string {
   });
 }
 
+type Group = 'todo' | 'food';
+
+const GROUPS: { id: Group; label: string; type: 'activity' | 'food' }[] = [
+  { id: 'todo', label: 'Things to do', type: 'activity' },
+  { id: 'food', label: 'Food', type: 'food' },
+];
+
 interface Props {
   state: TripState;
   dispatch: Dispatch;
@@ -26,6 +33,9 @@ export function PopularTab({ state, dispatch, onSetLocation }: Props) {
   const [chosenKey, setChosenKey] = useState<string | null>(null);
   const city = cities.find((c) => locationKey(c) === chosenKey) ?? cities[0] ?? null;
   const { list, status } = usePopularPlaces(city);
+  const [group, setGroup] = useState<Group>('todo');
+  const idBase = useId();
+  const tabId = (g: Group) => `${idBase}-tab-${g}`;
 
   if (!city) {
     return (
@@ -36,28 +46,17 @@ export function PopularTab({ state, dispatch, onSetLocation }: Props) {
     );
   }
 
-  const group = (title: string, places: PopularPlace[], type: 'activity' | 'food') => (
-    <section className={styles.group} aria-labelledby={`popular-${type}`}>
-      <h3 className={styles.heading} id={`popular-${type}`}>
-        {title}
-      </h3>
-      {places.length === 0 ? (
-        <p className={styles.note}>No popular places found</p>
-      ) : (
-        <ul className={styles.list}>
-          {places.map((place) => (
-            <PopularCard
-              key={place.placeId}
-              state={state}
-              place={place}
-              type={type}
-              dispatch={dispatch}
-            />
-          ))}
-        </ul>
-      )}
-    </section>
-  );
+  // ARIA tabs: arrow keys move between the two groups and select them.
+  function onTabKeyDown(e: KeyboardEvent) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const next: Group = group === 'todo' ? 'food' : 'todo';
+    setGroup(next);
+    document.getElementById(tabId(next))?.focus();
+  }
+
+  const current = GROUPS.find((g) => g.id === group)!;
+  const places: PopularPlace[] = list ? list[group] : [];
 
   return (
     <div className={styles.tab}>
@@ -92,8 +91,50 @@ export function PopularTab({ state, dispatch, onSetLocation }: Props) {
           <p className={styles.note}>No popular places found</p>
         ) : (
           <>
-            {group('Things to do', list.todo, 'activity')}
-            {group('Food', list.food, 'food')}
+            <div
+              className={styles.groupTabs}
+              role="tablist"
+              aria-label="Popular groups"
+              onKeyDown={onTabKeyDown}
+            >
+              {GROUPS.map((g) => (
+                <button
+                  key={g.id}
+                  id={tabId(g.id)}
+                  type="button"
+                  role="tab"
+                  aria-selected={group === g.id}
+                  aria-controls={`${idBase}-panel`}
+                  tabIndex={group === g.id ? 0 : -1}
+                  className={`${styles.groupTab} ${group === g.id ? styles.groupTabActive : ''}`}
+                  onClick={() => setGroup(g.id)}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <div
+              id={`${idBase}-panel`}
+              role="tabpanel"
+              aria-labelledby={tabId(group)}
+              className={styles.group}
+            >
+              {places.length === 0 ? (
+                <p className={styles.note}>No popular places found</p>
+              ) : (
+                <ul className={styles.list}>
+                  {places.map((place) => (
+                    <PopularCard
+                      key={place.placeId}
+                      state={state}
+                      place={place}
+                      type={current.type}
+                      dispatch={dispatch}
+                    />
+                  ))}
+                </ul>
+              )}
+            </div>
           </>
         )
       ) : null}

@@ -68,15 +68,36 @@ function setup(
 }
 
 describe('PopularTab', () => {
-  it('shows both groups with name, kind, address and rating for each card', async () => {
-    setup(located);
-    expect(await screen.findByRole('heading', { name: 'Things to do' })).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Food' })).toBeVisible();
-    const met = screen.getByText('The Metropolitan Museum of Art').closest('li')!;
+  it('shows Things to do and Food as sub-tabs, Things to do first', async () => {
+    const user = setup(located);
+    const tablist = await screen.findByRole('tablist', { name: 'Popular groups' });
+    const todoTab = within(tablist).getByRole('tab', { name: 'Things to do' });
+    const foodTab = within(tablist).getByRole('tab', { name: 'Food' });
+    expect(todoTab).toHaveAttribute('aria-selected', 'true');
+    expect(foodTab).toHaveAttribute('aria-selected', 'false');
+
+    const met = (await screen.findByText('The Metropolitan Museum of Art')).closest('li')!;
     expect(within(met).getByText('Museum · 1000 5th Ave, New York')).toBeVisible();
     expect(within(met).getByText('4.8 (104,512 reviews)')).toBeVisible();
-    expect(screen.getByText("Katz's Delicatessen")).toBeVisible();
+    expect(screen.queryByText("Katz's Delicatessen")).toBeNull();
     expect(screen.getByText(/Popular on Google · \d{1,2}:\d{2}/)).toBeVisible();
+
+    await user.click(foodTab);
+    expect(foodTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText("Katz's Delicatessen")).toBeVisible();
+    expect(screen.queryByText('The Metropolitan Museum of Art')).toBeNull();
+  });
+
+  it('switches sub-tabs with the arrow keys', async () => {
+    const user = setup(located);
+    const todoTab = await screen.findByRole('tab', { name: 'Things to do' });
+    todoTab.focus();
+    await user.keyboard('{ArrowRight}');
+    const foodTab = screen.getByRole('tab', { name: 'Food' });
+    expect(foodTab).toHaveFocus();
+    expect(foodTab).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{ArrowLeft}');
+    expect(todoTab).toHaveAttribute('aria-selected', 'true');
   });
 
   it('asks for a trip location when there is none and offers to set it', async () => {
@@ -92,7 +113,7 @@ describe('PopularTab', () => {
   it('says so when popular places are unavailable', async () => {
     setup(located, fakePlaceSearch({ popularFail: true }));
     expect(await screen.findByText('Popular places unavailable right now')).toBeVisible();
-    expect(screen.queryByRole('heading', { name: 'Things to do' })).toBeNull();
+    expect(screen.queryByRole('tab', { name: 'Things to do' })).toBeNull();
   });
 
   it('says so when nothing was found', async () => {
@@ -114,7 +135,7 @@ describe('PopularTab', () => {
 
   it('shows no city selector for one city', async () => {
     setup(located);
-    await screen.findByRole('heading', { name: 'Food' });
+    await screen.findByRole('tab', { name: 'Food' });
     expect(screen.queryByRole('combobox', { name: 'City' })).toBeNull();
   });
 
@@ -147,6 +168,7 @@ describe('PopularTab', () => {
   it('adds a linked item to the list from the menu (Food for the food group)', async () => {
     const dispatched: Command[] = [];
     const user = setup(located, undefined, { onDispatch: (c) => dispatched.push(c) });
+    await user.click(await screen.findByRole('tab', { name: 'Food' }));
     await screen.findByText("Katz's Delicatessen");
     await user.click(screen.getByRole('button', { name: "Actions for Katz's Delicatessen" }));
     await user.click(screen.getByRole('menuitem', { name: 'Add to my list' }));
@@ -188,10 +210,11 @@ describe('PopularTab', () => {
   });
 
   it('has a drag handle for every card', async () => {
-    setup(located);
+    const user = setup(located);
     expect(
       await screen.findByRole('button', { name: `Drag ${metPopular.name}` }),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Food' }));
     expect(screen.getByRole('button', { name: `Drag ${katzPopular.name}` })).toBeInTheDocument();
   });
 
@@ -207,18 +230,20 @@ describe('PopularTab', () => {
     const nameOf = (name: string) => screen.getByText(name, { selector: 'span' });
 
     it('strikes through a card whose place is on the schedule, with hidden text', async () => {
-      setup(metPlaced);
-      await screen.findByText(katzPopular.name);
+      const user = setup(metPlaced);
+      await screen.findByText(metPopular.name);
       const met = screen.getByText(metPopular.name).closest('li')!;
       expect(met).toHaveTextContent(`${metPopular.name}, placed`);
       expect(nameOf(metPopular.name).className).toMatch(/placed/);
+      await user.click(screen.getByRole('tab', { name: 'Food' }));
       const katz = screen.getByText(katzPopular.name).closest('li')!;
       expect(katz).not.toHaveTextContent('placed');
       expect(nameOf(katzPopular.name).className).not.toMatch(/placed/);
     });
 
     it('also strikes through a card whose place is in the list', async () => {
-      setup(katzListed);
+      const user = setup(katzListed);
+      await user.click(await screen.findByRole('tab', { name: 'Food' }));
       await screen.findByText(katzPopular.name);
       expect(screen.getByText(katzPopular.name).closest('li')).toHaveTextContent(
         `${katzPopular.name}, placed`,

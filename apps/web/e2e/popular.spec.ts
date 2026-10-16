@@ -50,6 +50,11 @@ async function openPopular(
   await list(page).getByRole('tab', { name: 'Popular' }).click();
 }
 
+/** Switches the Popular tab to its FOOD sub-tab. */
+async function showFood(page: Page) {
+  await list(page).getByRole('tab', { name: 'Food', exact: true }).click();
+}
+
 /** Places a card with its menu: "Place in a block", then the day and block pickers. */
 async function placeFromMenu(page: Page, name: string, date: string, block: string) {
   await list(page)
@@ -185,14 +190,21 @@ test.describe('US1: browse popular places and place them', () => {
     const requests = await mockPlaces(page, 'ok');
     await openPopular(page, 'NYC pop a');
 
-    await expect(list(page).getByRole('heading', { name: 'Things to do' })).toBeVisible();
-    await expect(list(page).getByRole('heading', { name: 'Food', exact: true })).toBeVisible();
+    const groups = list(page).getByRole('tablist', { name: 'Popular groups' });
+    await expect(groups.getByRole('tab', { name: 'Things to do' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await expect(groups.getByRole('tab', { name: 'Food', exact: true })).toBeVisible();
     const met = card(page, MET);
     await expect(met).toContainText('Art museum');
     await expect(met).toContainText('1000 5th Ave, New York');
     await expect(met).toContainText('4.8 (104,512 reviews)');
     await expect(card(page, 'Central Park')).toBeVisible();
+    await expect(card(page, KATZ)).toHaveCount(0);
+    await showFood(page);
     await expect(card(page, KATZ)).toContainText('4.5 (40,211 reviews)');
+    await expect(card(page, MET)).toHaveCount(0);
     await expect(list(page).getByText(/^Popular on Google · \d{1,2}:\d{2}/)).toBeVisible();
 
     const popular = requests.filter((r) => r.action === 'popular');
@@ -225,6 +237,7 @@ test.describe('US1: browse popular places and place them', () => {
   }) => {
     await mockPlaces(page, 'ok');
     await openPopular(page, 'NYC pop c');
+    await showFood(page);
     await placeFromMenu(page, KATZ, '2027-04-03', 'Lunch');
 
     await showGrid(page, 3);
@@ -242,9 +255,11 @@ test.describe('US1: browse popular places and place them', () => {
   }) => {
     await mockPlaces(page, 'ok');
     await openPopular(page, 'NYC pop d');
+    await showFood(page);
     await placeFromMenu(page, KATZ, '2027-04-03', 'Lunch');
 
     await setItemPanel(page, true);
+    await showFood(page);
     await list(page).getByRole('button', { name: "Actions for Joe's Pizza" }).click();
     await page.getByRole('menuitem', { name: 'Add to my list' }).click();
     await list(page).getByRole('tab', { name: 'My list' }).click();
