@@ -42,7 +42,7 @@ export function Grid({ state, dispatch, forecasts }: Props) {
   const visible = narrow ? allDays.slice(index, index + 1) : allDays;
 
   return (
-    <div>
+    <div className={styles.root}>
       {narrow ? (
         <div className={styles.dayNav}>
           <Button

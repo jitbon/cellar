@@ -3,6 +3,17 @@
   flex-direction: column;
 }
 
+/* The grid's height leaves room for the city banner above it (see Grid.module.css). */
+.withBanner {
+  --grid-chrome: var(--size-banner);
+}
+
+@media (max-width: 639px) {
+  .withBanner {
+    --grid-chrome: var(--size-banner-sm);
+  }
+}
+
 .strips {
   display: flex;
   flex-direction: column;

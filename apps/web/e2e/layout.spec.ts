@@ -327,3 +327,40 @@ test.describe('photos layout (360 px)', () => {
     expect(await pageScrolls()).toBe(false);
   });
 });
+
+test.describe('photos layout (all viewports)', () => {
+  test('US2/AC5: the trip page has no vertical page scroll with the city banner shown or hidden', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    // Short enough that the grid is taller than the space under the header and banner.
+    await page.setViewportSize({ width: page.viewportSize()!.width, height: 400 });
+    await mockWikimedia(page, 'ok');
+    await mockOpenMeteo(page, 'ok');
+    await signIn(page, account);
+    await createTrip(
+      page,
+      'Banner height',
+      dateIn('America/New_York', -1),
+      dateIn('America/New_York', 3),
+    );
+    await setTripLocationDirect(page.url().split('/').pop()!, {
+      name: 'New York, USA',
+      lat: 40.7128,
+      lon: -74.006,
+      tz: 'America/New_York',
+    });
+    await page.reload();
+    await setItemPanel(page, false);
+    const fits = () =>
+      page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight);
+
+    await expect(page.getByTestId('city-banner').locator('img')).toBeVisible();
+    expect(await fits()).toBe(true);
+
+    await page.getByRole('button', { name: 'More trip actions' }).click();
+    await page.getByRole('menuitem', { name: 'Hide city banner' }).click();
+    await expect(page.getByTestId('city-banner')).toHaveCount(0);
+    expect(await fits()).toBe(true);
+  });
+});

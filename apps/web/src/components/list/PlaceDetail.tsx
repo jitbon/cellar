@@ -14,7 +14,7 @@ import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import { Icon, Star } from '../ui/Icon';
 import { Menu } from '../ui/Menu';
-import { ratingText } from './PopularCard';
+import { ratingText } from './rating';
 import styles from './PlaceDetail.module.css';
 
 /** Width requested for the large photo. */

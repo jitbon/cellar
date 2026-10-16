@@ -17,6 +17,7 @@ import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { usePlacePhoto } from '../../state/usePlacePhoto';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { PlaceDetail } from './PlaceDetail';
+import { ratingText } from './rating';
 import styles from './PopularCard.module.css';
 
 interface Props {
@@ -27,15 +28,6 @@ interface Props {
   dispatch: Dispatch;
   /** Called after "Add to my list" succeeds. */
   onAddedToList?: (name: string) => void;
-}
-
-/** "4.8 (104,512 reviews)"; whatever part the provider did not give is left out. */
-export function ratingText(place: PopularPlace): string {
-  if (place.rating === null) return '';
-  const rating = place.rating.toFixed(1);
-  if (place.ratingCount === null) return rating;
-  const reviews = place.ratingCount === 1 ? 'review' : 'reviews';
-  return `${rating} (${place.ratingCount.toLocaleString('en-US')} ${reviews})`;
 }
 
 /** Thumbnail width requested from the provider (the slot is shown at --size-thumb). */

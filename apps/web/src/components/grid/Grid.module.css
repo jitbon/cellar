@@ -1,6 +1,14 @@
+/* The whole grid (day switcher included) fits under the header and any strip above it. */
+.root {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--size-header) - var(--grid-chrome, 0px));
+}
+
 .scroller {
   overflow: auto;
-  max-height: calc(100dvh - var(--size-header) - var(--grid-chrome, 0px));
+  flex: 1 1 auto;
+  min-height: 0;
   border-top: 1px solid var(--color-border);
   scroll-padding: var(--size-header) 0 0 var(--size-block-label);
 }

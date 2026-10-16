@@ -156,6 +156,7 @@ export function TripPlanner() {
   };
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
+  const [bannerShown, setBannerShown] = useState(false);
   const ready = trip.status === 'ready' ? trip : null;
   const forecasts = useForecasts(ready?.state ?? null);
   const undo = ready?.undo;
@@ -212,7 +213,7 @@ export function TripPlanner() {
   const { state, dispatch } = trip;
   const tripPlace = tripLocation(state);
   return (
-    <main className={styles.page}>
+    <main className={bannerShown ? `${styles.page} ${styles.withBanner}` : styles.page}>
       <TripHeader
         name={state.trip.name}
         rangeLabel={formatRange(state.trip.startDate, state.trip.endDate)}
@@ -226,7 +227,7 @@ export function TripPlanner() {
         onOpenSettings={() => setSettingsOpen(true)}
         panel={{ open: panelOpen, onToggle: () => togglePanel(!panelOpen) }}
       />
-      <CityBanner state={state} />
+      <CityBanner state={state} onShownChange={setBannerShown} />
       <div className={styles.strips}>
         <SaveStatusBanner outbox={outbox} />
         {tripPlace ? null : <Banner>Add a location to see the weather.</Banner>}
