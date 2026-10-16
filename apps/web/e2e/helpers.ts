@@ -117,14 +117,20 @@ export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<Place
       const input = String(body.input ?? '').toLowerCase();
       file = input.includes('taco')
         ? 'places-suggest-tacos.json'
-        : input.includes('zzzxqq')
-          ? 'places-suggest-empty.json'
-          : 'places-suggest-chelsea.json';
+        : input.includes('katz')
+          ? 'places-suggest-katz.json'
+          : input.includes('zzzxqq')
+            ? 'places-suggest-empty.json'
+            : 'places-suggest-chelsea.json';
     } else if (body.action === 'popular') {
       file = body.group === 'food' ? 'places-popular-food.json' : 'places-popular-todo.json';
     } else {
       file =
-        body.placeId === 'test-tacos' ? 'places-details-tacos.json' : 'places-details-chelsea.json';
+        body.placeId === 'test-tacos'
+          ? 'places-details-tacos.json'
+          : body.placeId === 'test-katz'
+            ? 'places-details-katz.json'
+            : 'places-details-chelsea.json';
     }
     return route.fulfill({ headers: cors, body: fixture(file), contentType: 'application/json' });
   });

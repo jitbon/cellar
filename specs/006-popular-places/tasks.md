@@ -116,15 +116,15 @@ code this builds on: `PlaceSearch`, `Place`, `placeFields`, `isFoodPlace`, `Open
 
 ### Tests for User Story 3
 
-- [ ] T027 [P] [US3] Extend `packages/core/tests/item-queries.test.ts`: `matchesItemName(item, text)` is case- and accent-insensitive ("cafe" matches "Café"), substring-based, and true for empty or whitespace text
-- [ ] T028 [P] [US3] Write failing tests in `apps/web/tests/QuickAddLine.test.tsx` (fake `PlaceSearch`): labelled "Add or filter items", placeholder "Add an item…"; typing calls `onFilter(text)`; Enter with no active suggestion dispatches `addItem(text.trim(), 'activity')`, clears the line, calls `onFilter('')` and keeps focus; Enter on empty/whitespace does nothing; picking a suggestion adds a linked item (Food for food places); Escape closes suggestions and keeps the text
+- [X] T027 [P] [US3] Extend `packages/core/tests/item-queries.test.ts`: `matchesItemName(item, text)` is case- and accent-insensitive ("cafe" matches "Café"), substring-based, and true for empty or whitespace text
+- [X] T028 [P] [US3] Write failing tests in `apps/web/tests/QuickAddLine.test.tsx` (fake `PlaceSearch`): labelled "Add or filter items", placeholder "Add an item…"; typing calls `onFilter(text)`; Enter with no active suggestion dispatches `addItem(text.trim(), 'activity')`, clears the line, calls `onFilter('')` and keeps focus; Enter on empty/whitespace does nothing; picking a suggestion adds a linked item (Food for food places); Escape closes suggestions and keeps the text
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Add `matchesItemName` to `packages/core/src/queries/items.ts` (reuse the folding from `suggestItems`); export it; make T027 pass
-- [ ] T030 [US3] Implement `apps/web/src/components/list/QuickAddLine.tsx` (+ css) on top of `usePlaceSuggestions` and the `PlaceOptions`/`PlaceNotes` components from feature 004, with `near = suggestNear(state)`; make T028 pass
-- [ ] T031 [US3] Replace the search input in `ItemPanel.tsx` with `QuickAddLine`, filtering the shown items with `matchesItemName` combined with the existing type/placed filters; remove the local `fold` helper and the "Search items" input; update `ItemPanel.test.tsx` and any e2e that used "Search items"
-- [ ] T032 [US3] Add US3 e2e tests to `apps/web/e2e/popular.spec.ts` (or `places.spec.ts`): quickstart 8–9
+- [X] T029 [US3] Add `matchesItemName` to `packages/core/src/queries/items.ts` (reuse the folding from `suggestItems`); export it; make T027 pass
+- [X] T030 [US3] Implement `apps/web/src/components/list/QuickAddLine.tsx` (+ css) on top of `usePlaceSuggestions` and the `PlaceOptions`/`PlaceNotes` components from feature 004, with `near = suggestNear(state)`; make T028 pass
+- [X] T031 [US3] Replace the search input in `ItemPanel.tsx` with `QuickAddLine`, filtering the shown items with `matchesItemName` combined with the existing type/placed filters; remove the local `fold` helper and the "Search items" input; update `ItemPanel.test.tsx` and any e2e that used "Search items"
+- [X] T032 [US3] Add US3 e2e tests to `apps/web/e2e/popular.spec.ts` (or `places.spec.ts`): quickstart 8–9
 
 **Checkpoint**: All three stories work independently
 

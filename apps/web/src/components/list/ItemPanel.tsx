@@ -6,6 +6,7 @@ import {
   filterItems,
   placeItem,
   isFoodPlace,
+  matchesItemName,
   isItemPlaced,
   placeOf,
   suggestNear,
@@ -22,13 +23,14 @@ import { TYPE_ICON, TYPE_LABEL, type Dispatch } from '../grid/PlacementChip';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { Dialog } from '../ui/Dialog';
-import { Icon, MoreHorizontal, Plus, Search } from '../ui/Icon';
+import { Icon, MoreHorizontal, Plus } from '../ui/Icon';
 import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { PlaceLine } from '../places/PlaceLine';
 import { PlaceNameField } from '../places/PlaceNameField';
 import { Popover } from '../ui/Popover';
 import { PopularTab } from './PopularTab';
+import { QuickAddLine } from './QuickAddLine';
 import { TextField } from '../ui/TextField';
 import styles from './ItemPanel.module.css';
 
@@ -45,11 +47,6 @@ const TYPE_FILTERS: { id: TypeFilter; label: string }[] = [
   { id: 'activity', label: 'Activities' },
   { id: 'food', label: 'Food' },
 ];
-
-/** Case- and accent-insensitive form used for searching. */
-function fold(text: string): string {
-  return text.toLocaleLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
-}
 
 interface FormProps {
   item?: Item;
@@ -251,12 +248,14 @@ interface PanelProps {
 
 export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
   const store = useKeyValueStore();
+  const [query, setQuery] = useState('');
   const tabsId = useId();
   const [tab, setTab] = useState<PanelTab>(() =>
     store?.get(TAB_KEY) === 'popular' ? 'popular' : 'list',
   );
   const selectTab = (next: PanelTab, focus = false) => {
     setTab(next);
+    setQuery(''); // the quick-add line starts empty when its tab comes back
     store?.set(TAB_KEY, next);
     if (focus) document.getElementById(`${tabsId}-tab-${next}`)?.focus();
   };
@@ -277,14 +276,12 @@ export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
   };
   const [type, setType] = useState<TypeFilter>('all');
   const [unplacedOnly, setUnplacedOnly] = useState(false);
-  const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
   const addRef = useRef<HTMLDivElement>(null);
-  const needle = fold(query.trim());
   const items = filterItems(state, {
     ...(type === 'all' ? {} : { type }),
     ...(unplacedOnly ? { placed: false } : {}),
-  }).filter((item) => needle === '' || fold(item.name).includes(needle));
+  }).filter((item) => matchesItemName(item, query));
 
   return (
     <aside className={styles.panel} aria-label="Activities and food">
@@ -339,17 +336,7 @@ export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
           <PopularTab state={state} dispatch={dispatch} onSetLocation={onSetLocation} />
         ) : (
           <>
-            <div className={styles.search}>
-              <Icon as={Search} />
-              <input
-                type="search"
-                className={styles.searchInput}
-                aria-label="Search items"
-                placeholder="Search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
+            <QuickAddLine near={suggestNear(state)} dispatch={dispatch} onFilter={setQuery} />
             <div className={styles.filters}>
               <div className={styles.segmented} role="group" aria-label="Filter list">
                 {TYPE_FILTERS.map((f) => (

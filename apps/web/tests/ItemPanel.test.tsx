@@ -96,10 +96,42 @@ describe('ItemPanel', () => {
     expect(screen.getByRole('button', { name: 'Actions for Ramen' })).toBeInTheDocument();
   });
 
-  it('searches by name ignoring case and accents', async () => {
+  it('narrows the list as you type in the quick-add line, ignoring case and accents', async () => {
     const user = setup();
-    await user.type(screen.getByRole('searchbox', { name: 'Search items' }), 'ram');
+    await user.type(screen.getByRole('combobox', { name: 'Add or filter items' }), 'ram');
     expect(names()).toEqual(['Ramen', 'RAMÉN Bar']);
+    expect(screen.queryByRole('searchbox')).toBeNull();
+  });
+
+  it('combines the typed text with the type and not-yet-placed filters', async () => {
+    const user = setup();
+    await user.type(screen.getByRole('combobox', { name: 'Add or filter items' }), 'ram');
+    await user.click(screen.getByRole('button', { name: 'Not yet placed' }));
+    expect(names()).toEqual(['RAMÉN Bar']);
+    await user.click(screen.getByRole('button', { name: 'Activities' }));
+    expect(names()).toEqual([]);
+  });
+
+  it('shows every item again after leaving the tab with text in the line', async () => {
+    const user = setup();
+    await user.type(screen.getByRole('combobox', { name: 'Add or filter items' }), 'ram');
+    await user.click(screen.getByRole('tab', { name: 'Popular' }));
+    await user.click(screen.getByRole('tab', { name: 'My list' }));
+    expect(screen.getByRole('combobox', { name: 'Add or filter items' })).toHaveValue('');
+    expect(names()).toEqual(['Ramen', 'RAMÉN Bar', 'Museum']);
+  });
+
+  it('adds the typed name on Enter, clears the line and shows every item again', async () => {
+    const dispatched = vi.fn();
+    const user = setup(dispatched);
+    const line = screen.getByRole('combobox', { name: 'Add or filter items' });
+    await user.type(line, 'Rest day');
+    expect(names()).toEqual([]);
+    await user.keyboard('{Enter}');
+    expect(dispatched).toHaveBeenCalledTimes(1);
+    expect(line).toHaveValue('');
+    expect(line).toHaveFocus();
+    expect(names()).toEqual(['Ramen', 'RAMÉN Bar', 'Museum', 'Rest day']);
   });
 
   it('filters by type and by not-yet-placed', async () => {

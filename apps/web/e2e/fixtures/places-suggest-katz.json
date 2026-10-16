@@ -1,0 +1,10 @@
+{
+  "suggestions": [
+    {
+      "placeId": "test-katz",
+      "name": "Katz's Delicatessen",
+      "address": "Houston Street, New York, NY, USA",
+      "types": ["deli", "restaurant", "food"]
+    }
+  ]
+}

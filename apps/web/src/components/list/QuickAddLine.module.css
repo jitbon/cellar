@@ -1,0 +1,57 @@
+.wrap {
+  position: relative;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.line:focus-within {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: 26px;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: var(--color-text);
+  outline: none;
+}
+
+@media (pointer: coarse) {
+  .input {
+    min-height: var(--size-touch);
+  }
+}
+
+.error {
+  margin: var(--space-2) 0 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+/* Overlays the list below so closing it on blur never shifts the layout under a click. */
+.panel {
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  right: 0;
+  left: 0;
+  margin-top: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  box-shadow: var(--shadow-1);
+  font-size: var(--font-size-md);
+}

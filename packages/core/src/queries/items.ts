@@ -21,6 +21,12 @@ function fold(text: string): string {
   return text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 }
 
+/** Whether the item's name contains the text (case- and accent-insensitive); blank text matches all. */
+export function matchesItemName(item: Pick<Item, 'name'>, text: string): boolean {
+  const q = fold(text.trim());
+  return q === '' || fold(item.name).includes(q);
+}
+
 /** Case- and accent-insensitive; names starting with the query rank above names containing it. */
 export function suggestItems(state: TripState, query: string, limit = 5): Item[] {
   const q = fold(query.trim());

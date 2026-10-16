@@ -15,7 +15,7 @@ export {
 } from './commands/placement';
 export { addItem, updateItem, deleteItem, type ItemPatch } from './commands/item';
 export { placeItem, placePlace } from './commands/placement';
-export { placedCount, filterItems, suggestItems } from './queries/items';
+export { placedCount, filterItems, suggestItems, matchesItemName } from './queries/items';
 export { isItemPlaced, isPlacePlaced } from './queries/placed';
 export {
   addBlock,

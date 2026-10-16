@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { addItem } from '../src/commands/item';
 import { placeItem } from '../src/commands/placement';
-import { filterItems, placedCount, suggestItems } from '../src/queries/items';
+import { filterItems, matchesItemName, placedCount, suggestItems } from '../src/queries/items';
 import type { ItemType, TripState } from '../src/model/types';
 import { expectOk, newTripState } from './fixtures';
 
@@ -86,5 +86,33 @@ describe('suggestItems', () => {
 
   it('returns nothing when nothing matches', () => {
     expect(suggestItems(s, 'zzz')).toEqual([]);
+  });
+});
+
+describe('matchesItemName', () => {
+  const s = withItems([
+    ['Café de l’Ambre', 'food'],
+    ['Ichiran Ramen', 'food'],
+  ]);
+  const [cafe, ramen] = s.items;
+
+  it('ignores case and accents', () => {
+    expect(matchesItemName(cafe, 'cafe')).toBe(true);
+    expect(matchesItemName(cafe, 'CAFÉ')).toBe(true);
+    expect(matchesItemName(ramen, 'ichiran')).toBe(true);
+  });
+
+  it('matches anywhere in the name', () => {
+    expect(matchesItemName(ramen, 'ran ra')).toBe(true);
+    expect(matchesItemName(cafe, 'ambre')).toBe(true);
+  });
+
+  it('does not match other names', () => {
+    expect(matchesItemName(ramen, 'cafe')).toBe(false);
+  });
+
+  it('matches everything for empty or whitespace text', () => {
+    expect(matchesItemName(ramen, '')).toBe(true);
+    expect(matchesItemName(cafe, '   ')).toBe(true);
   });
 });

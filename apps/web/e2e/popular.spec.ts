@@ -337,3 +337,64 @@ test.describe('US1: browse popular places and place them', () => {
     });
   });
 });
+
+test.describe('US3: the top line quick-adds and filters', () => {
+  const line = (page: Page) => list(page).getByRole('combobox', { name: 'Add or filter items' });
+  const rows = (page: Page) => list(page).getByRole('listitem');
+
+  /** A located trip with the list open and two plain items already on it. */
+  async function openList(page: Page, name: string) {
+    await signIn(page, account);
+    await createTrip(page, name, '2027-04-01', '2027-04-05');
+    await setTripLocationDirect(tripIdOf(page.url()), NEW_YORK);
+    await page.reload();
+    await setItemPanel(page, true);
+    for (const item of ['Ramen crawl', 'Museum day']) {
+      await line(page).fill(item);
+      await line(page).press('Enter');
+      await expect(rows(page).filter({ hasText: item })).toBeVisible();
+    }
+  }
+
+  test('quickstart 8: typing narrows the list, Enter adds an Activity and clears the line', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await openList(page, 'NYC quick a');
+    await expect(rows(page)).toHaveCount(2);
+
+    await line(page).fill('ram');
+    await expect(rows(page)).toHaveCount(1);
+    await expect(rows(page).first()).toContainText('Ramen crawl');
+    await line(page).press('Enter');
+
+    await expect(line(page)).toHaveValue('');
+    await expect(line(page)).toBeFocused();
+    await expect(rows(page)).toHaveCount(3);
+    const added = rows(page).filter({ hasText: /^ram/ });
+    await expect(added).toHaveCount(1);
+    await expect(added.getByLabel('Linked place')).toHaveCount(0);
+  });
+
+  test('quickstart 9: picking a suggestion adds a linked Food item', async ({ page }) => {
+    const requests = await mockPlaces(page, 'ok');
+    await openList(page, 'NYC quick b');
+    await line(page).fill('Katz');
+    await page.getByRole('option', { name: /Katz's Delicatessen/ }).click();
+
+    const row = rows(page).filter({ hasText: KATZ });
+    await expect(row.getByLabel('Linked place')).toBeVisible();
+    await expect(row).toContainText('205 E Houston St, New York');
+    await expect(line(page)).toHaveValue('');
+    await list(page).getByRole('button', { name: 'Food', exact: true }).click();
+    await expect(row).toBeVisible();
+    expect(requests.some((r) => r.action === 'details' && r.placeId === 'test-katz')).toBe(true);
+  });
+
+  test('Enter on an empty line adds nothing', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    await openList(page, 'NYC quick c');
+    await line(page).press('Enter');
+    await expect(rows(page)).toHaveCount(2);
+  });
+});
