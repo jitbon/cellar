@@ -184,6 +184,37 @@ test.describe('US2: placed cards are struck through', () => {
 });
 
 test.describe('US1: browse popular places and place them', () => {
+  test('each sub-tab fills half the bar and is underlined in its event color', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    await openPopular(page, 'NYC pop halves');
+    const groups = list(page).getByRole('tablist', { name: 'Popular groups' });
+    const todo = groups.getByRole('tab', { name: 'Things to do' });
+    const food = groups.getByRole('tab', { name: 'Food', exact: true });
+    const bar = (await groups.boundingBox())!;
+    const todoBox = (await todo.boundingBox())!;
+    expect(Math.abs(todoBox.width - bar.width / 2)).toBeLessThan(2);
+
+    // Blank space just right of the middle (well away from the word FOOD) selects Food.
+    await page.mouse.click(bar.x + bar.width * 0.55, bar.y + bar.height / 2);
+    await expect(food).toHaveAttribute('aria-selected', 'true');
+    await expect(card(page, KATZ)).toBeVisible();
+
+    const underline = (tab: typeof todo) =>
+      tab.evaluate((el) => getComputedStyle(el).borderBottomColor);
+    const token = (name: string) =>
+      page.evaluate((n) => {
+        const probe = document.createElement('div');
+        probe.style.color = `var(${n})`;
+        document.body.append(probe);
+        const value = getComputedStyle(probe).color;
+        probe.remove();
+        return value;
+      }, name);
+    expect(await underline(food)).toBe(await token('--color-food'));
+    await todo.click();
+    expect(await underline(todo)).toBe(await token('--color-activity'));
+  });
+
   test('quickstart 1 and FR-012: both groups load with details, sending only the city', async ({
     page,
   }) => {

@@ -106,7 +106,7 @@ export function PopularTab({ state, dispatch, onSetLocation }: Props) {
                   aria-selected={group === g.id}
                   aria-controls={`${idBase}-panel`}
                   tabIndex={group === g.id ? 0 : -1}
-                  className={`${styles.groupTab} ${group === g.id ? styles.groupTabActive : ''}`}
+                  className={`${styles.groupTab} ${group === g.id ? styles.groupTabActive : ''} ${g.id === 'food' ? styles.food : ''}`}
                   onClick={() => setGroup(g.id)}
                 >
                   {g.label}
