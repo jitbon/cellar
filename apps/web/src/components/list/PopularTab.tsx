@@ -25,10 +25,12 @@ interface Props {
   dispatch: Dispatch;
   /** Opens the trip location dialog. */
   onSetLocation: () => void;
+  /** Called after a card is added to the traveler's list. */
+  onAddedToList?: (name: string) => void;
 }
 
 /** Well-known things to do and places to eat in the trip's city (or another city of the trip). */
-export function PopularTab({ state, dispatch, onSetLocation }: Props) {
+export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Props) {
   const cities = tripCities(state);
   const [chosenKey, setChosenKey] = useState<string | null>(null);
   const city = cities.find((c) => locationKey(c) === chosenKey) ?? cities[0] ?? null;
@@ -130,6 +132,7 @@ export function PopularTab({ state, dispatch, onSetLocation }: Props) {
                       place={place}
                       type={current.type}
                       dispatch={dispatch}
+                      onAddedToList={onAddedToList}
                     />
                   ))}
                 </ul>

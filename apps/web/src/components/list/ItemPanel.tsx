@@ -32,6 +32,7 @@ import { Popover } from '../ui/Popover';
 import { PopularTab } from './PopularTab';
 import { QuickAddLine } from './QuickAddLine';
 import { TextField } from '../ui/TextField';
+import { Toast } from '../ui/Toast';
 import styles from './ItemPanel.module.css';
 
 type TypeFilter = 'all' | ItemType;
@@ -281,6 +282,11 @@ export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
   const [type, setType] = useState<TypeFilter>('all');
   const [unplacedOnly, setUnplacedOnly] = useState(false);
   const [adding, setAdding] = useState(false);
+  // Items added while My list is not showing get a short notice; the count restarts the toast.
+  const [added, setAdded] = useState<{ name: string; n: number } | null>(null);
+  const noteAdded = (name: string) => {
+    if (tab !== 'list') setAdded((a) => ({ name, n: (a?.n ?? 0) + 1 }));
+  };
   const addRef = useRef<HTMLDivElement>(null);
   const items = filterItems(state, {
     ...(type === 'all' ? {} : { type }),
@@ -292,13 +298,11 @@ export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
       <div className={styles.header}>
         <h2 className={styles.title}>Activities &amp; food</h2>
         <div ref={addRef} className={styles.addWrap}>
-          {tab === 'list' ? (
-            <Button aria-expanded={adding} onClick={() => setAdding((o) => !o)}>
-              <Icon as={Plus} />
-              Add
-            </Button>
-          ) : null}
-          {adding && tab === 'list' ? (
+          <Button aria-expanded={adding} onClick={() => setAdding((o) => !o)}>
+            <Icon as={Plus} />
+            Add
+          </Button>
+          {adding ? (
             <Popover id="add-item-form" anchorRef={addRef} onClose={() => setAdding(false)}>
               <ItemForm
                 submitLabel="Add to list"
@@ -306,6 +310,7 @@ export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
                 onDone={() => setAdding(false)}
                 onSubmit={({ name, type: itemType, notes, link, place }) => {
                   const r = dispatch(addItem(name, itemType, notes || null, link || null, place));
+                  if (r.ok) noteAdded(name.trim());
                   return r.ok ? null : r.error.message;
                 }}
               />
@@ -337,7 +342,12 @@ export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
         className={styles.tabPanel}
       >
         {tab === 'popular' ? (
-          <PopularTab state={state} dispatch={dispatch} onSetLocation={onSetLocation} />
+          <PopularTab
+            state={state}
+            dispatch={dispatch}
+            onSetLocation={onSetLocation}
+            onAddedToList={noteAdded}
+          />
         ) : (
           <>
             <QuickAddLine near={suggestNear(state)} dispatch={dispatch} onFilter={setQuery} />
@@ -376,6 +386,20 @@ export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
           </>
         )}
       </div>
+      {added ? (
+        <Toast
+          key={added.n}
+          durationMs={4000}
+          actionLabel="View list"
+          onAction={() => {
+            selectTab('list');
+            setAdded(null);
+          }}
+          onDismiss={() => setAdded(null)}
+        >
+          Added “{added.name}” to My list
+        </Toast>
+      ) : null}
     </aside>
   );
 }

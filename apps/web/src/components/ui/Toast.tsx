@@ -3,6 +3,7 @@ import { Button } from './Button';
 import styles from './Toast.module.css';
 
 const AUTO_DISMISS_MS = 8000;
+const FADE_MS = 300;
 
 function tipKey(tipId: string): string {
   return `cellar:tip:${tipId}`;
@@ -33,32 +34,54 @@ export function useTip(tipId: string): { visible: boolean; dismiss: () => void }
 interface Props {
   children: ReactNode;
   onDismiss: () => void;
+  /** How long it stays before fading out. */
+  durationMs?: number;
+  actionLabel?: string;
+  /** Defaults to dismissing. */
+  onAction?: () => void;
 }
 
-/** Bottom-center status toast; auto-dismisses after 8 s, paused while hovered or focused. */
-export function Toast({ children, onDismiss }: Props) {
+/**
+ * Bottom-center status toast; fades out and dismisses after `durationMs` (8 s by default),
+ * paused while hovered or focused.
+ */
+export function Toast({
+  children,
+  onDismiss,
+  durationMs = AUTO_DISMISS_MS,
+  actionLabel = 'Got it',
+  onAction,
+}: Props) {
   const [paused, setPaused] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const dismissRef = useRef(onDismiss);
   dismissRef.current = onDismiss;
 
   useEffect(() => {
     if (paused) return;
-    const timer = setTimeout(() => dismissRef.current(), AUTO_DISMISS_MS);
+    if (leaving) {
+      const timer = setTimeout(() => dismissRef.current(), FADE_MS);
+      return () => clearTimeout(timer);
+    }
+    const timer = setTimeout(() => setLeaving(true), durationMs);
     return () => clearTimeout(timer);
-  }, [paused]);
+  }, [paused, leaving, durationMs]);
 
   return (
     <div
       role="status"
-      className={styles.toast}
-      onMouseEnter={() => setPaused(true)}
+      className={`${styles.toast} ${leaving ? styles.leaving : ''}`}
+      onMouseEnter={() => {
+        setPaused(true);
+        setLeaving(false);
+      }}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
       <span>{children}</span>
-      <Button variant="ghost" className={styles.dismiss} onClick={onDismiss}>
-        Got it
+      <Button variant="ghost" className={styles.dismiss} onClick={onAction ?? onDismiss}>
+        {actionLabel}
       </Button>
     </div>
   );

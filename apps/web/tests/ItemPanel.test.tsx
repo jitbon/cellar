@@ -7,6 +7,7 @@ import {
   createTrip,
   placeFields,
   placeItem,
+  setTripLocation,
   type Command,
   type PlaceSearch,
   type PlaceSuggestion,
@@ -44,11 +45,13 @@ const noop = () => {};
 function Harness({
   onDispatch,
   onSetLocation = noop,
+  initial = seeded,
 }: {
   onDispatch?: (c: Command) => void;
   onSetLocation?: () => void;
+  initial?: TripState;
 }) {
-  const [state, setState] = useState(seeded);
+  const [state, setState] = useState(initial);
   const dispatch = (command: Command) => {
     onDispatch?.(command);
     const r = command(state);
@@ -181,6 +184,48 @@ describe('ItemPanel', () => {
     expect(screen.queryByRole('dialog', { name: 'Edit item' })).toBeNull();
     expect(screen.getByText('Museum')).toBeInTheDocument();
     expect(screen.queryByText('Changed')).toBeNull();
+  });
+
+  describe('adding from any tab', () => {
+    async function addFromForm(user: ReturnType<typeof userEvent.setup>, name: string) {
+      await user.click(within(panel()).getByRole('button', { name: 'Add' }));
+      await user.type(screen.getByLabelText('Name'), name);
+      await user.click(screen.getByRole('button', { name: 'Add to list' }));
+    }
+
+    it('keeps the Add button on the Popular tab and adds to My list with a notice', async () => {
+      const user = setup();
+      await user.click(screen.getByRole('tab', { name: 'Popular' }));
+      await addFromForm(user, 'Night market');
+      expect(screen.getByRole('status')).toHaveTextContent('Added “Night market” to My list');
+      await user.click(screen.getByRole('button', { name: 'View list' }));
+      expect(screen.getByRole('tab', { name: 'My list' })).toHaveAttribute('aria-selected', 'true');
+      expect(names()).toContain('Night market');
+    });
+
+    it('shows no notice when adding while My list is open', async () => {
+      const user = setup();
+      await addFromForm(user, 'Night market');
+      expect(names()).toContain('Night market');
+      expect(screen.queryByText(/to My list$/)).toBeNull();
+    });
+
+    it('shows the notice for "Add to my list" on a popular card', async () => {
+      const located = apply(
+        seeded,
+        setTripLocation({ name: 'New York, USA', lat: 40.71, lon: -74.0, tz: 'America/New_York' }),
+      );
+      render(<Harness initial={located} />, { wrapper: withPlaces(fakePlaceSearch()) });
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('tab', { name: 'Popular' }));
+      await user.click(
+        await screen.findByRole('button', { name: 'Actions for The Metropolitan Museum of Art' }),
+      );
+      await user.click(screen.getByRole('menuitem', { name: 'Add to my list' }));
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Added “The Metropolitan Museum of Art” to My list',
+      );
+    });
   });
 
   it('does not open the edit dialog when the actions button is double-clicked', async () => {
