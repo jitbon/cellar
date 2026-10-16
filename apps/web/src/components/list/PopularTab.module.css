@@ -90,7 +90,7 @@
 }
 
 .select {
-  min-height: 28px;
+  min-height: var(--size-control);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);

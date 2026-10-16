@@ -32,7 +32,7 @@
 }
 
 .tab {
-  min-height: 28px;
+  min-height: var(--size-control);
   margin-bottom: -1px;
   padding: 0 var(--space-5);
   border: 0;

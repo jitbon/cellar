@@ -14,7 +14,7 @@
   color: var(--color-bg);
   box-shadow: var(--shadow-2);
   font-size: var(--font-size-md);
-  transition: opacity 300ms ease-out;
+  transition: opacity var(--motion-fade) ease-out;
 }
 
 .leaving {

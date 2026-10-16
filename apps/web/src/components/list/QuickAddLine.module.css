@@ -21,7 +21,7 @@
 .input {
   flex: 1;
   min-width: 0;
-  min-height: 26px;
+  min-height: var(--size-control-sm);
   padding: 0;
   border: 0;
   background-color: transparent;

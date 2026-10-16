@@ -66,6 +66,7 @@ describe('design tokens', () => {
       names.push(`--size-${s}`);
     }
     names.push('--size-icon-button', '--size-touch', '--font-family');
+    names.push('--size-control', '--size-control-sm', '--motion-fade');
     for (const n of names) expect(light[n], n).toBeDefined();
   });
 

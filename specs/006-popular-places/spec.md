@@ -30,6 +30,15 @@ quick-adding events."
   dropdown listing the trip's cities, then any searched cities, with "Search for city…" as the
   last option; it opens a city search, and the city found is added to the dropdown and
   selected. Trips without a location get a "Search for a city" button.
+- Q: How does a traveler open a My list item's edit dialog quickly? → A: Double-clicking the
+  item opens its edit dialog. The row menu's Edit stays the keyboard path, and double-clicking
+  the item's actions button does not open it.
+- Q: How does a traveler leave a dialog without saving? → A: Every dialog has an X at its top
+  right (accessible name "Close") that closes it without saving, like Escape.
+- Q: Where can a traveler add a new item, and where does it go? → A: "+ Add" is available on
+  every tab and always adds to My list. When My list is not showing, an "Added “<name>” to My
+  list" notice with a "View list" action appears and fades out after about 4 seconds; this also
+  applies to a popular card's "Add to my list".
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -176,6 +185,16 @@ list as an Activity and the line clears, ready for the next one.
 - **FR-012**: Only the selected city's name and location MUST be sent to the popular-places
   service; no other trip data.
 - **FR-013**: Placing from Popular, "Add to my list" and quick-add MUST each be one undoable step.
+- **FR-014**: Double-clicking a My list item MUST open its edit dialog; the row menu's Edit MUST
+  remain available as the keyboard path, and double-clicking the item's actions button MUST NOT
+  open the dialog.
+- **FR-015**: Every dialog MUST have an X button at its top right with the accessible name
+  "Close" that closes the dialog without saving, equivalent to pressing Escape.
+- **FR-016**: "+ Add" MUST be available on every tab and MUST always add the new item to My list.
+- **FR-017**: When an item is added to My list (through "+ Add" or a popular card's "Add to my
+  list") while My list is not showing, the app MUST show an "Added “<name>” to My list" notice
+  with a "View list" action that shows My list, and the notice MUST fade out after about
+  4 seconds.
 
 ### Key Entities
 

@@ -3,6 +3,7 @@ import { Button } from './Button';
 import styles from './Toast.module.css';
 
 const AUTO_DISMISS_MS = 8000;
+// Must match --motion-fade in styles/tokens.css (the CSS opacity transition).
 const FADE_MS = 300;
 
 function tipKey(tipId: string): string {

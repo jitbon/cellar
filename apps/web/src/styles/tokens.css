@@ -73,6 +73,10 @@
   --size-icon-button: 24px;
   --size-touch: 44px;
   --size-day-cell: 40px;
+  --size-control: 28px;
+  --size-control-sm: 26px;
+
+  --motion-fade: 300ms;
 }
 
 @media (prefers-color-scheme: dark) {
