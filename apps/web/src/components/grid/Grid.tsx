@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { days, isMealBlock, orderedBlocks, type TripState } from '@cellar/core';
+import { days, isMealBlock, orderedBlocks, tripToday, type TripState } from '@cellar/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '../ui/Button';
 import { ChevronLeft, ChevronRight, Icon } from '../ui/Icon';
@@ -35,6 +35,7 @@ interface Props {
 export function Grid({ state, dispatch, forecasts }: Props) {
   const allDays = days(state.trip);
   const blocks = orderedBlocks(state);
+  const today = tripToday(state, new Date());
   const narrow = useIsNarrow();
   const [dayIndex, setDayIndex] = useState(0);
   const index = Math.min(dayIndex, allDays.length - 1);
@@ -67,8 +68,12 @@ export function Grid({ state, dispatch, forecasts }: Props) {
         <div className={styles.grid} style={{ '--day-count': visible.length } as CSSProperties}>
           <div className={`${styles.corner} ${styles.headerCell}`} />
           {visible.map((d) => (
-            <div key={d.date} className={styles.headerCell}>
+            <div
+              key={d.date}
+              className={`${styles.headerCell} ${d.date === today ? styles.today : ''}`}
+            >
               <DayHeader
+                isToday={d.date === today}
                 state={state}
                 date={d.date}
                 weekday={d.weekday}

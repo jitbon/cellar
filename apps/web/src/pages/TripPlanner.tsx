@@ -14,6 +14,7 @@ import { ItemPanel } from '../components/list/ItemPanel';
 import { SaveStatusBanner } from '../components/SaveStatusBanner';
 import { LocationDialog } from '../components/weather/LocationDialog';
 import { Banner } from '../components/ui/Banner';
+import { CityBanner } from '../components/layout/CityBanner';
 import { TripHeader } from '../components/layout/TripHeader';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -223,6 +224,7 @@ export function TripPlanner() {
         onOpenSettings={() => setSettingsOpen(true)}
         panel={{ open: panelOpen, onToggle: () => togglePanel(!panelOpen) }}
       />
+      <CityBanner state={state} />
       <div className={styles.strips}>
         <SaveStatusBanner outbox={outbox} />
         {tripPlace ? null : <Banner>Add a location to see the weather.</Banner>}

@@ -23,6 +23,8 @@ interface Props {
   weekday: string;
   dispatch: Dispatch;
   forecastStatus?: DayForecastStatus;
+  /** Today's header gets a "Today" label (text, so it never relies on color alone). */
+  isToday?: boolean;
 }
 
 function TravelDialog({
@@ -30,7 +32,7 @@ function TravelDialog({
   date,
   dispatch,
   onClose,
-}: Omit<Props, 'weekday' | 'forecastStatus'> & { onClose: () => void }) {
+}: Omit<Props, 'weekday' | 'forecastStatus' | 'isToday'> & { onClose: () => void }) {
   const blocks = orderedBlocks(state);
   const setting = state.daySettings.find((d) => d.date === date);
   const [arrival, setArrival] = useState(setting?.arrivalBlockId ?? '');
@@ -105,7 +107,7 @@ function shortName(name: string): string {
   return name.split(',')[0]!.trim();
 }
 
-export function DayHeader({ state, date, weekday, dispatch, forecastStatus }: Props) {
+export function DayHeader({ state, date, weekday, dispatch, forecastStatus, isToday }: Props) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -136,6 +138,7 @@ export function DayHeader({ state, date, weekday, dispatch, forecastStatus }: Pr
       <div className={styles.line}>
         <span className={styles.weekday}>{weekday.slice(0, 3).toUpperCase()}</span>
         <span className={styles.date}>{shortDate}</span>
+        {isToday ? <span className={styles.todayLabel}>Today</span> : null}
         <Menu
           open={menuOpen}
           onOpenChange={setMenuOpen}

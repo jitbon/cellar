@@ -65,7 +65,9 @@ export async function createTrip(
 export async function goToDay(page: Page, day: number): Promise<void> {
   const next = page.getByRole('button', { name: 'Next day' });
   if (!(await next.isVisible())) return;
-  while (!(await page.getByText(`Day ${day} of`).isVisible())) await next.click();
+  // The day switcher is the live region; the city banner can also say "Day N of M".
+  const current = page.locator('[aria-live="polite"]').filter({ hasText: `Day ${day} of` });
+  while (!(await current.isVisible())) await next.click();
 }
 
 const fixture = (name: string) =>

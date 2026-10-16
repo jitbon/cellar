@@ -44,6 +44,10 @@
   background-color: var(--color-bg);
 }
 
+.today {
+  background-color: var(--color-accent-soft);
+}
+
 .corner {
   left: 0;
   z-index: 3;

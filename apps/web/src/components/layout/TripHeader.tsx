@@ -11,6 +11,7 @@ import {
 } from '../ui/Icon';
 import { Menu, MenuItem } from '../ui/Menu';
 import { Tooltip } from '../ui/Tooltip';
+import { useBannerHidden } from '../../state/useBannerHidden';
 import styles from './TripHeader.module.css';
 
 interface Props {
@@ -43,6 +44,7 @@ export function TripHeader({
   onOpenSettings,
   panel,
 }: Props) {
+  const banner = useBannerHidden();
   return (
     <header className={styles.header}>
       <Link to="/" className={styles.back} aria-label="Trips">
@@ -113,6 +115,11 @@ export function TripHeader({
         <MenuItem aria-label="Trip settings" onSelect={onOpenSettings}>
           Trip settings
         </MenuItem>
+        {locationName ? (
+          <MenuItem onSelect={() => banner.setHidden(!banner.hidden)}>
+            {banner.hidden ? 'Show city banner' : 'Hide city banner'}
+          </MenuItem>
+        ) : null}
       </Menu>
     </header>
   );

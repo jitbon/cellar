@@ -97,14 +97,14 @@ on features 002 (`todayIn`, `setTripLocation`, `KeyValueStore`), 004/006 (`Place
 
 ### Tests for User Story 2
 
-- [ ] T023 [P] [US2] Write failing tests in `apps/web/tests/CityBanner.test.tsx`: shows photo, overlay, city name, `tripStatusLabel` text and credit for a located trip with a photo; nothing for no location or no photo; hidden when `cellar.banner.hidden` is `"1"` in the store
-- [ ] T024 [P] [US2] Extend `apps/web/tests/TripHeader.test.tsx` (create if missing) and `apps/web/tests/Grid.test.tsx` (or the closest existing grid test): trip menu shows "Hide city banner" / "Show city banner" and toggles the store key; today's day header has the "Today" label and the today class, other days don't; no label when today is outside the trip
+- [X] T023 [P] [US2] Write failing tests in `apps/web/tests/CityBanner.test.tsx`: shows photo, overlay, city name, `tripStatusLabel` text and credit for a located trip with a photo; nothing for no location or no photo; hidden when `cellar.banner.hidden` is `"1"` in the store
+- [X] T024 [P] [US2] Extend `apps/web/tests/TripHeader.test.tsx` (create if missing) and `apps/web/tests/Grid.test.tsx` (or the closest existing grid test): trip menu shows "Hide city banner" / "Show city banner" and toggles the store key; today's day header has the "Today" label and the today class, other days don't; no label when today is outside the trip
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Implement `apps/web/src/components/layout/CityBanner.tsx` (+ css): height `var(--size-banner)` (`var(--size-banner-sm)` under 640 px), image `object-fit: cover`, overlay `var(--color-photo-overlay)`, text `var(--color-on-photo)`, `PhotoCredit` light variant; render it under the header in `apps/web/src/pages/TripPlanner.tsx`; make T023 pass
-- [ ] T026 [US2] Add the hide/show `MenuItem` to `apps/web/src/components/layout/TripHeader.tsx` (state from `useKeyValueStore`, shared with `CityBanner` via a small `useBannerHidden()` hook in `apps/web/src/state/`), and the today header (accent-soft background via existing tokens plus a "Today" text) in `apps/web/src/components/grid/Grid.tsx` using `tripToday`; make T024 pass
-- [ ] T027 [US2] Add US2 e2e tests to `apps/web/e2e/photos.spec.ts`: quickstart 5–6 (banner, hide, reload stays hidden, show again; today label for a trip spanning today)
+- [X] T025 [US2] Implement `apps/web/src/components/layout/CityBanner.tsx` (+ css): height `var(--size-banner)` (`var(--size-banner-sm)` under 640 px), image `object-fit: cover`, overlay `var(--color-photo-overlay)`, text `var(--color-on-photo)`, `PhotoCredit` light variant; render it under the header in `apps/web/src/pages/TripPlanner.tsx`; make T023 pass
+- [X] T026 [US2] Add the hide/show `MenuItem` to `apps/web/src/components/layout/TripHeader.tsx` (state from `useKeyValueStore`, shared with `CityBanner` via a small `useBannerHidden()` hook in `apps/web/src/state/`), and the today header (accent-soft background via existing tokens plus a "Today" text) in `apps/web/src/components/grid/Grid.tsx` using `tripToday`; make T024 pass
+- [X] T027 [US2] Add US2 e2e tests to `apps/web/e2e/photos.spec.ts`: quickstart 5–6 (banner, hide, reload stays hidden, show again; today label for a trip spanning today)
 
 ---
 
