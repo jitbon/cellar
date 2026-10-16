@@ -154,7 +154,7 @@ on features 002 (`todayIn`, `setTripLocation`, `KeyValueStore`), 004/006 (`Place
 - [X] T041 [P] Document in `README.md`: Wikimedia city photos (free, credited, 7-day device cache), Google place photos (Place Details Photos: 1,000 free/month, then $7 per 1,000), a daily quota cap of ~60 on Place Photos, photo names never stored (Google terms), and `supabase migration up --local` for 0009
 - [X] T042 Respect reduced motion (no fade/zoom on photo load) and check dark mode readability of credits over photos in `CityBanner`, `PlaceDetail` and trip cards
 - [X] T043 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and the full e2e suite; fix failures
-- [ ] T044 Walk through quickstart.md scenarios 1–11 with real Wikimedia and the real Google key (or record which need the user)
+- [X] T044 Walk through quickstart.md scenarios 1–11 with real Wikimedia and the real Google key (or record which need the user) — user review 2026-10-16 found two bugs (city photos missing for file names with spaces; Popular drops over the panel landing on hidden days), both fixed; banner photo made separate from the card cover on request; real Wikimedia photos and a real Google place photo verified end to end
 
 ---
 
