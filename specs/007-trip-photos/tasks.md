@@ -194,3 +194,10 @@ Phases 1–3 (trip card photos with cover choice): free, the biggest visual payo
 
 US1 → US2 (free city photos), then US3 → US4 (paid place photos); Polish last. Merge to
 `main` only after the user confirms the feature is finished.
+
+---
+
+## Phase 8: Convergence
+
+- [ ] T045 Make the grid's height account for the city banner: while `CityBanner` is shown, set `--grid-chrome` on the trip page container (in `apps/web/src/pages/TripPlanner.tsx` / its CSS) to `var(--size-banner)` (and `var(--size-banner-sm)` under 640 px) so `Grid.module.css`'s `max-height: calc(100dvh - var(--size-header) - var(--grid-chrome, 0px))` leaves no page-level scroll; add a 360 px and a desktop check to `apps/web/e2e/layout.spec.ts` that with the banner shown `document.documentElement.scrollHeight <= innerHeight` on the trip page per US2/AC5 and FR-010 (partial)
+- [ ] T046 Remove the import cycle between `apps/web/src/components/list/PlaceDetail.tsx` and `PopularCard.tsx` by moving `ratingText` into a small shared module (e.g. `apps/web/src/components/list/rating.ts`) imported by both; no behavior change per Constitution V (unrequested)
