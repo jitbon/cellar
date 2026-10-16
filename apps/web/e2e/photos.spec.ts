@@ -35,7 +35,9 @@ const cardOf = (page: Page, name: string) =>
 
 /** Creates a trip (12 days from now in Kyoto, 5 days long), optionally located, and returns to the list. */
 async function newTrip(page: Page, name: string, located = true): Promise<string> {
-  await createTrip(page, name, dateIn(KYOTO.tz, 12), dateIn(KYOTO.tz, 16));
+  // Status counts days in the trip's time zone when located, else the device's.
+  const tz = located ? KYOTO.tz : Intl.DateTimeFormat().resolvedOptions().timeZone;
+  await createTrip(page, name, dateIn(tz, 12), dateIn(tz, 16));
   const id = tripIdOf(page.url());
   if (located) await setTripLocationDirect(id, KYOTO);
   await page.goto('/');
@@ -51,7 +53,9 @@ test.describe('US1: trip cards show a city photo', () => {
     await createTrip(page, 'Photo A', dateIn(KYOTO.tz, 12), dateIn(KYOTO.tz, 16));
     await setTripLocationDirect(tripIdOf(page.url()), KYOTO);
     await page.goto('/');
-    await createTrip(page, 'Photo B no location', dateIn(KYOTO.tz, 12), dateIn(KYOTO.tz, 16));
+    // A trip without a location counts days in the device's time zone, not Kyoto's.
+    const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    await createTrip(page, 'Photo B no location', dateIn(localTz, 12), dateIn(localTz, 16));
     await page.goto('/');
 
     const located = cardOf(page, 'Photo A');
