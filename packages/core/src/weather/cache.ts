@@ -60,7 +60,9 @@ export function createForecastCache(service: WeatherService, store: KeyValueStor
     get(location, now) {
       const key = storeKey(location);
       const cached = parseForecast(store.get(key));
-      if (cached && now.getTime() - Date.parse(cached.fetchedAt) < STALE_MS) {
+      // Forecasts saved before day/night data was fetched have no isDay; refresh them.
+      const complete = cached?.hours[0]?.isDay !== undefined;
+      if (cached && complete && now.getTime() - Date.parse(cached.fetchedAt) < STALE_MS) {
         return Promise.resolve(cached);
       }
       const pending = inFlight.get(key);

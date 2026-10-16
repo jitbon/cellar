@@ -19,7 +19,7 @@ function memoryStore(): KeyValueStore & { map: Map<string, string> } {
 
 const forecastAt = (fetchedAt: Date): Forecast => ({
   tz: 'Asia/Tokyo',
-  hours: [{ time: '2027-04-01T00:00', code: 0, tempC: 20, rainPct: null }],
+  hours: [{ time: '2027-04-01T00:00', code: 0, tempC: 20, rainPct: null, isDay: false }],
   fetchedAt: fetchedAt.toISOString(),
 });
 
@@ -58,6 +58,19 @@ describe('createForecastCache', () => {
     expect(forecast).toHaveBeenCalledTimes(1); // fetchedAt = now, 2h old
     await cache.get(kyoto, new Date(now.getTime() + 4 * HOUR));
     expect(forecast).toHaveBeenCalledTimes(2);
+  });
+
+  it('refetches a fresh cached forecast saved before day/night data existed', async () => {
+    const store = memoryStore();
+    const old = forecastAt(now);
+    for (const h of old.hours) delete h.isDay;
+    store.map.set('weather:35.02,135.75,Asia/Tokyo', JSON.stringify(old));
+    const { service, forecast } = fakeService(now);
+    const cache = createForecastCache(service, store);
+    expect(cache.peek(kyoto)).not.toBeNull(); // still shown meanwhile
+    const f = await cache.get(kyoto, new Date(now.getTime() + HOUR));
+    expect(forecast).toHaveBeenCalledTimes(1);
+    expect(f.hours[0]!.isDay).toBe(false);
   });
 
   it('makes one fetch for concurrent gets of one key', async () => {
