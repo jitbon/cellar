@@ -6,10 +6,12 @@ import {
   Cloud,
   CloudFog,
   CloudLightning,
+  CloudMoon,
   CloudRain,
   CloudSnow,
   CloudSun,
   Icon,
+  Moon,
   Sun,
 } from '../ui/Icon';
 import styles from './WeatherIcon.module.css';
@@ -34,9 +36,23 @@ const GLYPHS: Record<WeatherCondition, ComponentType<LucideProps>> = {
   thunderstorm: CloudLightning,
 };
 
+/** Night versions for the conditions that show the sun; the rest look the same after dark. */
+const NIGHT_GLYPHS: Partial<Record<WeatherCondition, ComponentType<LucideProps>>> = {
+  clear: Moon,
+  'partly-cloudy': CloudMoon,
+};
+
+const isNightGlyph = (weather: CellWeather) =>
+  weather.night && NIGHT_GLYPHS[weather.condition] !== undefined;
+
+function conditionLabel(weather: CellWeather): string {
+  const label = CONDITION_LABEL[weather.condition];
+  return isNightGlyph(weather) ? `${label} night` : label;
+}
+
 export function weatherLabel(blockName: string, weather: CellWeather): string {
   const rain = weather.rainPct === null ? '' : `, ${weather.rainPct}% chance of rain`;
-  return `${blockName} weather: ${CONDITION_LABEL[weather.condition]}${rain}`;
+  return `${blockName} weather: ${conditionLabel(weather)}${rain}`;
 }
 
 interface Props {
@@ -100,11 +116,15 @@ export function WeatherIcon({ blockName, weather }: Props) {
           if (lastPointer.current === 'touch') setOpen((o) => !o);
         }}
       >
-        <Icon as={GLYPHS[weather.condition]} size="small" data-condition={weather.condition} />
+        <Icon
+          as={(weather.night && NIGHT_GLYPHS[weather.condition]) || GLYPHS[weather.condition]}
+          size="small"
+          data-condition={isNightGlyph(weather) ? 'night' : weather.condition}
+        />
       </button>
       {open ? (
         <Popover id={popoverId} anchorRef={wrapRef} onClose={close}>
-          <strong>{CONDITION_LABEL[weather.condition]}</strong>
+          <strong>{conditionLabel(weather)}</strong>
           <span>{formatTemp(weather.tempC, temperatureUnit(navigator.language))}</span>
           <span>
             {weather.rainPct === null

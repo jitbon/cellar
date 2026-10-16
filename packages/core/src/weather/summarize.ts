@@ -31,7 +31,7 @@ function hourKeys(date: ISODate, window: TimeWindow): string[] {
 
 /**
  * One weather summary for a block's window on a date: the most severe condition, the highest
- * chance of rain, and the mean temperature. Null when none of its hours are in the forecast.
+ * chance of rain, the mean temperature, and whether it is mostly after dark. Null when none of its hours are in the forecast.
  */
 export function summarizeWindow(
   forecast: Forecast,
@@ -46,10 +46,12 @@ export function summarizeWindow(
     .map((h) => conditionFromWmo(h.code))
     .reduce((worst, c) => (SEVERITY.indexOf(c) > SEVERITY.indexOf(worst) ? c : worst));
   const rain = hours.flatMap((h) => (h.rainPct === null ? [] : [h.rainPct]));
+  const dark = hours.filter((h) => h.isDay === false).length;
   return {
     condition,
     tempC: Math.round(hours.reduce((sum, h) => sum + h.tempC, 0) / hours.length),
     rainPct: rain.length === 0 ? null : Math.max(...rain),
     fetchedAt: forecast.fetchedAt,
+    night: dark > hours.length / 2,
   };
 }

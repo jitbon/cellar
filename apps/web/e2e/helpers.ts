@@ -90,6 +90,11 @@ export async function mockOpenMeteo(page: Page, mode: 'ok' | 'fail'): Promise<vo
     body.hourly.time = body.hourly.time.map(
       (t: string, i: number) => `${dateIn(body.timezone, Math.floor(i / 24))}T${t.slice(11)}`,
     );
+    // Daylight 06:00-17:59, so evening and night blocks get the night icons.
+    body.hourly.is_day = body.hourly.time.map((t: string) => {
+      const hour = Number(t.slice(11, 13));
+      return hour >= 6 && hour < 18 ? 1 : 0;
+    });
     return route.fulfill({ json: body });
   });
   await page.route('https://geocoding-api.open-meteo.com/**', async (route) => {

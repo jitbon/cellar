@@ -42,6 +42,10 @@ test.describe('US1: weather icons on the grid', () => {
     await expect(
       page.getByRole('button', { name: /^Afternoon weather: Rain, 70% chance of rain/ }).first(),
     ).toBeVisible();
+    // After dark the partly cloudy hours show the moon-and-clouds icon.
+    const night = page.getByRole('button', { name: /^Night weather: Partly cloudy night/ }).first();
+    await expect(night).toBeVisible();
+    await expect(night.locator('svg.lucide-cloud-moon')).toBeVisible();
   });
 
   test('a trip months away shows "Forecast from"', async ({ page }) => {

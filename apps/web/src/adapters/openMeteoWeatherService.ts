@@ -19,6 +19,7 @@ interface ForecastBody {
     weather_code: number[];
     temperature_2m: number[];
     precipitation_probability: (number | null)[];
+    is_day?: (number | null)[];
   };
 }
 
@@ -33,7 +34,7 @@ export class OpenMeteoWeatherService implements WeatherService {
     const params = new URLSearchParams({
       latitude: String(location.lat),
       longitude: String(location.lon),
-      hourly: 'weather_code,temperature_2m,precipitation_probability',
+      hourly: 'weather_code,temperature_2m,precipitation_probability,is_day',
       timezone: 'auto',
       forecast_days: '16',
     });
@@ -46,6 +47,7 @@ export class OpenMeteoWeatherService implements WeatherService {
         code: h.weather_code[i],
         tempC: h.temperature_2m[i],
         rainPct: h.precipitation_probability[i] ?? null,
+        isDay: h.is_day?.[i] !== 0,
       })),
       fetchedAt: new Date().toISOString(),
     };

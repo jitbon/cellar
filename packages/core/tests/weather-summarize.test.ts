@@ -94,3 +94,21 @@ describe('summarizeWindow', () => {
     expect(summarizeWindow(f, '2027-04-01', win(8, 10))?.fetchedAt).toBe(f.fetchedAt);
   });
 });
+
+describe('summarizeWindow night', () => {
+  it('is night when most of the window is after dark', () => {
+    // Dark before 06:00 and from 18:00.
+    const f = make('2027-04-01', (i) => ({ isDay: i % 24 >= 6 && i % 24 < 18 }));
+    expect(summarizeWindow(f, '2027-04-01', win(20, 23))?.night).toBe(true);
+    expect(summarizeWindow(f, '2027-04-01', win(12, 14))?.night).toBe(false);
+    // 17:00-19:00: one light hour, one dark hour; not "most", so day.
+    expect(summarizeWindow(f, '2027-04-01', win(17, 19))?.night).toBe(false);
+    // Crossing midnight counts the hours after it too.
+    expect(summarizeWindow(f, '2027-04-01', win(22, 2))?.night).toBe(true);
+  });
+
+  it('is day when the forecast has no day/night data', () => {
+    const f = make('2027-04-01', () => ({}));
+    expect(summarizeWindow(f, '2027-04-01', win(20, 23))?.night).toBe(false);
+  });
+});

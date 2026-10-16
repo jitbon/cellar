@@ -34,6 +34,7 @@
 
   --color-weather-clear: #b76e00;
   --color-weather-partly-cloudy: #a07a1a;
+  --color-weather-night: #5b5fc7;
   --color-weather-cloudy: #64748b;
   --color-weather-fog: #6f8a8a;
   --color-weather-rain: #1f6fd1;
@@ -121,6 +122,7 @@
 
     --color-weather-clear: #f5b83d;
     --color-weather-partly-cloudy: #d9b25a;
+    --color-weather-night: #b4b8f5;
     --color-weather-cloudy: #9fb0c9;
     --color-weather-fog: #8fb0ad;
     --color-weather-rain: #6aa8ff;

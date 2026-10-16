@@ -176,6 +176,8 @@ export interface ForecastHour {
   code: number;
   tempC: number;
   rainPct: number | null;
+  /** False after sunset and before sunrise; absent in forecasts cached before it was fetched. */
+  isDay?: boolean;
 }
 
 export interface Forecast {
@@ -189,6 +191,8 @@ export interface CellWeather {
   tempC: number;
   rainPct: number | null;
   fetchedAt: string;
+  /** True when most of the window's hours are after dark, so clear skies show a moon. */
+  night: boolean;
 }
 
 export type DayForecastStatus =

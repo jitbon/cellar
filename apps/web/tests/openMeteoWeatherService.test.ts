@@ -19,6 +19,7 @@ describe('forecast', () => {
       weather_code: [0, 61],
       temperature_2m: [12.5, 11],
       precipitation_probability: [null, 70],
+      is_day: [0, 1],
     },
   };
 
@@ -30,7 +31,7 @@ describe('forecast', () => {
     expect(Object.fromEntries(url.searchParams)).toEqual({
       latitude: '35.0211',
       longitude: '135.7538',
-      hourly: 'weather_code,temperature_2m,precipitation_probability',
+      hourly: 'weather_code,temperature_2m,precipitation_probability,is_day',
       timezone: 'auto',
       forecast_days: '16',
     });
@@ -42,8 +43,8 @@ describe('forecast', () => {
     const f = await new OpenMeteoWeatherService().forecast(kyoto);
     expect(f.tz).toBe('Asia/Tokyo');
     expect(f.hours).toEqual([
-      { time: '2027-04-01T00:00', code: 0, tempC: 12.5, rainPct: null },
-      { time: '2027-04-01T01:00', code: 61, tempC: 11, rainPct: 70 },
+      { time: '2027-04-01T00:00', code: 0, tempC: 12.5, rainPct: null, isDay: false },
+      { time: '2027-04-01T01:00', code: 61, tempC: 11, rainPct: 70, isDay: true },
     ]);
     expect(new Date(f.fetchedAt).getTime()).toBeGreaterThanOrEqual(before);
   });

@@ -4,11 +4,16 @@ import { describe, expect, it } from 'vitest';
 import type { CellWeather, WeatherCondition } from '@cellar/core';
 import { WeatherIcon } from '../src/components/weather/WeatherIcon';
 
-const weather = (condition: WeatherCondition, rainPct: number | null = 60): CellWeather => ({
+const weather = (
+  condition: WeatherCondition,
+  rainPct: number | null = 60,
+  night = false,
+): CellWeather => ({
   condition,
   tempC: 22,
   rainPct,
   fetchedAt: '2027-04-01T09:30:00.000Z',
+  night,
 });
 
 const CONDITIONS: [WeatherCondition, string][] = [
@@ -103,5 +108,35 @@ describe('WeatherIcon popover', () => {
       { keys: '[/TouchA]' },
     ]);
     expect(screen.queryByText('70% chance of rain')).not.toBeInTheDocument();
+  });
+});
+
+describe('WeatherIcon at night', () => {
+  it('shows a moon for a clear night and moon with clouds for a partly cloudy one', () => {
+    const clear = render(<WeatherIcon blockName="Evening" weather={weather('clear', 0, true)} />);
+    expect(
+      screen.getByRole('button', { name: 'Evening weather: Clear night, 0% chance of rain' }),
+    ).toBeInTheDocument();
+    expect(clear.container.querySelector('.lucide-moon')).not.toBeNull();
+    clear.unmount();
+
+    const partly = render(
+      <WeatherIcon blockName="Evening" weather={weather('partly-cloudy', 0, true)} />,
+    );
+    expect(
+      screen.getByRole('button', { name: /^Evening weather: Partly cloudy night/ }),
+    ).toBeInTheDocument();
+    expect(partly.container.querySelector('.lucide-cloud-moon')).not.toBeNull();
+    partly.unmount();
+  });
+
+  it('keeps the same icon for rain, snow and clouds at night', () => {
+    const { container } = render(
+      <WeatherIcon blockName="Night" weather={weather('rain', 80, true)} />,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Night weather: Rain, 80% chance of rain' }),
+    ).toBeInTheDocument();
+    expect(container.querySelector('.lucide-moon, .lucide-cloud-moon')).toBeNull();
   });
 });

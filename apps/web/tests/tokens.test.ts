@@ -119,7 +119,16 @@ describe('design tokens', () => {
   }
 
   // Weather glyphs are non-text graphics: WCAG 1.4.11 asks for 3:1 against what they sit on.
-  const weather = ['clear', 'partly-cloudy', 'cloudy', 'fog', 'rain', 'snow', 'thunderstorm'];
+  const weather = [
+    'clear',
+    'partly-cloudy',
+    'cloudy',
+    'fog',
+    'rain',
+    'snow',
+    'thunderstorm',
+    'night',
+  ];
   for (const [theme, values] of [
     ['light', light],
     ['dark', dark],

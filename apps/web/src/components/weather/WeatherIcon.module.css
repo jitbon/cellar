@@ -34,6 +34,10 @@
   color: var(--color-weather-partly-cloudy);
 }
 
+.icon [data-condition='night'] {
+  color: var(--color-weather-night);
+}
+
 .icon [data-condition='cloudy'] {
   color: var(--color-weather-cloudy);
 }
