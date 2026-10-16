@@ -16,6 +16,7 @@ import { Icon, MoreHorizontal, Star } from '../ui/Icon';
 import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { usePlacePhoto } from '../../state/usePlacePhoto';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
+import { PlaceDetail } from './PlaceDetail';
 import styles from './PopularCard.module.css';
 
 interface Props {
@@ -46,6 +47,7 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
     data: { place, type },
   });
   const [placing, setPlacing] = useState(false);
+  const [detail, setDetail] = useState(false);
   const photo = usePlacePhoto(place.photo, THUMB_WIDTH_PX);
   // An expired image link fails to load; the type icon takes over again.
   const [broken, setBroken] = useState(false);
@@ -53,12 +55,23 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
   const meta = [place.kind, place.address].filter(Boolean).join(' · ');
   const rating = ratingText(place);
   const placed = isPlacePlaced(state, place.placeId);
+  const addToList = () => {
+    if (dispatch(addItem(place.name, type, null, null, linked)).ok) onAddedToList?.(place.name);
+  };
 
   return (
     <li
       ref={setNodeRef}
       className={`${styles.row} ${isDragging ? styles.dragging : ''}`}
       {...listeners}
+      // A click on the card body opens the detail view; a drag never counts as one (the pointer
+      // sensor needs 5 px of movement), and clicks inside portaled menus or dialogs are not on
+      // this element. Keyboard users get the name button below.
+      onClick={(e) => {
+        if (!(e.target instanceof Element) || !e.currentTarget.contains(e.target)) return;
+        if (e.target.closest('button, a')) return;
+        setDetail(true);
+      }}
     >
       <button
         type="button"
@@ -85,10 +98,12 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
         )}
       </span>
       <span className={styles.text}>
-        <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
-          {place.name}
-          {placed ? <span className="visually-hidden">, placed</span> : null}
-        </span>
+        <button type="button" className={styles.nameButton} onClick={() => setDetail(true)}>
+          <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
+            {place.name}
+            {placed ? <span className="visually-hidden">, placed</span> : null}
+          </span>
+        </button>
         {meta ? <span className={styles.meta}>{meta}</span> : null}
         {rating ? (
           <span className={styles.meta}>
@@ -105,18 +120,20 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
         }
       >
         <MenuItem onSelect={() => setPlacing(true)}>Place in a block</MenuItem>
-        <MenuItem
-          onSelect={() => {
-            if (dispatch(addItem(place.name, type, null, null, linked)).ok) {
-              onAddedToList?.(place.name);
-            }
-          }}
-        >
-          Add to my list
-        </MenuItem>
+        <MenuItem onSelect={addToList}>Add to my list</MenuItem>
         <MenuSeparator />
         <OpenInMapsItems place={linked} />
       </Menu>
+      {detail ? (
+        <PlaceDetail
+          state={state}
+          place={place}
+          type={type}
+          onPlace={() => setPlacing(true)}
+          onAddToList={addToList}
+          onClose={() => setDetail(false)}
+        />
+      ) : null}
       {placing ? (
         <CellPickerDialog
           title={`Place “${place.name}”`}
@@ -126,6 +143,7 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
           onPick={(date, blockId) => {
             dispatch(placePlace(linked, type, date, blockId));
             setPlacing(false);
+            setDetail(false);
           }}
         />
       ) : null}

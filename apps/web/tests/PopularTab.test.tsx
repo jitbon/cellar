@@ -416,3 +416,69 @@ describe('PopularTab photos', () => {
     );
   });
 });
+
+describe('PopularTab detail view', () => {
+  afterEach(() => forgetPopularCities());
+
+  const detail = () => screen.queryByRole('dialog', { name: metPopular.name });
+
+  it('opens when the card body is clicked, and closes with the X', async () => {
+    const user = setup(located);
+    const met = (await screen.findByText(metPopular.name)).closest('li')!;
+    await user.click(within(met).getByText('Museum · 1000 5th Ave, New York'));
+    expect(detail()).toBeInTheDocument();
+    await user.click(within(detail()!).getByRole('button', { name: 'Close' }));
+    expect(detail()).toBeNull();
+  });
+
+  it('opens from the name, a real button, with Enter', async () => {
+    const user = setup(located);
+    const name = await screen.findByRole('button', { name: metPopular.name });
+    name.focus();
+    await user.keyboard('{Enter}');
+    expect(detail()).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(detail()).toBeNull();
+  });
+
+  it('does not open when the actions menu or the drag handle is used', async () => {
+    const user = setup(located);
+    await screen.findByText(metPopular.name);
+    await user.click(screen.getByRole('button', { name: `Actions for ${metPopular.name}` }));
+    expect(detail()).toBeNull();
+    await user.click(screen.getByRole('menuitem', { name: 'Add to my list' }));
+    expect(detail()).toBeNull();
+  });
+
+  it('adds to the list from the detail view, like the card menu', async () => {
+    const dispatched: Command[] = [];
+    const user = setup(located, undefined, { onDispatch: (c) => dispatched.push(c) });
+    await user.click(await screen.findByRole('button', { name: metPopular.name }));
+    await user.click(within(detail()!).getByRole('button', { name: 'Add to my list' }));
+    expect(dispatched).toHaveLength(1);
+    const r = dispatched[0](located);
+    expect(r.ok && r.state.items[0]).toMatchObject({ type: 'activity', placeId: 'test-met' });
+  });
+
+  it('places in a block from the detail view and closes it after placing', async () => {
+    const dispatched: Command[] = [];
+    const user = setup(located, undefined, { onDispatch: (c) => dispatched.push(c) });
+    await user.click(await screen.findByRole('button', { name: metPopular.name }));
+    await user.click(within(detail()!).getByRole('button', { name: 'Place in a block' }));
+    expect(screen.getByRole('dialog', { name: `Place “${metPopular.name}”` })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Place' }));
+    expect(dispatched).toHaveLength(1);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('lists where the place is planned', async () => {
+    const placed = apply(
+      located,
+      placePlace(popularToPlace(metPopular), 'activity', '2027-04-02', located.blocks[0].id),
+    );
+    const user = setup(placed);
+    await screen.findByText(metPopular.name);
+    await user.click(screen.getByText(metPopular.name, { selector: 'span' }));
+    expect(within(detail()!).getByText(/^Planned: Fri Apr 2 · Morning$/)).toBeInTheDocument();
+  });
+});

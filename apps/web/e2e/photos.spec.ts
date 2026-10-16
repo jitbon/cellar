@@ -336,3 +336,121 @@ test.describe('US3: Popular cards show small photos, loaded when in view', () =>
     await expect(page.getByRole('menuitem', { name: 'Place in a block' })).toBeVisible();
   });
 });
+
+test.describe('US4: Popular card detail view', () => {
+  const list = (page: Page) => page.getByRole('complementary', { name: 'Activities and food' });
+  const MET = 'The Metropolitan Museum of Art';
+  const detail = (page: Page) => page.getByRole('dialog', { name: MET });
+
+  async function openPopular(page: Page, name: string) {
+    await createTrip(page, name, '2027-04-01', '2027-04-05');
+    await setTripLocationDirect(tripIdOf(page.url()), NEW_YORK);
+    await page.reload();
+    await setItemPanel(page, true);
+    await list(page).getByRole('tab', { name: 'Popular' }).click();
+  }
+
+  test('quickstart 8: click or Enter opens the detail; X, Esc and the backdrop close it', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await openPopular(page, 'Detail A');
+
+    const card = list(page).getByRole('listitem').filter({ hasText: MET });
+    await card.getByText('Art museum · 1000 5th Ave, New York').click();
+    await expect(detail(page)).toBeVisible();
+    await expect(detail(page).getByRole('img', { name: MET })).toBeVisible();
+    await expect(detail(page).getByRole('link', { name: 'Photo: Ann Lee' })).toBeVisible();
+    await expect(detail(page)).toContainText('4.8 (104,512 reviews)');
+    await expect(detail(page).getByRole('button', { name: 'Place in a block' })).toBeVisible();
+    await expect(detail(page).getByRole('button', { name: 'Add to my list' })).toBeVisible();
+    await expect(detail(page).getByRole('button', { name: 'Open in maps' })).toBeVisible();
+    await expect(detail(page).getByText(/^Planned:/)).toHaveCount(0);
+
+    await detail(page).getByRole('button', { name: 'Close' }).click();
+    await expect(detail(page)).toBeHidden();
+
+    await card.getByRole('button', { name: MET, exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await expect(detail(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(detail(page)).toBeHidden();
+
+    await card.getByText('Art museum · 1000 5th Ave, New York').click();
+    await expect(detail(page)).toBeVisible();
+    await page.mouse.click(2, 2);
+    await expect(detail(page)).toBeHidden();
+  });
+
+  test('place from the detail, see it planned, add to the list and open maps', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await openPopular(page, 'Detail B');
+    const card = list(page).getByRole('listitem').filter({ hasText: MET });
+    await card.getByRole('button', { name: MET, exact: true }).click();
+    await detail(page).getByRole('button', { name: 'Place in a block' }).click();
+    const picker = page.getByRole('dialog', { name: `Place “${MET}”` });
+    await picker.getByLabel('Day').selectOption('2027-04-03');
+    await picker.getByLabel('Time block').selectOption({ label: 'Afternoon' });
+    await picker.getByRole('button', { name: 'Place', exact: true }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    await card.getByRole('button', { name: new RegExp(`^${MET} ?, placed$`) }).click();
+    await expect(detail(page).getByText('Planned: Sat Apr 3 · Afternoon')).toBeVisible();
+
+    await detail(page).getByRole('button', { name: 'Add to my list' }).click();
+    await detail(page).getByRole('button', { name: 'Open in maps' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Google Maps' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await detail(page).getByRole('button', { name: 'Close' }).click();
+    await expect(detail(page)).toBeHidden();
+    await list(page).getByRole('tab', { name: 'My list' }).click();
+    await expect(list(page).getByTestId('item-name').filter({ hasText: MET })).toBeVisible();
+  });
+
+  test('quickstart 10: with no photo the detail shows a placeholder and still works', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await page.route('**/__test-photo/**', (route) => route.fulfill({ status: 404 }));
+    await signIn(page, account);
+    await openPopular(page, 'Detail C');
+    const card = list(page).getByRole('listitem').filter({ hasText: MET });
+    await card.getByRole('button', { name: MET, exact: true }).click();
+    await expect(detail(page).getByRole('button', { name: 'Place in a block' })).toBeVisible();
+  });
+
+  test.describe('dragging (desktop)', () => {
+    test.skip(({ hasTouch }) => hasTouch, 'mouse drag is exercised on desktop');
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test('quickstart 9: dragging a card places it and does not open the detail', async ({
+      page,
+    }) => {
+      test.setTimeout(60_000);
+      await mockPlaces(page, 'ok');
+      await signIn(page, account);
+      await openPopular(page, 'Detail D');
+      const card = list(page).getByRole('listitem').filter({ hasText: MET });
+      const target = page.getByTestId('cell:2027-04-01:Afternoon');
+      const center = async (l: typeof card) => {
+        const box = (await l.boundingBox())!;
+        return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      };
+      const from = await center(card);
+      const to = await center(target);
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      for (let i = 1; i <= 12; i++) {
+        await page.mouse.move(
+          from.x + ((to.x - from.x) * i) / 12,
+          from.y + ((to.y - from.y) * i) / 12,
+        );
+      }
+      await page.mouse.up();
+      await expect(target.getByTestId('chip')).toContainText(MET);
+      await expect(detail(page)).toHaveCount(0);
+    });
+  });
+});

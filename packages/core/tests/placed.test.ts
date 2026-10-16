@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { addItem } from '../src/commands/item';
 import { placeItem, placePlace, removePlacement } from '../src/commands/placement';
 import type { Place } from '../src/model/types';
-import { isItemPlaced, isPlacePlaced } from '../src/queries/placed';
+import { isItemPlaced, isPlacePlaced, placementsOfPlace } from '../src/queries/placed';
 import { expectOk, newTripState } from './fixtures';
 
 const met: Place = {
@@ -55,5 +55,33 @@ describe('isPlacePlaced', () => {
     const s1 = expectOk(placePlace(met, 'activity', '2027-04-02', s0.blocks[0].id)(s0)).state;
     const s2 = expectOk(removePlacement(s1.placements[0].id)(s1)).state;
     expect(isPlacePlaced(s2, 'test-met')).toBe(false);
+  });
+});
+
+describe('placementsOfPlace', () => {
+  it('is empty when the place is not on the schedule', () => {
+    expect(placementsOfPlace(newTripState(), 'test-met')).toEqual([]);
+  });
+
+  it('lists each event of the place by date, then block order, ignoring other places', () => {
+    const s0 = newTripState();
+    const [morning, , , lunch, afternoon] = [...s0.blocks].sort((a, b) =>
+      a.position < b.position ? -1 : 1,
+    );
+    const other: Place = { ...met, id: 'test-other', name: 'Other' };
+    let s = s0;
+    for (const [date, block] of [
+      ['2027-04-03', morning],
+      ['2027-04-02', afternoon],
+      ['2027-04-02', lunch],
+    ] as const) {
+      s = expectOk(placePlace(met, 'activity', date, block.id)(s)).state;
+    }
+    s = expectOk(placePlace(other, 'activity', '2027-04-01', morning.id)(s)).state;
+    expect(placementsOfPlace(s, 'test-met')).toEqual([
+      { date: '2027-04-02', blockName: 'Lunch' },
+      { date: '2027-04-02', blockName: 'Afternoon' },
+      { date: '2027-04-03', blockName: 'Morning' },
+    ]);
   });
 });

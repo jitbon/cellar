@@ -176,6 +176,8 @@ export function TripPlanner() {
   useEffect(() => {
     if (!panelOpen) return;
     function onKeyDown(e: KeyboardEvent) {
+      // An open dialog (or a menu inside one) takes Escape; the sheet behind it stays.
+      if (e.key === 'Escape' && document.querySelector('[role="dialog"]')) return;
       if (e.key === 'Escape' && window.matchMedia('(max-width: 639px)').matches) {
         setPanelOpen(false);
         try {

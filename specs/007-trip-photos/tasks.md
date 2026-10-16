@@ -135,16 +135,16 @@ on features 002 (`todayIn`, `setTripLocation`, `KeyValueStore`), 004/006 (`Place
 
 ### Tests for User Story 4
 
-- [ ] T033 [P] [US4] Write failing tests in `packages/core/tests/placed.test.ts`: `placementsOfPlace(state, placeId)` returns `{ date, blockName }` for each placement with that `placeId`, sorted by date then block position; `[]` when none
-- [ ] T034 [P] [US4] Write failing tests in `apps/web/tests/Dialog.test.tsx`: with `closeOnBackdrop`, a click on the backdrop (not inside the dialog) calls `onClose`; without it, nothing happens
-- [ ] T035 [P] [US4] Write failing tests in `apps/web/tests/PlaceDetail.test.tsx`: dialog named after the place shows a large photo (via `photoUrl` at 800 px) with "Photo: <author>" credit, kind · address, rating with review count, "Planned: Mon May 3 · Morning" lines from `placementsOfPlace` (none when unplaced), and buttons "Place in a block", "Add to my list", "Open in maps" that call the same handlers as the card menu; "Place in a block" closes it after placing; placeholder when the photo fails
-- [ ] T036 [P] [US4] Extend `apps/web/tests/PopularTab.test.tsx`: clicking a card body opens the detail; the card's name is a button that opens it with Enter; clicking the menu button does not open it
+- [X] T033 [P] [US4] Write failing tests in `packages/core/tests/placed.test.ts`: `placementsOfPlace(state, placeId)` returns `{ date, blockName }` for each placement with that `placeId`, sorted by date then block position; `[]` when none
+- [X] T034 [P] [US4] Write failing tests in `apps/web/tests/Dialog.test.tsx`: with `closeOnBackdrop`, a click on the backdrop (not inside the dialog) calls `onClose`; without it, nothing happens
+- [X] T035 [P] [US4] Write failing tests in `apps/web/tests/PlaceDetail.test.tsx`: dialog named after the place shows a large photo (via `photoUrl` at 800 px) with "Photo: <author>" credit, kind · address, rating with review count, "Planned: Mon May 3 · Morning" lines from `placementsOfPlace` (none when unplaced), and buttons "Place in a block", "Add to my list", "Open in maps" that call the same handlers as the card menu; "Place in a block" closes it after placing; placeholder when the photo fails
+- [X] T036 [P] [US4] Extend `apps/web/tests/PopularTab.test.tsx`: clicking a card body opens the detail; the card's name is a button that opens it with Enter; clicking the menu button does not open it
 
 ### Implementation for User Story 4
 
-- [ ] T037 [US4] Implement `placementsOfPlace` in `packages/core/src/queries/placed.ts` and the `closeOnBackdrop` prop in `apps/web/src/components/ui/Dialog.tsx`; make T033–T034 pass
-- [ ] T038 [US4] Implement `apps/web/src/components/list/PlaceDetail.tsx` (+ css, tokens only; photo area 16:9 with reserved height, credit over the photo with the overlay token); open it from `PopularCard.tsx` on card-body click (ignore clicks from buttons) and from the name button; make T035–T036 pass
-- [ ] T039 [US4] Add US4 e2e tests to `apps/web/e2e/photos.spec.ts`: quickstart 8–9 (open by click and Enter, planned lines after placing, actions, X/Esc/backdrop close, dragging a card does not open it)
+- [X] T037 [US4] Implement `placementsOfPlace` in `packages/core/src/queries/placed.ts` and the `closeOnBackdrop` prop in `apps/web/src/components/ui/Dialog.tsx`; make T033–T034 pass
+- [X] T038 [US4] Implement `apps/web/src/components/list/PlaceDetail.tsx` (+ css, tokens only; photo area 16:9 with reserved height, credit over the photo with the overlay token); open it from `PopularCard.tsx` on card-body click (ignore clicks from buttons) and from the name button; make T035–T036 pass
+- [X] T039 [US4] Add US4 e2e tests to `apps/web/e2e/photos.spec.ts`: quickstart 8–9 (open by click and Enter, planned lines after placing, actions, X/Esc/backdrop close, dragging a card does not open it)
 
 ---
 

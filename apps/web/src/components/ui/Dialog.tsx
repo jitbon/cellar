@@ -6,6 +6,8 @@ import styles from './Dialog.module.css';
 interface Props {
   title: string;
   wide?: boolean;
+  /** Also close when the backdrop (outside the dialog) is clicked; off for forms. */
+  closeOnBackdrop?: boolean;
   onClose: () => void;
   children: ReactNode;
 }
@@ -17,9 +19,11 @@ const FOCUSABLE =
  * Modal dialog: focus is trapped inside, Esc or the X closes without saving, focus returns to the
  * opener.
  */
-export function Dialog({ title, wide, onClose, children }: Props) {
+export function Dialog({ title, wide, closeOnBackdrop, onClose, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // A drag that starts in the dialog (text selection) and ends on the backdrop is not a click on it.
+  const pressedBackdrop = useRef(false);
 
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
@@ -30,6 +34,12 @@ export function Dialog({ title, wide, onClose, children }: Props) {
   }, []);
 
   function onKeyDown(e: React.KeyboardEvent) {
+    // Keys from a menu portaled out of the dialog (React still bubbles them here) are the menu's:
+    // Escape closes just that menu, not this dialog or anything behind it.
+    if (!ref.current?.contains(e.target as Node)) {
+      if (e.key === 'Escape') e.stopPropagation();
+      return;
+    }
     if (e.key === 'Escape') {
       e.stopPropagation();
       onClose();
@@ -51,7 +61,16 @@ export function Dialog({ title, wide, onClose, children }: Props) {
 
   // Portaled so no sticky or transformed ancestor can trap or clip the modal.
   return createPortal(
-    <div className={styles.backdrop} onKeyDown={onKeyDown}>
+    <div
+      className={styles.backdrop}
+      onKeyDown={onKeyDown}
+      onMouseDown={(e) => {
+        pressedBackdrop.current = e.target === e.currentTarget;
+      }}
+      onClick={(e) => {
+        if (closeOnBackdrop && pressedBackdrop.current && e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
         ref={ref}
         role="dialog"

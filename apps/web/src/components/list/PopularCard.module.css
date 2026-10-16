@@ -57,7 +57,25 @@
   padding: var(--space-1) 0;
 }
 
+.nameButton {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nameButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
 .name {
+  display: block;
   min-width: 0;
   overflow: hidden;
   font-weight: 500;
