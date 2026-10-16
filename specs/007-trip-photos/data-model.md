@@ -21,7 +21,7 @@ Migration `0009_cover_photo.sql` ([contracts/database.md](./contracts/database.m
 | `license` | string | e.g. "CC BY-SA 4.0" |
 | `sourceUrl` | string | Commons file page (credit link) |
 
-Cache keys: `cellar.cityPhoto.lead.<city name>` and `cellar.cityPhoto.more.<city name>`, each
+Cache keys: `cellar.cityPhoto.v2.lead.<city name>` and `cellar.cityPhoto.v2.more.<city name>` (v2: file names are compared with underscores, since Commons answers with spaces), each
 `{ value, fetchedAt }`, reused for 7 days.
 
 ## PlacePhotoRef (transient, session memory only)

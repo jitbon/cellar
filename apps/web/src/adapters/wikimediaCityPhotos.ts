@@ -46,7 +46,15 @@ function plainText(html: string): string {
     .trim();
 }
 
-const fileOf = (title: string) => title.replace(/^File:/, '');
+// Cache version: v1 cached a wrong "no photo" for file names with spaces, so it is ignored.
+const CACHE_PREFIX = 'cellar.cityPhoto.v2';
+
+/**
+ * One spelling for a file name. Wikipedia uses underscores (`A_B.jpg`) and Commons answers with
+ * spaces (`A B.jpg`) for the same file, so names are compared with underscores.
+ */
+const normalize = (file: string) => file.replace(/ /g, '_');
+const fileOf = (title: string) => normalize(title.replace(/^File:/, ''));
 
 /**
  * City photos from Wikipedia and Wikimedia Commons: free, keyless and openly licensed, so the
@@ -66,15 +74,16 @@ export class WikimediaCityPhotos implements CityPhotoService {
   }
 
   lead(cityName: string): Promise<CityPhoto | null> {
-    return this.cached(`cellar.cityPhoto.lead.${cityName}`, async () => {
+    return this.cached(`${CACHE_PREFIX}.lead.${cityName}`, async () => {
       const article = await this.article(cityName);
       if (!article?.pageimage) return null;
-      return (await this.photosOf([article.pageimage], false)).get(article.pageimage) ?? null;
+      const file = normalize(article.pageimage);
+      return (await this.photosOf([file], false)).get(file) ?? null;
     });
   }
 
   async more(cityName: string, limit: number): Promise<CityPhoto[]> {
-    const photos = await this.cached(`cellar.cityPhoto.more.${cityName}`, async () => {
+    const photos = await this.cached(`${CACHE_PREFIX}.more.${cityName}`, async () => {
       const article = await this.article(cityName);
       if (!article?.title) return [];
       const listed = await this.query(WIKIPEDIA, {
@@ -86,7 +95,7 @@ export class WikimediaCityPhotos implements CityPhotoService {
         .map((p) => fileOf(p.title ?? ''))
         .filter((f) => PHOTO_FILE.test(f) && !NOT_A_PHOTO.test(f));
       const files = [
-        ...new Set([...(article.pageimage ? [article.pageimage] : []), ...candidates]),
+        ...new Set([...(article.pageimage ? [normalize(article.pageimage)] : []), ...candidates]),
       ].slice(0, ARTICLE_IMAGES);
       const found = await this.photosOf(files);
       return files.flatMap((f) => {
@@ -98,7 +107,8 @@ export class WikimediaCityPhotos implements CityPhotoService {
   }
 
   async byFile(file: string): Promise<CityPhoto | null> {
-    return (await this.photosOf([file], false)).get(file) ?? null;
+    const name = normalize(file);
+    return (await this.photosOf([name], false)).get(name) ?? null;
   }
 
   /** The best-matching article for a place name, with its lead image file when it has one. */

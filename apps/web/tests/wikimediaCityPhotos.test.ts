@@ -142,7 +142,7 @@ describe('lead', () => {
     const { service, store, fetchFn, clock } = setup();
     const first = await service.lead('Kyoto, Japan');
     const calls = fetchFn.mock.calls.length;
-    expect(store.map.has('cellar.cityPhoto.lead.Kyoto, Japan')).toBe(true);
+    expect(store.map.has('cellar.cityPhoto.v2.lead.Kyoto, Japan')).toBe(true);
 
     clock.now = T0 + 7 * DAY - 1;
     expect(await service.lead('Kyoto, Japan')).toEqual(first);
@@ -167,7 +167,7 @@ describe('lead', () => {
 
   it('ignores a damaged cache entry', async () => {
     const { service, store } = setup();
-    store.set('cellar.cityPhoto.lead.Kyoto, Japan', '{not json');
+    store.set('cellar.cityPhoto.v2.lead.Kyoto, Japan', '{not json');
     expect((await service.lead('Kyoto, Japan'))?.file).toBe('Kyoto_A.jpg');
   });
 
@@ -264,7 +264,7 @@ describe('more', () => {
     const { service, store, fetchFn, clock } = setup();
     const first = await service.more('Kyoto, Japan', 6);
     const calls = fetchFn.mock.calls.length;
-    expect(store.map.has('cellar.cityPhoto.more.Kyoto, Japan')).toBe(true);
+    expect(store.map.has('cellar.cityPhoto.v2.more.Kyoto, Japan')).toBe(true);
 
     clock.now = T0 + 7 * DAY - 1;
     expect(await service.more('Kyoto, Japan', 6)).toEqual(first);
@@ -277,6 +277,76 @@ describe('more', () => {
     clock.now = T0 + 7 * DAY + 1;
     await service.more('Kyoto, Japan', 6);
     expect(fetchFn.mock.calls.length).toBeGreaterThan(calls);
+  });
+});
+
+describe('file names with spaces (real Wikimedia)', () => {
+  // Wikipedia names the lead image with underscores; Commons answers with spaces.
+  const UNDERSCORED = 'Madrid_-_Sky_Bar_360º_(Hotel_Riu_Plaza_España),_vistas_19.jpg';
+  const SPACED = 'Madrid - Sky Bar 360º (Hotel Riu Plaza España), vistas 19.jpg';
+
+  function realisticWikimedia() {
+    return vi.fn((input: string | URL | Request) => {
+      const q = new URL(String(input)).searchParams;
+      if (q.get('generator') === 'search') {
+        return ok({ query: { pages: { '1': { title: 'Madrid', pageimage: UNDERSCORED } } } });
+      }
+      if (q.get('generator') === 'images') {
+        return ok({ query: { pages: { '2': { title: `File:${SPACED}` } } } });
+      }
+      if (q.get('prop') === 'imageinfo') {
+        // Commons normalizes the requested titles and answers with spaces either way.
+        const asked = (q.get('titles') ?? '').split('|').map((t) => t.replace(/_/g, ' '));
+        const pages = asked.includes(`File:${SPACED}`)
+          ? {
+              '3': {
+                title: `File:${SPACED}`,
+                imageinfo: [
+                  {
+                    thumburl: 'https://upload.wikimedia.org/madrid-1280.jpg',
+                    thumbwidth: 1280,
+                    thumbheight: 674,
+                    width: 6000,
+                    descriptionurl: 'https://commons.wikimedia.org/wiki/File:Madrid.jpg',
+                    extmetadata: {
+                      Artist: { value: 'Ana' },
+                      LicenseShortName: { value: 'CC BY 4.0' },
+                    },
+                  },
+                ],
+              },
+            }
+          : {};
+        return ok({ query: { pages } });
+      }
+      return Promise.reject(new Error('unexpected request'));
+    });
+  }
+
+  it('lead finds the photo even though the two APIs spell the file name differently', async () => {
+    const { service } = setup(realisticWikimedia());
+    const photo = await service.lead('Madrid, Spain');
+    expect(photo).toMatchObject({
+      file: UNDERSCORED,
+      url: 'https://upload.wikimedia.org/madrid-1280.jpg',
+    });
+  });
+
+  it('more and byFile agree on the same underscored file name', async () => {
+    const { service } = setup(realisticWikimedia());
+    const [first] = await service.more('Madrid, Spain', 6);
+    expect(first?.file).toBe(UNDERSCORED);
+    expect((await service.byFile(UNDERSCORED))?.file).toBe(UNDERSCORED);
+    expect((await service.byFile(SPACED))?.file).toBe(UNDERSCORED);
+  });
+
+  it('ignores "no photo" results cached by the earlier version', async () => {
+    const { service, store } = setup(realisticWikimedia());
+    store.set(
+      'cellar.cityPhoto.lead.Madrid, Spain',
+      JSON.stringify({ value: null, fetchedAt: T0 }),
+    );
+    expect(await service.lead('Madrid, Spain')).not.toBeNull();
   });
 });
 
