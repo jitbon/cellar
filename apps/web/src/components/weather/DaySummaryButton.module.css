@@ -1,0 +1,35 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+/* One line; long phrases end in an ellipsis, and the full phrase is in the title and popover. */
+.phrase {
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.phrase:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.phrase:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.meta {
+  color: var(--color-text-muted);
+}

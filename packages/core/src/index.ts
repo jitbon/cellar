@@ -48,6 +48,7 @@ export {
 export { DEFAULT_BLOCK_WINDOWS, effectiveWindow, effectiveWindows } from './queries/window';
 export { conditionFromWmo } from './weather/wmo';
 export { summarizeWindow } from './weather/summarize';
+export { summarizeDay, type DaySummary } from './weather/daySummary';
 export { dayForecastStatus, forecastLocations, todayIn, locationKey } from './weather/status';
 export { temperatureUnit, formatTemp, type TemperatureUnit } from './weather/units';
 export { createForecastCache, type ForecastCache } from './weather/cache';

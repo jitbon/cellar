@@ -79,6 +79,7 @@ export function Grid({ state, dispatch, forecasts }: Props) {
                 weekday={d.weekday}
                 dispatch={dispatch}
                 forecastStatus={forecasts.dayStatus(d.date)}
+                summary={forecasts.daySummary(d.date)}
               />
             </div>
           ))}

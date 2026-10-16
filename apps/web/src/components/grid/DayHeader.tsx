@@ -6,6 +6,7 @@ import {
   setDayLocation,
   setDayWindow,
   type DayForecastStatus,
+  type DaySummary,
   type ISODate,
   type TripState,
 } from '@cellar/core';
@@ -13,6 +14,7 @@ import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import { Icon, MapPin, MoreHorizontal, PlaneLanding, PlaneTakeoff } from '../ui/Icon';
 import { Menu, MenuItem } from '../ui/Menu';
+import { DaySummaryButton } from '../weather/DaySummaryButton';
 import { LocationDialog } from '../weather/LocationDialog';
 import type { Dispatch } from './PlacementChip';
 import styles from './DayHeader.module.css';
@@ -25,6 +27,8 @@ interface Props {
   forecastStatus?: DayForecastStatus;
   /** Today's header gets a "Today" label (text, so it never relies on color alone). */
   isToday?: boolean;
+  /** The day's weather phrase (feature 009); null outside the forecast range. */
+  summary?: DaySummary | null;
 }
 
 function TravelDialog({
@@ -107,7 +111,15 @@ function shortName(name: string): string {
   return name.split(',')[0]!.trim();
 }
 
-export function DayHeader({ state, date, weekday, dispatch, forecastStatus, isToday }: Props) {
+export function DayHeader({
+  state,
+  date,
+  weekday,
+  dispatch,
+  forecastStatus,
+  isToday,
+  summary = null,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -121,15 +133,19 @@ export function DayHeader({ state, date, weekday, dispatch, forecastStatus, isTo
     day: 'numeric',
     timeZone: 'UTC',
   });
+  // With a weather phrase on the second line, travel and city labels shrink to icons (with the
+  // full text as their name and tooltip) so the header stays two lines (feature 009).
+  const compact = summary !== null;
   const indicator = (icon: ComponentType<LucideProps>, text: string) => (
     <button
       type="button"
       className={styles.indicator}
       aria-label={`${text}. Open day options for ${date}`}
+      title={compact ? text : undefined}
       onClick={() => setMenuOpen(true)}
     >
       <Icon as={icon} size="small" />
-      <span>{text}</span>
+      {compact ? null : <span>{text}</span>}
     </button>
   );
 
@@ -181,11 +197,12 @@ export function DayHeader({ state, date, weekday, dispatch, forecastStatus, isTo
           ) : null}
         </Menu>
       </div>
-      {arrival || departure || place ? (
-        <div className={styles.indicators}>
+      {arrival || departure || place || summary ? (
+        <div className={`${styles.indicators} ${compact ? styles.compact : ''}`}>
           {arrival ? indicator(PlaneLanding, `Arrive · ${arrival}`) : null}
           {departure ? indicator(PlaneTakeoff, `Depart · ${departure}`) : null}
           {place ? indicator(MapPin, shortName(place.name)) : null}
+          {summary ? <DaySummaryButton date={date} summary={summary} /> : null}
         </div>
       ) : null}
       {locationOpen ? (

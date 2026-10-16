@@ -7,10 +7,12 @@ import {
   effectiveWindows,
   forecastLocations,
   locationKey,
+  summarizeDay,
   summarizeWindow,
   todayIn,
   type CellWeather,
   type DayForecastStatus,
+  type DaySummary,
   type Forecast,
   type ISODate,
   type TripState,
@@ -20,6 +22,8 @@ import { useServices } from './services';
 export interface Forecasts {
   cellWeather(date: ISODate, blockId: string): CellWeather | null;
   dayStatus(date: ISODate): DayForecastStatus;
+  /** The day's weather phrase and details when the day is in the forecast range, else null. */
+  daySummary(date: ISODate): DaySummary | null;
   /** An in-range location has no forecast at all (no cache and the fetch failed). */
   unavailable: boolean;
 }
@@ -27,6 +31,7 @@ export interface Forecasts {
 const NONE: Forecasts = {
   cellWeather: () => null,
   dayStatus: () => ({ kind: 'no-location' }),
+  daySummary: () => null,
   unavailable: false,
 };
 
@@ -103,6 +108,11 @@ export function useForecasts(state: TripState | null): Forecasts {
         return summarizeWindow(day.forecast, date, window);
       },
       dayStatus: (date) => byDate.get(date)?.status ?? { kind: 'no-location' },
+      daySummary(date) {
+        const day = byDate.get(date);
+        if (!day?.forecast || day.status.kind !== 'in-range') return null;
+        return summarizeDay(day.forecast, date);
+      },
       unavailable: locations.some(
         (l) => !forecasts.has(locationKey(l)) && failed.has(locationKey(l)),
       ),

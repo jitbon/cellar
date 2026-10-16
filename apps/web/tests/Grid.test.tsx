@@ -8,6 +8,7 @@ import { fakePlaceSearch, withPlaces } from './setup';
 
 const noForecasts: Forecasts = {
   cellWeather: () => null,
+  daySummary: () => null,
   dayStatus: () => ({ kind: 'no-location' }),
   unavailable: false,
 };
