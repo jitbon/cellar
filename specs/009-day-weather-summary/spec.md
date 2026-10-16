@@ -9,6 +9,16 @@
 **Input**: User description: "put a small weather summary for each day in the top cell, something
 short like "sunny all day" or "cloudy, PM showers" etc"
 
+## Clarifications
+
+### Session 2026-10-16
+
+- Q: Where does the phrase go, given day headers are limited to two lines? → A: On the header's
+  second line. On days that also have arrival, departure or a city label, those shrink to icons
+  (with tooltips and accessible names) beside the phrase, so headers stay at two lines.
+- Q: Should the phrase include temperatures? → A: No, words only; the high and low appear on
+  hover, focus or tap.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - See each day's weather in a few words (Priority: P1)
@@ -60,6 +70,8 @@ highest chance of rain, with the forecast time ("Forecast as of 09:00").
 - **Trip or day without a location, or weather unavailable**: no summary; nothing else changes.
 - **Mixed weather that fits no rule**: the most common daytime condition, e.g. "Partly cloudy".
 - **Snow, fog, thunderstorms**: their own words ("Snow", "Fog early", "PM storms").
+- **Travel day with weather**: "Arrive · Lunch" and the city label become icons beside the
+  phrase; their full text is in the icon's tooltip and accessible name.
 - **Narrow screens**: the phrase stays on one line and is cut with an ellipsis; the full phrase is
   available on hover/focus/tap.
 - **Night**: only daytime hours count, so overnight rain alone does not label a day rainy.
@@ -69,7 +81,10 @@ highest chance of rain, with the forecast time ("Forecast as of 09:00").
 ### Functional Requirements
 
 - **FR-001**: Each day header inside the forecast range MUST show a weather phrase of at most 24
-  characters, using the same forecast and location as that day's cell icons (feature 002).
+  characters on its second line (words only, no temperatures), using the same forecast and location as that day's cell icons
+  (feature 002). Day headers MUST stay at most two lines: when a day also has arrival,
+  departure or a city label, those show as icons only (plane landing, plane take-off, pin) with
+  tooltips and accessible names; days without a phrase keep the full labels.
 - **FR-002**: The phrase MUST be built from daytime hours (07:00–21:59 local to the day's
   location) by fixed rules: a main condition (Sunny, Partly cloudy, Cloudy, Fog, Rain, Snow,
   Storms) plus at most one change by part of day (AM = 07:00–11:59, PM = 12:00–17:59,
