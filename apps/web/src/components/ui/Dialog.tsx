@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { Icon, X } from './Icon';
 import styles from './Dialog.module.css';
 
 interface Props {
@@ -12,7 +13,10 @@ interface Props {
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Modal dialog: focus is trapped inside, Esc closes, focus returns to the opener. */
+/**
+ * Modal dialog: focus is trapped inside, Esc or the X closes without saving, focus returns to the
+ * opener.
+ */
 export function Dialog({ title, wide, onClose, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -60,6 +64,10 @@ export function Dialog({ title, wide, onClose, children }: Props) {
           {title}
         </h2>
         {children}
+        {/* Last in the DOM so opening still focuses the first field; placed top-right by CSS. */}
+        <button type="button" className={styles.close} aria-label="Close" onClick={onClose}>
+          <Icon as={X} />
+        </button>
       </div>
     </div>,
     document.body,

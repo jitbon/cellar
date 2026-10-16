@@ -171,6 +171,18 @@ describe('ItemPanel', () => {
     expect(within(dialog).getByLabelText('Name')).toHaveValue('Museum');
   });
 
+  it('closes the edit dialog with the X without saving', async () => {
+    const user = setup();
+    await user.dblClick(screen.getByText('Museum'));
+    const dialog = screen.getByRole('dialog', { name: 'Edit item' });
+    await user.clear(within(dialog).getByLabelText('Name'));
+    await user.type(within(dialog).getByLabelText('Name'), 'Changed');
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog', { name: 'Edit item' })).toBeNull();
+    expect(screen.getByText('Museum')).toBeInTheDocument();
+    expect(screen.queryByText('Changed')).toBeNull();
+  });
+
   it('does not open the edit dialog when the actions button is double-clicked', async () => {
     const user = setup();
     await user.dblClick(screen.getByRole('button', { name: 'Actions for Museum' }));
