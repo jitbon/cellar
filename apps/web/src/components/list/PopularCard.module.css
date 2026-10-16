@@ -21,9 +21,24 @@
   opacity: 0.5;
 }
 
-.typeIcon {
+/* A fixed square, so cards do not change size when the photo arrives. */
+.thumb {
   display: inline-flex;
   flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-thumb);
+  height: var(--size-thumb);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+}
+
+.thumbImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .activity {

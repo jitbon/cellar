@@ -116,14 +116,14 @@ on features 002 (`todayIn`, `setTripLocation`, `KeyValueStore`), 004/006 (`Place
 
 ### Tests for User Story 3
 
-- [ ] T028 [P] [US3] Write failing tests in `apps/web/tests/usePlacePhoto.test.tsx` (mocked `IntersectionObserver`, fake `PlaceSearch`): no `photoUrl` call before the element intersects; one call after; a second hook for the same photo name reuses the session result; failure → `status: 'none'`; a `null` photo ref never calls
-- [ ] T029 [P] [US3] Extend `apps/web/tests/PopularTab.test.tsx`: each card has a thumbnail slot of size `var(--size-thumb)` with a placeholder (type icon) until the photo resolves, then an `img` with alt "" and a title/accessible description "Photo: <author>"; the list footer reads "Photos: <author A>, <author B>" for loaded photos, linked to `authorUri`
+- [X] T028 [P] [US3] Write failing tests in `apps/web/tests/usePlacePhoto.test.tsx` (mocked `IntersectionObserver`, fake `PlaceSearch`): no `photoUrl` call before the element intersects; one call after; a second hook for the same photo name reuses the session result; failure → `status: 'none'`; a `null` photo ref never calls
+- [X] T029 [P] [US3] Extend `apps/web/tests/PopularTab.test.tsx`: each card has a thumbnail slot of size `var(--size-thumb)` with a placeholder (type icon) until the photo resolves, then an `img` with alt "" and a title/accessible description "Photo: <author>"; the list footer reads "Photos: <author A>, <author B>" for loaded photos, linked to `authorUri`
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Implement `apps/web/src/state/usePlacePhoto.ts` (`(ref, maxWidthPx) => { ref: callback ref, url, status }`, module-level session `Map` by photo name, `IntersectionObserver` with `rootMargin: '100px'`); make T028 pass
-- [ ] T031 [US3] Add the thumbnail to `apps/web/src/components/list/PopularCard.tsx` (+ css, `maxWidthPx` 160) and the "Photos: …" footer to `PopularTab.tsx` (authors of loaded photos in this group); make T029 pass
-- [ ] T032 [US3] Add US3 e2e tests to `apps/web/e2e/photos.spec.ts`: on a 360 px-tall viewport only the visible cards' `photo` requests are recorded, more after scrolling the panel; footer credits visible
+- [X] T030 [US3] Implement `apps/web/src/state/usePlacePhoto.ts` (`(ref, maxWidthPx) => { ref: callback ref, url, status }`, module-level session `Map` by photo name, `IntersectionObserver` with `rootMargin: '100px'`); make T028 pass
+- [X] T031 [US3] Add the thumbnail to `apps/web/src/components/list/PopularCard.tsx` (+ css, `maxWidthPx` 160) and the "Photos: …" footer to `PopularTab.tsx` (authors of loaded photos in this group); make T029 pass
+- [X] T032 [US3] Add US3 e2e tests to `apps/web/e2e/photos.spec.ts`: on a 360 px-tall viewport only the visible cards' `photo` requests are recorded, more after scrolling the panel; footer credits visible
 
 ---
 

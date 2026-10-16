@@ -6,6 +6,8 @@ import {
   deleteAccount,
   goToDay,
   mockOpenMeteo,
+  mockPlaces,
+  setItemPanel,
   mockWikimedia,
   setTripLocationDirect,
   signIn,
@@ -275,5 +277,62 @@ test.describe('US2: the trip page has a city banner and a Today header', () => {
     await signIn(page, account);
     await createTrip(page, 'Banner E', dateIn(NEW_YORK.tz, 20), dateIn(NEW_YORK.tz, 22));
     await expect(page.getByText('Today', { exact: true })).toHaveCount(0);
+  });
+});
+
+test.describe('US3: Popular cards show small photos, loaded when in view', () => {
+  const list = (page: Page) => page.getByRole('complementary', { name: 'Activities and food' });
+
+  async function openPopular(page: Page, name: string) {
+    await createTrip(page, name, '2027-04-01', '2027-04-05');
+    await setTripLocationDirect(tripIdOf(page.url()), NEW_YORK);
+    await page.reload();
+    await setItemPanel(page, true);
+    await list(page).getByRole('tab', { name: 'Popular' }).click();
+  }
+
+  test('quickstart 7: only cards in view ask for a photo; scrolling asks for more; credits show', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    await page.setViewportSize({ width: page.viewportSize()!.width, height: 360 });
+    const places = await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await openPopular(page, 'Thumbs A');
+
+    const first = list(page).getByRole('listitem').filter({ hasText: 'The Metropolitan Museum' });
+    await expect(first.locator('img')).toBeVisible();
+    await expect(first.getByTestId('popular-thumb')).toHaveAttribute('title', 'Photo: Ann Lee');
+    const photoRequests = () => places.filter((r) => r.action === 'photo');
+    const initial = photoRequests().length;
+    expect(initial).toBeGreaterThan(0);
+    expect(initial).toBeLessThan(12); // 12 cards, a 360 px tall screen shows only a few
+    for (const r of photoRequests()) {
+      expect(Object.keys(r).sort()).toEqual(['action', 'maxWidthPx', 'name']);
+      expect(r.maxWidthPx).toBe(160);
+    }
+
+    const cards = list(page).getByRole('listitem');
+    for (let i = 0; i < (await cards.count()); i++) await cards.nth(i).scrollIntoViewIfNeeded();
+    await expect.poll(() => photoRequests().length).toBe(12);
+    await expect(list(page).getByText(/^Photos:/)).toContainText('Ann Lee');
+    await expect(list(page).getByRole('link', { name: 'Ann Lee' })).toHaveAttribute(
+      'href',
+      'https://maps.google.com/contrib/1',
+    );
+  });
+
+  test('quickstart 10: when photos cannot load, cards keep the type icon and work', async ({
+    page,
+  }) => {
+    const places = await mockPlaces(page, 'ok');
+    await page.route('**/__test-photo/**', (route) => route.fulfill({ status: 404 }));
+    await signIn(page, account);
+    await openPopular(page, 'Thumbs B');
+    const met = list(page).getByRole('listitem').filter({ hasText: 'The Metropolitan Museum' });
+    await expect(met).toBeVisible();
+    await expect.poll(() => places.filter((r) => r.action === 'photo').length).toBeGreaterThan(0);
+    await met.getByRole('button', { name: /^Actions for / }).click();
+    await expect(page.getByRole('menuitem', { name: 'Place in a block' })).toBeVisible();
   });
 });

@@ -14,6 +14,7 @@ import { popularDragId } from '../grid/dndIds';
 import { TYPE_ICON, type Dispatch } from '../grid/PlacementChip';
 import { Icon, MoreHorizontal, Star } from '../ui/Icon';
 import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
+import { usePlacePhoto } from '../../state/usePlacePhoto';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import styles from './PopularCard.module.css';
 
@@ -36,12 +37,18 @@ export function ratingText(place: PopularPlace): string {
   return `${rating} (${place.ratingCount.toLocaleString('en-US')} ${reviews})`;
 }
 
+/** Thumbnail width requested from the provider (the slot is shown at --size-thumb). */
+export const THUMB_WIDTH_PX = 160;
+
 export function PopularCard({ state, place, type, dispatch, onAddedToList }: Props) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } = useDraggable({
     id: popularDragId(place.placeId),
     data: { place, type },
   });
   const [placing, setPlacing] = useState(false);
+  const photo = usePlacePhoto(place.photo, THUMB_WIDTH_PX);
+  // An expired image link fails to load; the type icon takes over again.
+  const [broken, setBroken] = useState(false);
   const linked = popularToPlace(place);
   const meta = [place.kind, place.address].filter(Boolean).join(' · ');
   const rating = ratingText(place);
@@ -60,8 +67,22 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
         aria-label={`Drag ${place.name}`}
         {...attributes}
       />
-      <span className={`${styles.typeIcon} ${styles[type]}`}>
-        <Icon as={TYPE_ICON[type]} />
+      <span
+        ref={photo.ref}
+        data-testid="popular-thumb"
+        className={`${styles.thumb} ${styles[type]}`}
+        title={photo.url && place.photo ? `Photo: ${place.photo.author}` : undefined}
+      >
+        {photo.url && !broken ? (
+          <img
+            className={styles.thumbImage}
+            src={photo.url}
+            alt=""
+            onError={() => setBroken(true)}
+          />
+        ) : (
+          <Icon as={TYPE_ICON[type]} />
+        )}
       </span>
       <span className={styles.text}>
         <span className={`${styles.name} ${placed ? styles.placed : ''}`}>

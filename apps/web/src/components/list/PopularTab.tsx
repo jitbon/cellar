@@ -3,13 +3,15 @@ import {
   locationKey,
   tripCities,
   type Location,
+  type PlacePhotoRef,
   type PopularPlace,
   type TripState,
 } from '@cellar/core';
 import type { Dispatch } from '../grid/PlacementChip';
 import { Button } from '../ui/Button';
-import { PopularCard } from './PopularCard';
+import { PopularCard, THUMB_WIDTH_PX } from './PopularCard';
 import { LocationDialog } from '../weather/LocationDialog';
+import { useLoadedPhotos } from '../../state/usePlacePhoto';
 import { usePopularPlaces } from '../../state/usePopularPlaces';
 import styles from './PopularTab.module.css';
 
@@ -21,6 +23,19 @@ function fetchedTime(fetchedAt: string): string {
 }
 
 type Group = 'todo' | 'food';
+
+/** Each photo author once, in order, as the provider requires them to be shown. */
+function uniqueAuthors(photos: PlacePhotoRef[]): { author: string; authorUri: string | null }[] {
+  const seen = new Set<string>();
+  const out: { author: string; authorUri: string | null }[] = [];
+  for (const { author, authorUri } of photos) {
+    const name = author || 'a Google Maps user';
+    if (seen.has(`${name}|${authorUri}`)) continue;
+    seen.add(`${name}|${authorUri}`);
+    out.push({ author: name, authorUri });
+  }
+  return out;
+}
 
 const GROUPS: { id: Group; label: string; type: 'activity' | 'food' }[] = [
   { id: 'todo', label: 'Things to do', type: 'activity' },
@@ -92,6 +107,10 @@ export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Pr
   const [group, setGroup] = useState<Group>('todo');
   const idBase = useId();
   const tabId = (g: Group) => `${idBase}-tab-${g}`;
+  const photoCredits = useLoadedPhotos(
+    (list?.[group] ?? []).flatMap((p) => (p.photo ? [p.photo] : [])),
+    THUMB_WIDTH_PX,
+  );
 
   if (!city) {
     return (
@@ -206,6 +225,23 @@ export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Pr
       ) : null}
       {list ? (
         <p className={styles.source}>Popular on Google · {fetchedTime(list.fetchedAt)}</p>
+      ) : null}
+      {photoCredits.length > 0 ? (
+        <p className={styles.source}>
+          Photos:{' '}
+          {uniqueAuthors(photoCredits).map((a, i) => (
+            <span key={`${a.author}|${a.authorUri}`}>
+              {i > 0 ? ', ' : null}
+              {a.authorUri ? (
+                <a href={a.authorUri} target="_blank" rel="noopener noreferrer">
+                  {a.author}
+                </a>
+              ) : (
+                a.author
+              )}
+            </span>
+          ))}
+        </p>
       ) : null}
     </div>
   );

@@ -47,6 +47,150 @@
         "author": "Ann Lee",
         "authorUri": "https://maps.google.com/contrib/1"
       }
+    },
+    {
+      "placeId": "test-spot-1",
+      "name": "Spot 1",
+      "kind": "Landmark",
+      "address": "1 Broadway, New York",
+      "lat": 40.701,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1001,
+      "photo": {
+        "name": "places/test-spot-1/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-2",
+      "name": "Spot 2",
+      "kind": "Landmark",
+      "address": "2 Broadway, New York",
+      "lat": 40.702000000000005,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1002,
+      "photo": {
+        "name": "places/test-spot-2/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-3",
+      "name": "Spot 3",
+      "kind": "Landmark",
+      "address": "3 Broadway, New York",
+      "lat": 40.703,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1003,
+      "photo": {
+        "name": "places/test-spot-3/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-4",
+      "name": "Spot 4",
+      "kind": "Landmark",
+      "address": "4 Broadway, New York",
+      "lat": 40.704,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1004,
+      "photo": {
+        "name": "places/test-spot-4/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-5",
+      "name": "Spot 5",
+      "kind": "Landmark",
+      "address": "5 Broadway, New York",
+      "lat": 40.705000000000005,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1005,
+      "photo": {
+        "name": "places/test-spot-5/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-6",
+      "name": "Spot 6",
+      "kind": "Landmark",
+      "address": "6 Broadway, New York",
+      "lat": 40.706,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1006,
+      "photo": {
+        "name": "places/test-spot-6/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-7",
+      "name": "Spot 7",
+      "kind": "Landmark",
+      "address": "7 Broadway, New York",
+      "lat": 40.707,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1007,
+      "photo": {
+        "name": "places/test-spot-7/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-8",
+      "name": "Spot 8",
+      "kind": "Landmark",
+      "address": "8 Broadway, New York",
+      "lat": 40.708000000000006,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1008,
+      "photo": {
+        "name": "places/test-spot-8/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
+    },
+    {
+      "placeId": "test-spot-9",
+      "name": "Spot 9",
+      "kind": "Landmark",
+      "address": "9 Broadway, New York",
+      "lat": 40.709,
+      "lon": -74.0,
+      "types": ["tourist_attraction"],
+      "rating": 4.4,
+      "ratingCount": 1009,
+      "photo": {
+        "name": "places/test-spot-9/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
     }
   ]
 }

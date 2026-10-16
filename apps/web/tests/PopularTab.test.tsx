@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   addItem,
   createTrip,
@@ -320,5 +320,99 @@ describe('PopularTab', () => {
       await user.click(screen.getByRole('button', { name: `Actions for ${metPopular.name}` }));
       expect(screen.getByRole('menuitem', { name: 'Place in a block' })).toBeVisible();
     });
+  });
+});
+
+describe('PopularTab photos', () => {
+  const observed: { el: Element; callback: IntersectionObserverCallback }[] = [];
+
+  beforeEach(() => {
+    observed.length = 0;
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(private readonly callback: IntersectionObserverCallback) {}
+        observe(el: Element) {
+          observed.push({ el, callback: this.callback });
+        }
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    forgetPopularCities();
+  });
+
+  const scrollTo = (li: HTMLElement) =>
+    act(() => {
+      for (const { el, callback } of observed) {
+        if (li.contains(el)) {
+          callback(
+            [{ isIntersecting: true, target: el } as IntersectionObserverEntry],
+            {} as never,
+          );
+        }
+      }
+    });
+
+  it('shows a placeholder in the thumbnail slot until the card is in view, then the photo', async () => {
+    const places = fakePlaceSearch();
+    setup(located, places);
+    const met = (await screen.findByText(metPopular.name)).closest('li')!;
+    const slot = within(met).getByTestId('popular-thumb');
+    expect(slot.querySelector('img')).toBeNull();
+    expect(slot.querySelector('svg')).not.toBeNull();
+    expect(places.photoUrl).not.toHaveBeenCalled();
+
+    scrollTo(met);
+    await waitFor(() => expect(slot.querySelector('img')).not.toBeNull());
+    expect(places.photoUrl).toHaveBeenCalledWith('places/test-met/photos/p1', 160);
+    const img = slot.querySelector('img')!;
+    expect(img).toHaveAttribute('alt', '');
+    expect(img).toHaveAttribute('src', 'https://photos.test/places/test-met/photos/p1?w=160');
+    expect(slot).toHaveAttribute('title', 'Photo: Ann Lee');
+  });
+
+  it('keeps the placeholder for a place without a photo and when the photo fails', async () => {
+    const places = fakePlaceSearch({ photoFail: true });
+    const user = setup(located, places);
+    const met = (await screen.findByText(metPopular.name)).closest('li')!;
+    scrollTo(met);
+    await waitFor(() => expect(places.photoUrl).toHaveBeenCalled());
+    expect(within(met).getByTestId('popular-thumb').querySelector('img')).toBeNull();
+
+    const park = screen.getByText('Central Park').closest('li')!;
+    scrollTo(park);
+    expect(places.photoUrl).toHaveBeenCalledTimes(1); // Central Park has no photo to ask for
+    expect(within(park).getByTestId('popular-thumb').querySelector('img')).toBeNull();
+    // The card still works.
+    await user.click(screen.getByRole('button', { name: `Actions for ${metPopular.name}` }));
+    expect(screen.getByRole('menuitem', { name: 'Place in a block' })).toBeVisible();
+  });
+
+  it('falls back to the placeholder when the image itself fails to load', async () => {
+    setup(located);
+    const met = (await screen.findByText(metPopular.name)).closest('li')!;
+    scrollTo(met);
+    const slot = within(met).getByTestId('popular-thumb');
+    await waitFor(() => expect(slot.querySelector('img')).not.toBeNull());
+    fireEvent.error(slot.querySelector('img')!);
+    expect(slot.querySelector('img')).toBeNull();
+    expect(slot.querySelector('svg')).not.toBeNull();
+  });
+
+  it('credits the authors of the loaded photos in the list footer, linked to them', async () => {
+    setup(located);
+    const met = (await screen.findByText(metPopular.name)).closest('li')!;
+    expect(screen.queryByText(/^Photos:/)).toBeNull();
+    scrollTo(met);
+    const footer = await screen.findByText(/^Photos:/);
+    expect(footer).toHaveTextContent('Photos: Ann Lee');
+    expect(within(footer).getByRole('link', { name: 'Ann Lee' })).toHaveAttribute(
+      'href',
+      'https://maps.google.com/contrib/1',
+    );
   });
 });
