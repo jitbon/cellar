@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { createTrip, renameTrip, setTripCoverPhoto } from '../src/commands/trip';
+import {
+  createTrip,
+  renameTrip,
+  setTripBannerPhoto,
+  setTripCoverPhoto,
+} from '../src/commands/trip';
 import { cell } from '../src/queries/cell';
 import { expectOk, newTripState } from './fixtures';
 
@@ -124,6 +129,38 @@ describe('setTripCoverPhoto', () => {
       if (!r.ok) expect(r.error.code).toBe('INVALID_COVER_PHOTO');
     }
     expect(setTripCoverPhoto('x'.repeat(300))(newTripState()).ok).toBe(true);
+  });
+});
+
+describe('setTripBannerPhoto', () => {
+  it('starts with no chosen banner photo', () => {
+    expect(newTripState().trip.bannerPhoto).toBeNull();
+  });
+
+  it('sets the banner photo without touching the cover, and undo restores null', () => {
+    const state = expectOk(setTripCoverPhoto('Kyoto_B.jpg')(newTripState())).state;
+    const r = expectOk(setTripBannerPhoto('Kyoto_C.jpg')(state));
+    expect(r.state.trip.bannerPhoto).toBe('Kyoto_C.jpg');
+    expect(r.state.trip.coverPhoto).toBe('Kyoto_B.jpg');
+    expect(r.changes).toHaveLength(1);
+    expect(r.changes[0]).toMatchObject({ table: 'trips', row: { bannerPhoto: 'Kyoto_C.jpg' } });
+    expect(expectOk(r.inverse(r.state)).state.trip.bannerPhoto).toBeNull();
+  });
+
+  it('changing the cover leaves the banner photo alone', () => {
+    const state = expectOk(setTripBannerPhoto('Kyoto_C.jpg')(newTripState())).state;
+    const r = expectOk(setTripCoverPhoto('Kyoto_B.jpg')(state));
+    expect(r.state.trip.bannerPhoto).toBe('Kyoto_C.jpg');
+  });
+
+  it('clears with null and rejects an empty name or one over 300 characters', () => {
+    const chosen = expectOk(setTripBannerPhoto('Kyoto_C.jpg')(newTripState())).state;
+    expect(expectOk(setTripBannerPhoto(null)(chosen)).state.trip.bannerPhoto).toBeNull();
+    for (const bad of ['', 'x'.repeat(301)]) {
+      const r = setTripBannerPhoto(bad)(newTripState());
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.error.code).toBe('INVALID_BANNER_PHOTO');
+    }
   });
 });
 

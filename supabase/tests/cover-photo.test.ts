@@ -40,3 +40,21 @@ describe('trips.cover_photo', () => {
     expect(read.data).toEqual([{ cover_photo: 'Kyoto_A.jpg' }]);
   });
 });
+
+const setBanner = (user: TestUser, banner_photo: string | null) =>
+  user.client.from('trips').update({ banner_photo }).eq('id', tripId);
+
+describe('trips.banner_photo', () => {
+  it('accepts null and a file name, independently of the cover', async () => {
+    expect((await setCover(a, 'Kyoto_A.jpg')).error).toBeNull();
+    expect((await setBanner(a, 'Kyoto_C.jpg')).error).toBeNull();
+    const read = await a.client.from('trips').select('cover_photo, banner_photo').eq('id', tripId);
+    expect(read.data).toEqual([{ cover_photo: 'Kyoto_A.jpg', banner_photo: 'Kyoto_C.jpg' }]);
+    expect((await setBanner(a, null)).error).toBeNull();
+  });
+
+  it('rejects an empty string and 301 characters', async () => {
+    expect((await setBanner(a, '')).error).not.toBeNull();
+    expect((await setBanner(a, 'x'.repeat(301))).error).not.toBeNull();
+  });
+});

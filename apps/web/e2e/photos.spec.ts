@@ -210,6 +210,46 @@ test.describe('US2: the trip page has a city banner and a Today header', () => {
     }
   }
 
+  test('the banner photo is changed on the trip page, separately from the trip card', async ({
+    page,
+  }) => {
+    await mockWikimedia(page, 'ok');
+    await signIn(page, account);
+    await openNewYork(page, 'Banner photo');
+    const tripUrl = page.url();
+    await expect(banner(page).locator('img')).toHaveAttribute('src', /Kyoto_A/);
+
+    await banner(page).getByRole('button', { name: 'Change banner photo' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Change banner photo' });
+    await dialog.getByRole('button', { name: /^Photo 2 by/ }).click();
+    await expect(dialog).toBeHidden();
+    await expect(banner(page).locator('img')).toHaveAttribute('src', /Kyoto_B/);
+
+    // The same choice is in the trip menu, and Undo brings the automatic photo back.
+    await page.getByRole('button', { name: 'More trip actions' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Change banner photo' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(banner(page).locator('img')).toHaveAttribute('src', /Kyoto_A/);
+    await banner(page).getByRole('button', { name: 'Change banner photo' }).click();
+    await page
+      .getByRole('dialog', { name: 'Change banner photo' })
+      .getByRole('button', { name: /^Photo 3 by/ })
+      .click();
+    await expect(banner(page).locator('img')).toHaveAttribute('src', /Kyoto_C/);
+
+    // The trip card keeps its own (automatic) photo.
+    await page.waitForTimeout(1000);
+    await page.goto('/');
+    const card = page
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('link', { name: /Banner photo/ }) })
+      .first();
+    await expect(card.locator('img')).toHaveAttribute('src', /Kyoto_A/);
+    await page.goto(tripUrl);
+    await expect(banner(page).locator('img')).toHaveAttribute('src', /Kyoto_C/);
+  });
+
   test('quickstart 5: the banner shows the photo, city, progress and credit, and today says Today', async ({
     page,
   }) => {

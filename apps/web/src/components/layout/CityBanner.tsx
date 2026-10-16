@@ -13,15 +13,19 @@ import styles from './CityBanner.module.css';
 export function CityBanner({
   state,
   onShownChange,
+  onChangePhoto,
 }: {
   state: TripState;
   /** Tells the page whether the banner takes height, so the grid below can make room. */
   onShownChange?: (shown: boolean) => void;
+  /** Opens the banner photo picker; the button is left out when omitted. */
+  onChangePhoto?: () => void;
 }) {
   const { trip } = state;
   const { hidden } = useBannerHidden();
   // `useCityPhoto` asks for nothing without a location; a hidden banner must not ask either.
-  const { photo, status } = useCityPhoto(hidden ? { ...trip, locationName: null } : trip);
+  // The banner has its own photo choice, separate from the trip card's cover.
+  const { photo, status } = useCityPhoto(hidden ? null : trip.locationName, trip.bannerPhoto);
   const shown = !(hidden || !trip.locationName || status === 'none');
   useEffect(() => {
     onShownChange?.(shown);
@@ -40,12 +44,24 @@ export function CityBanner({
               <span className={styles.city}>{trip.locationName}</span>
               <span className={styles.status}>{label}</span>
             </div>
-            <PhotoCredit
-              credit={photo.credit}
-              license={photo.license}
-              href={photo.sourceUrl}
-              variant="onPhoto"
-            />
+            <div className={styles.side}>
+              {onChangePhoto ? (
+                <button
+                  type="button"
+                  className={styles.change}
+                  aria-label="Change banner photo"
+                  onClick={onChangePhoto}
+                >
+                  Change photo
+                </button>
+              ) : null}
+              <PhotoCredit
+                credit={photo.credit}
+                license={photo.license}
+                href={photo.sourceUrl}
+                variant="onPhoto"
+              />
+            </div>
           </div>
         </>
       ) : null}

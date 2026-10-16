@@ -26,6 +26,8 @@ interface Props {
   onEditDates: () => void;
   onEditLocation: () => void;
   onOpenSettings: () => void;
+  /** Opens the banner photo picker (offered while the banner is shown). */
+  onChangeBannerPhoto?: () => void;
   /** The item panel toggle; omitted when the panel is not available. */
   panel?: { open: boolean; onToggle: () => void };
 }
@@ -42,6 +44,7 @@ export function TripHeader({
   onEditDates,
   onEditLocation,
   onOpenSettings,
+  onChangeBannerPhoto,
   panel,
 }: Props) {
   const banner = useBannerHidden();
@@ -119,6 +122,9 @@ export function TripHeader({
           <MenuItem onSelect={() => banner.setHidden(!banner.hidden)}>
             {banner.hidden ? 'Show city banner' : 'Hide city banner'}
           </MenuItem>
+        ) : null}
+        {locationName && !banner.hidden && onChangeBannerPhoto ? (
+          <MenuItem onSelect={onChangeBannerPhoto}>Change banner photo</MenuItem>
         ) : null}
       </Menu>
     </header>

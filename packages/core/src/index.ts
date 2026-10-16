@@ -8,6 +8,7 @@ export * from './ports';
 export {
   createTrip,
   renameTrip,
+  setTripBannerPhoto,
   setTripCoverPhoto,
   updateTripDates,
   DEFAULT_BLOCK_NAMES,

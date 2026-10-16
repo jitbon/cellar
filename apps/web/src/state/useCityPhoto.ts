@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { CityPhoto, Trip } from '@cellar/core';
+import type { CityPhoto } from '@cellar/core';
 import { useCityPhotos } from './services';
 
 export interface CityPhotoState {
@@ -9,20 +9,20 @@ export interface CityPhotoState {
 }
 
 /**
- * The photo for a trip: the cover the traveler chose, else the city's lead photo. A chosen cover
- * that is gone falls back to the lead photo. Never throws; any failure means `none`.
+ * A city photo: the one the traveler chose (`chosen`: the trip's cover photo for the card, its
+ * banner photo for the trip page), else the city's lead photo. A chosen photo that is gone falls
+ * back to the lead photo. Never throws; any failure means `none`.
  */
-export function useCityPhoto(trip: Pick<Trip, 'locationName' | 'coverPhoto'>): CityPhotoState {
+export function useCityPhoto(locationName: string | null, chosen: string | null): CityPhotoState {
   const service = useCityPhotos();
-  const { locationName, coverPhoto } = trip;
-  const key = `${locationName ?? ''}\n${coverPhoto ?? ''}`;
+  const key = `${locationName ?? ''}\n${chosen ?? ''}`;
   const [outcome, setOutcome] = useState<{ key: string; photo: CityPhoto | null } | null>(null);
 
   useEffect(() => {
     if (!service || !locationName) return;
     let active = true;
     const find = async () =>
-      (coverPhoto ? await service.byFile(coverPhoto) : null) ?? (await service.lead(locationName));
+      (chosen ? await service.byFile(chosen) : null) ?? (await service.lead(locationName));
     find().then(
       (photo) => active && setOutcome({ key, photo }),
       () => active && setOutcome({ key, photo: null }),
@@ -30,7 +30,7 @@ export function useCityPhoto(trip: Pick<Trip, 'locationName' | 'coverPhoto'>): C
     return () => {
       active = false;
     };
-  }, [service, locationName, coverPhoto, key]);
+  }, [service, locationName, chosen, key]);
 
   if (!service || !locationName) return { photo: null, status: 'none' };
   if (outcome?.key !== key) return { photo: null, status: 'loading' };

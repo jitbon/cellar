@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { setTripLocation } from '../src/commands/location';
-import { setTripCoverPhoto } from '../src/commands/trip';
+import { setTripBannerPhoto, setTripCoverPhoto } from '../src/commands/trip';
 import { History } from '../src/history';
 import type { DaySetting, Location } from '../src/model/types';
 import {
@@ -152,5 +152,28 @@ describe('tripCities', () => {
     s = setDayLocationRow(s, '2027-04-02', osaka);
     s = setDayLocationRow(s, '2027-04-03', { ...osaka, name: 'Osaka' });
     expect(tripCities(s)).toEqual([kyoto, osaka]);
+  });
+});
+
+describe('setTripLocation and the banner photo', () => {
+  const both = () =>
+    expectOk(
+      setTripBannerPhoto('Kyoto_C.jpg')(
+        expectOk(
+          setTripCoverPhoto('Kyoto_B.jpg')(expectOk(setTripLocation(kyoto)(newTripState())).state),
+        ).state,
+      ),
+    ).state;
+
+  it('clears both chosen photos when the location changes', () => {
+    const r = expectOk(setTripLocation(osaka)(both()));
+    expect(r.state.trip.coverPhoto).toBeNull();
+    expect(r.state.trip.bannerPhoto).toBeNull();
+  });
+
+  it('keeps both when the same location is set again', () => {
+    const r = expectOk(setTripLocation({ ...kyoto })(both()));
+    expect(r.state.trip.coverPhoto).toBe('Kyoto_B.jpg');
+    expect(r.state.trip.bannerPhoto).toBe('Kyoto_C.jpg');
   });
 });

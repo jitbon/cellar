@@ -6,7 +6,8 @@
 
 | Field | Type | Rules |
 |---|---|---|
-| `coverPhoto` | string \| null | Commons file name chosen by the traveler, 1–300 chars; `null` = automatic photo. Cleared when the trip location changes. |
+| `coverPhoto` | string \| null | Commons file name chosen for the trip card, 1–300 chars; `null` = automatic photo. Cleared when the trip location changes. |
+| `bannerPhoto` | string \| null | Same rules, for the trip page banner; independent of `coverPhoto` (migration `0010_banner_photo.sql`). |
 
 Migration `0009_cover_photo.sql` ([contracts/database.md](./contracts/database.md)).
 

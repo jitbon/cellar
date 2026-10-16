@@ -11,8 +11,13 @@ const CHOICES = 6;
 
 interface Props {
   cityName: string;
-  /** File name of the photo showing now (chosen or automatic), marked as selected. */
+  /**
+   * File name of the photo showing now, marked as selected; null means the automatic photo,
+   * which is the city's lead photo and always listed first.
+   */
   current: string | null;
+  /** Dialog title; the trip card uses the default, the trip page "Change banner photo". */
+  title?: string;
   /** A file name, or null for "Use automatic photo". The dialog closes after. */
   onPick: (file: string | null) => void;
   onClose: () => void;
@@ -22,7 +27,13 @@ type Choices =
   { status: 'loading' } | { status: 'unavailable' } | { status: 'ready'; photos: CityPhoto[] };
 
 /** Up to 6 photos of the trip's city to choose a cover from. */
-export function CoverPhotoPicker({ cityName, current, onPick, onClose }: Props) {
+export function CoverPhotoPicker({
+  cityName,
+  current,
+  title = 'Change cover photo',
+  onPick,
+  onClose,
+}: Props) {
   const service = useCityPhotos();
   const [choices, setChoices] = useState<Choices>({ status: 'loading' });
 
@@ -47,7 +58,7 @@ export function CoverPhotoPicker({ cityName, current, onPick, onClose }: Props) 
   };
 
   return (
-    <Dialog title="Change cover photo" wide onClose={onClose}>
+    <Dialog title={title} wide onClose={onClose}>
       <div className={styles.body}>
         {choices.status === 'loading' ? (
           <p role="status" className={styles.note}>
@@ -67,7 +78,7 @@ export function CoverPhotoPicker({ cityName, current, onPick, onClose }: Props) 
         {choices.status === 'ready' && choices.photos.length > 0 ? (
           <ul className={styles.grid}>
             {choices.photos.map((photo, i) => {
-              const selected = photo.file === current;
+              const selected = current === null ? i === 0 : photo.file === current;
               return (
                 <li key={photo.file} className={styles.choice}>
                   <button

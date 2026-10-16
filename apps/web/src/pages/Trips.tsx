@@ -145,7 +145,7 @@ interface CardProps {
 
 /** A trip as a card: city photo (or placeholder) with a status pill, details, credit, menu. */
 function TripCard({ trip, now, onRename, onDelete, onPickCover }: CardProps) {
-  const { photo, status } = useCityPhoto(trip);
+  const { photo, status } = useCityPhoto(trip.locationName, trip.coverPhoto);
   const [picking, setPicking] = useState(false);
   const label = tripStatusLabel(tripStatus(trip, tripToday({ trip }, now)));
   const located = trip.locationName !== null;

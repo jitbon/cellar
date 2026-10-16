@@ -22,6 +22,10 @@ the mockup.
 - Q: Can the traveler change a trip's cover photo? → A: Yes. The automatic city photo is the
   default; "Change cover photo" offers a few more photos of the same city to pick from. The
   choice is saved with the trip. No uploads.
+- Q: Should the banner photo follow the card's cover photo? → A: No. Both start from the same
+  automatic city photo, but the banner has its own choice, changed on the trip page ("Change
+  photo" on the banner or "Change banner photo" in the trip menu); changing one never changes
+  the other.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -161,6 +165,10 @@ does.
 - **FR-002a**: The traveler MUST be able to change a trip's cover photo by picking from up to 6
   photos of the same city, or return to the automatic photo; the choice MUST be saved with the
   trip, sync like other trip changes and be undoable. Changing the trip's location MUST clear it.
+- **FR-002b**: The banner photo MUST be chosen separately from the card's cover photo, from the
+  trip page (a button on the banner and the trip menu), with the same up-to-6 city photos and
+  "Use automatic photo"; saved with the trip, synced, undoable, and cleared when the location
+  changes. Changing either photo MUST NOT change the other.
 - **FR-003**: The trip page MUST show a city banner (photo, overlay, city, progress text, credit)
   under the header for located trips with a photo, hideable per device from the trip menu.
 - **FR-004**: The grid MUST highlight today's day header with a "Today" label when today is
@@ -184,7 +192,9 @@ does.
 - **City photo**: For one city name: an image link, its credit text and license link. Looked up
   when needed.
 - **Chosen cover photo** (on the trip): an optional reference to one of the city's photos picked
-  by the traveler; empty means the automatic photo.
+  by the traveler for the trip card; empty means the automatic photo.
+- **Chosen banner photo** (on the trip): the same, for the trip page banner, independent of the
+  cover.
 - **Place photo**: For one popular place: an image of the place and its required attribution.
   Fetched when shown; not stored.
 - **Banner preference**: Per device, whether the city banner is hidden.

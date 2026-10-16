@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import {
   renameTrip,
+  setTripBannerPhoto,
   setTripLocation,
   tripLocation,
   updateTripDates,
@@ -15,6 +16,7 @@ import { SaveStatusBanner } from '../components/SaveStatusBanner';
 import { LocationDialog } from '../components/weather/LocationDialog';
 import { Banner } from '../components/ui/Banner';
 import { CityBanner } from '../components/layout/CityBanner';
+import { CoverPhotoPicker } from '../components/photos/CoverPhotoPicker';
 import { TripHeader } from '../components/layout/TripHeader';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -157,6 +159,7 @@ export function TripPlanner() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
   const [bannerShown, setBannerShown] = useState(false);
+  const [bannerPicker, setBannerPicker] = useState(false);
   const ready = trip.status === 'ready' ? trip : null;
   const forecasts = useForecasts(ready?.state ?? null);
   const undo = ready?.undo;
@@ -225,9 +228,23 @@ export function TripPlanner() {
         onEditDates={() => setSettingsOpen(true)}
         onEditLocation={() => setLocationOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
+        onChangeBannerPhoto={() => setBannerPicker(true)}
         panel={{ open: panelOpen, onToggle: () => togglePanel(!panelOpen) }}
       />
-      <CityBanner state={state} onShownChange={setBannerShown} />
+      <CityBanner
+        state={state}
+        onShownChange={setBannerShown}
+        onChangePhoto={() => setBannerPicker(true)}
+      />
+      {bannerPicker && tripPlace ? (
+        <CoverPhotoPicker
+          title="Change banner photo"
+          cityName={tripPlace.name}
+          current={state.trip.bannerPhoto}
+          onPick={(file) => dispatch(setTripBannerPhoto(file))}
+          onClose={() => setBannerPicker(false)}
+        />
+      ) : null}
       <div className={styles.strips}>
         <SaveStatusBanner outbox={outbox} />
         {tripPlace ? null : <Banner>Add a location to see the weather.</Banner>}

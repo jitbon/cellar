@@ -3,6 +3,7 @@ import type { Block, ISODate, Location, TripState } from '../model/types';
 import { locationFields } from '../queries/location';
 import { DEFAULT_BLOCK_WINDOWS } from '../queries/window';
 import {
+  validateBannerPhoto,
   validateCoverPhoto,
   validateDateRange,
   validateLocation,
@@ -69,6 +70,7 @@ export function createTrip(
       startDate: start,
       endDate: end,
       coverPhoto: null,
+      bannerPhoto: null,
       deletedAt: null,
       ...locationFields(location),
       updatedAt: now,
@@ -120,5 +122,17 @@ export function updateTripDates(start: ISODate, end: ISODate): Command {
       daySettings: state.daySettings.filter((d) => inRange(d.date)),
     });
     return { ...result, removedPlacementCount: state.placements.length - kept.length };
+  };
+}
+
+/**
+ * Sets the trip page banner's photo (a Commons file name), separate from the cover on the trip
+ * card; null returns to the automatic photo.
+ */
+export function setTripBannerPhoto(file: string | null): Command {
+  return (state) => {
+    const error = file === null ? null : validateBannerPhoto(file);
+    if (error) return { ok: false, error };
+    return commit(state, { ...state, trip: { ...state.trip, bannerPhoto: file } });
   };
 }

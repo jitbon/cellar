@@ -96,6 +96,8 @@ export interface Trip extends LocationFields {
   endDate: ISODate;
   /** Commons file name of the cover photo the traveler chose; null follows the automatic photo. */
   coverPhoto: string | null;
+  /** Commons file name for the trip page's banner, chosen separately; null follows the automatic photo. */
+  bannerPhoto: string | null;
   deletedAt: string | null;
   updatedAt: string;
 }

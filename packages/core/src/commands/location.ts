@@ -17,10 +17,12 @@ export function setTripLocation(location: Location | null): Command {
     const error = location ? validateLocation(location) : null;
     if (error) return { ok: false, error };
     const moved = keyOf(location) !== keyOf(tripLocation(state));
+    // Chosen photos belong to the old city, so a new location clears both.
     const coverPhoto = moved ? null : state.trip.coverPhoto;
+    const bannerPhoto = moved ? null : state.trip.bannerPhoto;
     return commit(state, {
       ...state,
-      trip: { ...state.trip, ...locationFields(location), coverPhoto },
+      trip: { ...state.trip, ...locationFields(location), coverPhoto, bannerPhoto },
     });
   };
 }

@@ -8,6 +8,7 @@ export type ValidationCode =
   | 'INVALID_LINK'
   | 'INVALID_LOCATION'
   | 'INVALID_COVER_PHOTO'
+  | 'INVALID_BANNER_PHOTO'
   | 'INVALID_PLACE'
   | 'INVALID_WINDOW'
   | 'NOT_FOUND';

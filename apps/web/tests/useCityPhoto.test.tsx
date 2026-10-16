@@ -8,7 +8,7 @@ const kyoto = { locationName: 'Kyoto, Japan', coverPhoto: null };
 describe('useCityPhoto', () => {
   it('starts loading, then gives the lead photo of the trip city', async () => {
     const cityPhotos = fakeCityPhotos();
-    const { result } = renderHook(() => useCityPhoto(kyoto), {
+    const { result } = renderHook(() => useCityPhoto(kyoto.locationName, kyoto.coverPhoto), {
       wrapper: withServices({ cityPhotos }),
     });
     expect(result.current).toEqual({ photo: null, status: 'loading' });
@@ -20,7 +20,7 @@ describe('useCityPhoto', () => {
 
   it('uses the chosen cover instead of the lead photo', async () => {
     const cityPhotos = fakeCityPhotos();
-    const { result } = renderHook(() => useCityPhoto({ ...kyoto, coverPhoto: 'Kyoto_B.jpg' }), {
+    const { result } = renderHook(() => useCityPhoto(kyoto.locationName, 'Kyoto_B.jpg'), {
       wrapper: withServices({ cityPhotos }),
     });
     await waitFor(() => expect(result.current.status).toBe('ready'));
@@ -30,7 +30,7 @@ describe('useCityPhoto', () => {
 
   it('falls back to the lead photo when the chosen cover is gone', async () => {
     const cityPhotos = fakeCityPhotos({ photos: [cityPhoto('Kyoto_A.jpg')] });
-    const { result } = renderHook(() => useCityPhoto({ ...kyoto, coverPhoto: 'Removed.jpg' }), {
+    const { result } = renderHook(() => useCityPhoto(kyoto.locationName, 'Removed.jpg'), {
       wrapper: withServices({ cityPhotos }),
     });
     await waitFor(() => expect(result.current.status).toBe('ready'));
@@ -39,7 +39,7 @@ describe('useCityPhoto', () => {
 
   it('is none, without asking, when the trip has no location', () => {
     const cityPhotos = fakeCityPhotos();
-    const { result } = renderHook(() => useCityPhoto({ locationName: null, coverPhoto: null }), {
+    const { result } = renderHook(() => useCityPhoto(null, null), {
       wrapper: withServices({ cityPhotos }),
     });
     expect(result.current).toEqual({ photo: null, status: 'none' });
@@ -47,11 +47,11 @@ describe('useCityPhoto', () => {
   });
 
   it('is none when the service fails or has no photo', async () => {
-    const failing = renderHook(() => useCityPhoto(kyoto), {
+    const failing = renderHook(() => useCityPhoto(kyoto.locationName, kyoto.coverPhoto), {
       wrapper: withServices({ cityPhotos: fakeCityPhotos({ fail: true }) }),
     });
     await waitFor(() => expect(failing.result.current.status).toBe('none'));
-    const empty = renderHook(() => useCityPhoto(kyoto), {
+    const empty = renderHook(() => useCityPhoto(kyoto.locationName, kyoto.coverPhoto), {
       wrapper: withServices({ cityPhotos: fakeCityPhotos({ photos: [] }) }),
     });
     await waitFor(() => expect(empty.result.current.status).toBe('none'));
@@ -59,16 +59,19 @@ describe('useCityPhoto', () => {
   });
 
   it('is none outside a services provider', () => {
-    const { result } = renderHook(() => useCityPhoto(kyoto));
+    const { result } = renderHook(() => useCityPhoto(kyoto.locationName, kyoto.coverPhoto));
     expect(result.current).toEqual({ photo: null, status: 'none' });
   });
 
   it('looks again when the city changes', async () => {
     const cityPhotos = fakeCityPhotos();
-    const { result, rerender } = renderHook((trip) => useCityPhoto(trip), {
-      initialProps: kyoto,
-      wrapper: withServices({ cityPhotos }),
-    });
+    const { result, rerender } = renderHook(
+      (trip) => useCityPhoto(trip.locationName, trip.coverPhoto),
+      {
+        initialProps: kyoto,
+        wrapper: withServices({ cityPhotos }),
+      },
+    );
     await waitFor(() => expect(result.current.status).toBe('ready'));
     rerender({ locationName: 'Osaka, Japan', coverPhoto: null });
     expect(result.current.status).toBe('loading');

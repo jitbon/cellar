@@ -1,6 +1,15 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTrip, setTripLocation, type KeyValueStore, type TripState } from '@cellar/core';
+import {
+  createTrip,
+  setTripBannerPhoto,
+  setTripCoverPhoto,
+  setTripLocation,
+  type Command,
+  type KeyValueStore,
+  type TripState,
+} from '@cellar/core';
+import userEvent from '@testing-library/user-event';
 import { CityBanner } from '../src/components/layout/CityBanner';
 import { fakeCityPhotos, withServices } from './setup';
 
@@ -26,13 +35,31 @@ function memoryStore(initial: Record<string, string> = {}): KeyValueStore {
 
 function setup(
   state: TripState,
-  opts: { store?: KeyValueStore; cityPhotos?: ReturnType<typeof fakeCityPhotos> } = {},
+  opts: {
+    store?: KeyValueStore;
+    cityPhotos?: ReturnType<typeof fakeCityPhotos>;
+    onChangePhoto?: () => void;
+  } = {},
 ) {
   const cityPhotos = opts.cityPhotos ?? fakeCityPhotos();
   const store = opts.store ?? memoryStore();
-  render(<CityBanner state={state} />, { wrapper: withServices({ cityPhotos, store }) });
+  render(<CityBanner state={state} onChangePhoto={opts.onChangePhoto} />, {
+    wrapper: withServices({ cityPhotos, store }),
+  });
   return { cityPhotos };
 }
+
+function apply(state: TripState, command: Command): TripState {
+  const r = command(state);
+  if (!r.ok) throw new Error('fixture');
+  return r.state;
+}
+
+const bannerImage = async () => {
+  const banner = await screen.findByTestId('city-banner');
+  await waitFor(() => expect(banner.querySelector('img')).not.toBeNull());
+  return banner.querySelector('img')!;
+};
 
 // 12 days before the trip starts, in the trip's own time zone.
 beforeEach(() => {
@@ -40,6 +67,31 @@ beforeEach(() => {
   vi.setSystemTime(new Date('2027-03-29T12:00:00Z'));
 });
 afterEach(() => vi.useRealTimers());
+
+describe('CityBanner photo choice (separate from the trip card)', () => {
+  it('ignores the card cover and shows the automatic photo', async () => {
+    setup(apply(stateOf(true), setTripCoverPhoto('Kyoto_B.jpg')));
+    expect(await bannerImage()).toHaveAttribute('src', 'https://photos.test/city/Kyoto_A.jpg');
+  });
+
+  it('shows its own chosen banner photo', async () => {
+    const state = apply(
+      apply(stateOf(true), setTripCoverPhoto('Kyoto_B.jpg')),
+      setTripBannerPhoto('Kyoto_C.jpg'),
+    );
+    setup(state);
+    expect(await bannerImage()).toHaveAttribute('src', 'https://photos.test/city/Kyoto_C.jpg');
+  });
+
+  it('has a "Change banner photo" button', async () => {
+    vi.useRealTimers();
+    const onChangePhoto = vi.fn();
+    setup(stateOf(true), { onChangePhoto });
+    await bannerImage();
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Change banner photo' }));
+    expect(onChangePhoto).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('CityBanner', () => {
   it('shows the photo, city, progress text and credit for a located trip', async () => {
@@ -58,9 +110,9 @@ describe('CityBanner', () => {
     );
   });
 
-  it('uses the trip cover photo when one was chosen', async () => {
+  it('uses the banner photo when one was chosen', async () => {
     const state = stateOf(true);
-    setup({ ...state, trip: { ...state.trip, coverPhoto: 'Kyoto_B.jpg' } });
+    setup({ ...state, trip: { ...state.trip, bannerPhoto: 'Kyoto_B.jpg' } });
     const banner = await screen.findByTestId('city-banner');
     await waitFor(() => expect(banner.querySelector('img')).not.toBeNull());
     expect(banner.querySelector('img')).toHaveAttribute(

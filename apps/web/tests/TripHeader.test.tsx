@@ -19,7 +19,9 @@ function memoryStore(initial: Record<string, string> = {}) {
   return { store, map };
 }
 
-function setup(opts: { hidden?: boolean; locationName?: string | null } = {}) {
+function setup(
+  opts: { hidden?: boolean; locationName?: string | null; onChangeBannerPhoto?: () => void } = {},
+) {
   const { store, map } = memoryStore(opts.hidden ? { [KEY]: '1' } : {});
   const Wrapper = withServices({ store });
   render(
@@ -36,6 +38,7 @@ function setup(opts: { hidden?: boolean; locationName?: string | null } = {}) {
           onEditDates={vi.fn()}
           onEditLocation={vi.fn()}
           onOpenSettings={vi.fn()}
+          onChangeBannerPhoto={opts.onChangeBannerPhoto ?? vi.fn()}
         />
       </TooltipProvider>
     </MemoryRouter>,
@@ -68,5 +71,22 @@ describe('TripHeader banner toggle', () => {
     await openMenu(user);
     expect(await screen.findByRole('menuitem', { name: 'Trip settings' })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: /city banner/ })).toBeNull();
+  });
+});
+
+describe('TripHeader banner photo', () => {
+  it('offers "Change banner photo" for a located trip with the banner shown', async () => {
+    const onChangeBannerPhoto = vi.fn();
+    const { user } = setup({ onChangeBannerPhoto });
+    await openMenu(user);
+    await user.click(await screen.findByRole('menuitem', { name: 'Change banner photo' }));
+    expect(onChangeBannerPhoto).toHaveBeenCalledTimes(1);
+  });
+
+  it('is not offered when the banner is hidden or the trip has no location', async () => {
+    const hidden = setup({ hidden: true });
+    await openMenu(hidden.user);
+    await screen.findByRole('menuitem', { name: 'Show city banner' });
+    expect(screen.queryByRole('menuitem', { name: 'Change banner photo' })).toBeNull();
   });
 });

@@ -6,7 +6,9 @@ import { cityPhoto, fakeCityPhotos, withServices } from './setup';
 
 const seven = [...'ABCDEFG'].map((l) => cityPhoto(`Kyoto_${l}.jpg`, `Author ${l}`));
 
-function setup(opts: { current?: string | null; fail?: boolean; photos?: typeof seven } = {}) {
+function setup(
+  opts: { current?: string | null; fail?: boolean; photos?: typeof seven; title?: string } = {},
+) {
   const cityPhotos = fakeCityPhotos({ photos: opts.photos ?? seven, fail: opts.fail });
   const onPick = vi.fn();
   const onClose = vi.fn();
@@ -14,6 +16,7 @@ function setup(opts: { current?: string | null; fail?: boolean; photos?: typeof 
     <CoverPhotoPicker
       cityName="Kyoto, Japan"
       current={opts.current ?? null}
+      title={opts.title}
       onPick={onPick}
       onClose={onClose}
     />,
@@ -76,5 +79,15 @@ describe('CoverPhotoPicker', () => {
   it('says so when the city has no other photos', async () => {
     setup({ photos: [] });
     await waitFor(() => expect(screen.getByText('No photos found')).toBeInTheDocument());
+  });
+});
+
+describe('CoverPhotoPicker for the banner', () => {
+  it('takes its own title and marks the automatic (first) photo when nothing is chosen', async () => {
+    setup({ title: 'Change banner photo', current: null });
+    expect(screen.getByRole('dialog', { name: 'Change banner photo' })).toBeInTheDocument();
+    const buttons = await screen.findAllByRole('button', { name: /^Photo \d by/ });
+    expect(buttons[0]).toHaveAttribute('aria-pressed', 'true');
+    expect(buttons[1]).toHaveAttribute('aria-pressed', 'false');
   });
 });
