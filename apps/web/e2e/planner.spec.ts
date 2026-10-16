@@ -119,7 +119,9 @@ test('quickstart 9 and 11: travel window greys cells; shrinking warns', async ({
   await page.getByLabel('Arrival block').selectOption({ label: 'Lunch' });
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('Arrive · Lunch')).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Outside travel window' }).first()).toBeVisible();
+  await expect(
+    page.getByRole('img', { name: 'Outside travel window (before arrival)' }).first(),
+  ).toBeVisible();
 
   await goToDay(page, 3);
   await page.getByRole('button', { name: 'Add event to Morning on 2027-05-03' }).click();

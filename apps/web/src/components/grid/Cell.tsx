@@ -5,7 +5,7 @@ import {
   addTypedPlacement,
   cell,
   isFoodPlace,
-  isGreyed,
+  greyedSide,
   placeItem,
   suggestItems,
   suggestNear,
@@ -20,7 +20,7 @@ import { cellDropId, placementDragId, useDragOverId } from './dndIds';
 import { WeatherIcon } from '../weather/WeatherIcon';
 import { CellListPopover } from './CellListPopover';
 import { PlacementChip, type Dispatch } from './PlacementChip';
-import { PlaneTakeoff, Icon, Plus } from '../ui/Icon';
+import { PlaneLanding, PlaneTakeoff, Icon, Plus } from '../ui/Icon';
 import { visibleChips } from '../../lib/cellOverflow';
 import { usePlaceSuggestions } from '../../state/usePlaceSuggestions';
 import styles from './Cell.module.css';
@@ -47,7 +47,8 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
   const listId = useId();
   const label = `Add event to ${blockName} on ${date}`;
   // Outside the travel window: nothing new goes in (events already here stay and can move out).
-  const greyed = isGreyed(state, date, blockId);
+  const side = greyedSide(state, date, blockId);
+  const greyed = side !== null;
   const { setNodeRef } = useDroppable({ id: cellDropId(date, blockId), disabled: greyed });
   const overId = useDragOverId();
   const overCell = overId === cellDropId(date, blockId);
@@ -142,8 +143,17 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
         </span>
       ) : null}
       {greyed ? (
-        <span className={styles.travelNote} role="img" aria-label="Outside travel window">
-          <Icon as={PlaneTakeoff} size="small" />
+        <span
+          className={styles.travelNote}
+          role="img"
+          aria-label={
+            side === 'before-arrival'
+              ? 'Outside travel window (before arrival)'
+              : 'Outside travel window (after departure)'
+          }
+        >
+          {/* Landing before the day's arrival, take-off after its departure (as in the day header). */}
+          <Icon as={side === 'before-arrival' ? PlaneLanding : PlaneTakeoff} size="small" />
         </span>
       ) : null}
       <SortableContext

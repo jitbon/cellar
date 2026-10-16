@@ -148,7 +148,9 @@ test.describe('drag (desktop)', () => {
     await page.reload();
 
     const greyed = cellOf(page, '2027-04-02', 'Morning');
-    await expect(greyed.getByRole('img', { name: 'Outside travel window' })).toBeVisible();
+    await expect(
+      greyed.getByRole('img', { name: 'Outside travel window (before arrival)' }),
+    ).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Add event to Morning on 2027-04-02' }),
     ).toHaveCount(0);

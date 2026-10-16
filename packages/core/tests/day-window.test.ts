@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { setDayWindow } from '../src/commands/daySetting';
-import { isGreyed } from '../src/queries/greyed';
+import { greyedSide, isGreyed } from '../src/queries/greyed';
 import { blockIdByName, expectOk, newTripState } from './fixtures';
 
 describe('setDayWindow', () => {
@@ -97,5 +97,22 @@ describe('isGreyed', () => {
     const s = expectOk(setDayWindow('2027-04-04', null, blockIdByName(s0, 'Afternoon'))(s0)).state;
     expect(isGreyed(s, '2027-04-04', blockIdByName(s, 'Morning'))).toBe(false);
     expect(isGreyed(s, '2027-04-04', blockIdByName(s, 'Dinner'))).toBe(true);
+  });
+});
+
+describe('greyedSide', () => {
+  it('says whether a greyed cell is before arrival or after departure', () => {
+    const s0 = newTripState();
+    const s = expectOk(
+      setDayWindow('2027-04-02', blockIdByName(s0, 'Lunch'), blockIdByName(s0, 'Afternoon'))(s0),
+    ).state;
+    const side = (name: string, date = '2027-04-02') => greyedSide(s, date, blockIdByName(s, name));
+    expect(side('Morning')).toBe('before-arrival');
+    expect(side('Late morning')).toBe('before-arrival');
+    expect(side('Lunch')).toBeNull();
+    expect(side('Afternoon')).toBeNull();
+    expect(side('Dinner')).toBe('after-departure');
+    expect(side('Night')).toBe('after-departure');
+    expect(side('Morning', '2027-04-03')).toBeNull();
   });
 });

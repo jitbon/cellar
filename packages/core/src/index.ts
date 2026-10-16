@@ -55,7 +55,7 @@ export { placeFields, placeOf } from './places/fields';
 export { isFoodPlace } from './places/food';
 export { popularToPlace } from './places/popular';
 export { mapLinks, orderMapApps } from './places/mapLinks';
-export { isGreyed } from './queries/greyed';
+export { greyedSide, isGreyed, type GreyedSide } from './queries/greyed';
 export { days } from './queries/days';
 export { cell, orderedBlocks } from './queries/cell';
 export { History } from './history';

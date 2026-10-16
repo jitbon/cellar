@@ -223,6 +223,28 @@ describe('a greyed cell (outside the travel window)', () => {
     );
     expect(screen.queryByRole('button', { name: /add event to afternoon/i })).toBeNull();
     expect(screen.getByText('Late walk')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Outside travel window' })).toBeInTheDocument();
+    const note = screen.getByRole('img', { name: 'Outside travel window (after departure)' });
+    expect(note.querySelector('.lucide-plane-takeoff')).not.toBeNull();
+  });
+
+  it('shows the landing plane on cells before arrival', () => {
+    const lunch = initial.blocks.find((b) => b.name === 'Lunch')!;
+    const r = setDayWindow(DATE, lunch.id, null)(initial);
+    if (!r.ok) throw new Error('fixture');
+    const morning = initial.blocks.find((b) => b.name === 'Morning')!;
+    render(
+      <TooltipProvider>
+        <Cell
+          state={r.state}
+          date={DATE}
+          blockId={morning.id}
+          blockName="Morning"
+          dispatch={() => ({ ok: false, error: { code: 'X', message: 'x' } }) as never}
+        />
+      </TooltipProvider>,
+    );
+    const note = screen.getByRole('img', { name: 'Outside travel window (before arrival)' });
+    expect(note.querySelector('.lucide-plane-landing')).not.toBeNull();
+    expect(note.querySelector('.lucide-plane-takeoff')).toBeNull();
   });
 });
