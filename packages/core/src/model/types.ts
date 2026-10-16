@@ -39,6 +39,27 @@ export interface PlaceSuggestion {
   types: string[];
 }
 
+/** A place suggested for a city. Transient: kept in session memory only, never stored. */
+export interface PopularPlace {
+  placeId: string;
+  name: string;
+  /** Human-readable type, e.g. "Art museum"; may be empty. */
+  kind: string;
+  address: string;
+  lat: number;
+  lon: number;
+  types: string[];
+  rating: number | null;
+  ratingCount: number | null;
+}
+
+export interface PopularList {
+  city: Location;
+  todo: PopularPlace[];
+  food: PopularPlace[];
+  fetchedAt: string;
+}
+
 export type MapApp = 'google' | 'apple' | 'waze';
 
 export interface Trip extends LocationFields {

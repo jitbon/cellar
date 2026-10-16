@@ -43,6 +43,7 @@ export { temperatureUnit, formatTemp, type TemperatureUnit } from './weather/uni
 export { createForecastCache, type ForecastCache } from './weather/cache';
 export { placeFields, placeOf } from './places/fields';
 export { isFoodPlace } from './places/food';
+export { popularToPlace } from './places/popular';
 export { mapLinks, orderMapApps } from './places/mapLinks';
 export { isGreyed } from './queries/greyed';
 export { days } from './queries/days';

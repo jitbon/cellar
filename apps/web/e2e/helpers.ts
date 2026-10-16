@@ -93,7 +93,7 @@ export async function mockOpenMeteo(page: Page, mode: 'ok' | 'fail'): Promise<vo
 }
 
 export interface PlacesRequest {
-  action: 'suggest' | 'details';
+  action: 'suggest' | 'details' | 'popular';
   [key: string]: unknown;
 }
 
@@ -120,6 +120,8 @@ export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<Place
         : input.includes('zzzxqq')
           ? 'places-suggest-empty.json'
           : 'places-suggest-chelsea.json';
+    } else if (body.action === 'popular') {
+      file = body.group === 'food' ? 'places-popular-food.json' : 'places-popular-todo.json';
     } else {
       file =
         body.placeId === 'test-tacos' ? 'places-details-tacos.json' : 'places-details-chelsea.json';

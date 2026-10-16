@@ -1,7 +1,14 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
-import type { Place, PlaceSearch, PlaceSuggestion } from '@cellar/core';
+import type {
+  Location,
+  Place,
+  PlaceSearch,
+  PlaceSuggestion,
+  PopularList,
+  PopularPlace,
+} from '@cellar/core';
 import { afterEach, vi } from 'vitest';
 import { ServicesProvider, type Services } from '../src/state/services';
 
@@ -65,16 +72,70 @@ export const chelseaPlace: Place = {
   category: 'market',
 };
 
+export const popularPlace = (
+  placeId: string,
+  name: string,
+  types: string[],
+  kind = 'Museum',
+): PopularPlace => ({
+  placeId,
+  name,
+  kind,
+  address: '1000 5th Ave, New York',
+  lat: 40.7794,
+  lon: -73.9632,
+  types,
+  rating: 4.8,
+  ratingCount: 104512,
+});
+
+export const metPopular = popularPlace('test-met', 'The Metropolitan Museum of Art', [
+  'art_museum',
+  'museum',
+]);
+export const katzPopular = popularPlace(
+  'test-katz',
+  "Katz's Delicatessen",
+  ['deli', 'restaurant', 'food'],
+  'Deli',
+);
+
+/** Two things to do and two food places, for whichever city is asked. */
+export const defaultPopular = (city: Location): PopularList => ({
+  city,
+  todo: [metPopular, popularPlace('test-park', 'Central Park', ['park'], 'Park')],
+  food: [katzPopular, popularPlace('test-pizza', "Joe's Pizza", ['pizza_restaurant'], 'Pizza')],
+  fetchedAt: '2027-03-01T10:42:00.000Z',
+});
+
 /** A fake PlaceSearch; returns no suggestions unless a test passes some. */
 export function fakePlaceSearch(
   opts: {
     suggestions?: PlaceSuggestion[];
     place?: Place;
     fail?: boolean;
+    /** What `popular` resolves with (default: two todo and two food places). */
+    popular?: (city: Location) => PopularList;
+    /** Makes `popular` reject. */
+    popularFail?: boolean;
   } = {},
-): PlaceSearch & { suggest: ReturnType<typeof vi.fn>; details: ReturnType<typeof vi.fn> } {
-  const { suggestions = [], place = chelseaPlace, fail = false } = opts;
+): PlaceSearch & {
+  suggest: ReturnType<typeof vi.fn>;
+  details: ReturnType<typeof vi.fn>;
+  popular: ReturnType<typeof vi.fn>;
+} {
+  const {
+    suggestions = [],
+    place = chelseaPlace,
+    fail = false,
+    popular = defaultPopular,
+    popularFail = false,
+  } = opts;
   return {
+    popular: vi.fn(async (city: Location) => {
+      if (popularFail) throw new Error('unavailable');
+      return popular(city);
+    }),
     suggest: vi.fn(async () => {
       if (fail) throw new Error('unavailable');
       return suggestions;

@@ -225,3 +225,153 @@ describe('handlePlaces errors', () => {
     expect(none.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
+
+const FIELD_MASK =
+  'places.id,places.displayName,places.shortFormattedAddress,places.location,places.types,places.primaryType,places.primaryTypeDisplayName,places.rating,places.userRatingCount';
+
+const popularBody = { action: 'popular', city: 'New York, USA', near: { lat: 40.7, lon: -74 } };
+
+const googlePlace = (id: string, extra: Record<string, unknown> = {}) => ({
+  id,
+  displayName: { text: `Place ${id}` },
+  shortFormattedAddress: `${id} Main St`,
+  location: { latitude: 40.1, longitude: -73.9 },
+  types: ['museum'],
+  primaryTypeDisplayName: { text: 'Museum' },
+  rating: 4.6,
+  userRatingCount: 1234,
+  ...extra,
+});
+
+describe('handlePlaces popular', () => {
+  it('posts a shaped text search for things to do and sends nothing else from the caller', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ places: [] }));
+    const res = await handlePlaces(
+      post({ ...popularBody, group: 'todo', trip: 'Secret trip name' }),
+      env,
+      fetchFn,
+    );
+    expect(res.status).toBe(200);
+    const [url, init] = fetchFn.mock.calls[0];
+    expect(url).toBe('https://places.googleapis.com/v1/places:searchText');
+    expect(init.method).toBe('POST');
+    expect(init.headers['X-Goog-Api-Key']).toBe('test-key');
+    expect(init.headers['X-Goog-FieldMask']).toBe(FIELD_MASK);
+    expect(JSON.parse(init.body)).toEqual({
+      textQuery: 'top tourist attractions in New York, USA',
+      locationBias: { circle: { center: { latitude: 40.7, longitude: -74 }, radius: 15000 } },
+      pageSize: 20,
+      rankPreference: 'RELEVANCE',
+    });
+  });
+
+  it('asks for the best restaurants for the food group', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ places: [] }));
+    await handlePlaces(post({ ...popularBody, group: 'food' }), env, fetchFn);
+    expect(JSON.parse(fetchFn.mock.calls[0][1].body).textQuery).toBe(
+      'best restaurants in New York, USA',
+    );
+  });
+
+  it('maps places, defaulting missing optional fields', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse({
+        places: [
+          googlePlace('p1'),
+          googlePlace('p2', {
+            shortFormattedAddress: undefined,
+            primaryTypeDisplayName: undefined,
+            types: undefined,
+            rating: undefined,
+            userRatingCount: undefined,
+          }),
+        ],
+      }),
+    );
+    const res = await handlePlaces(post({ ...popularBody, group: 'todo' }), env, fetchFn);
+    expect(await res.json()).toEqual({
+      places: [
+        {
+          placeId: 'p1',
+          name: 'Place p1',
+          kind: 'Museum',
+          address: 'p1 Main St',
+          lat: 40.1,
+          lon: -73.9,
+          types: ['museum'],
+          rating: 4.6,
+          ratingCount: 1234,
+        },
+        {
+          placeId: 'p2',
+          name: 'Place p2',
+          kind: '',
+          address: '',
+          lat: 40.1,
+          lon: -73.9,
+          types: [],
+          rating: null,
+          ratingCount: null,
+        },
+      ],
+    });
+  });
+
+  it('drops places missing an id, a name or a location and caps at 20', async () => {
+    const many = Array.from({ length: 25 }, (_, i) => googlePlace(`m${i}`));
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse({
+        places: [
+          googlePlace('x', { id: undefined }),
+          googlePlace('nn', { displayName: undefined }),
+          googlePlace('nl', { location: undefined }),
+          ...many,
+        ],
+      }),
+    );
+    const res = await handlePlaces(post({ ...popularBody, group: 'todo' }), env, fetchFn);
+    const body = await res.json();
+    expect(body.places).toHaveLength(20);
+    expect(body.places[0].placeId).toBe('m0');
+  });
+
+  it('returns an empty list when Google has no places key', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}));
+    const res = await handlePlaces(post({ ...popularBody, group: 'food' }), env, fetchFn);
+    expect(await res.json()).toEqual({ places: [] });
+  });
+
+  it('answers 400 for invalid requests without calling Google', async () => {
+    for (const body of [
+      { ...popularBody, group: 'todo', city: '' },
+      { ...popularBody, group: 'todo', city: 'x'.repeat(121) },
+      { ...popularBody, group: 'todo', city: 42 },
+      { action: 'popular', city: 'New York', group: 'todo' },
+      { ...popularBody, group: 'todo', near: { lat: 100, lon: 0 } },
+      { ...popularBody, group: 'todo', near: { lat: 'x', lon: 0 } },
+      { ...popularBody },
+      { ...popularBody, group: 'bars' },
+    ]) {
+      const fetchFn = vi.fn();
+      const res = await handlePlaces(post(body), env, fetchFn);
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: 'bad_request' });
+      expect(fetchFn).not.toHaveBeenCalled();
+    }
+  });
+
+  it('answers 503 without a key, on a Google error and when fetch rejects', async () => {
+    const body = { ...popularBody, group: 'todo' };
+    const noKey = await handlePlaces(post(body), {}, vi.fn());
+    expect(noKey.status).toBe(503);
+    const non2xx = await handlePlaces(
+      post(body),
+      env,
+      vi.fn().mockResolvedValue(jsonResponse({}, 429)),
+    );
+    expect(non2xx.status).toBe(503);
+    const rejected = await handlePlaces(post(body), env, vi.fn().mockRejectedValue(new Error('x')));
+    expect(rejected.status).toBe(503);
+    expect(await rejected.json()).toEqual({ error: 'unavailable' });
+  });
+});

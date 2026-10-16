@@ -1,0 +1,37 @@
+{
+  "places": [
+    {
+      "placeId": "test-met",
+      "name": "The Metropolitan Museum of Art",
+      "kind": "Art museum",
+      "address": "1000 5th Ave, New York",
+      "lat": 40.7794,
+      "lon": -73.9632,
+      "types": ["art_museum", "museum", "tourist_attraction"],
+      "rating": 4.8,
+      "ratingCount": 104512
+    },
+    {
+      "placeId": "test-park",
+      "name": "Central Park",
+      "kind": "Park",
+      "address": "New York, NY",
+      "lat": 40.7829,
+      "lon": -73.9654,
+      "types": ["park", "tourist_attraction"],
+      "rating": 4.8,
+      "ratingCount": 270000
+    },
+    {
+      "placeId": "test-esb",
+      "name": "Empire State Building",
+      "kind": "Landmark",
+      "address": "20 W 34th St, New York",
+      "lat": 40.7484,
+      "lon": -73.9857,
+      "types": ["tourist_attraction"],
+      "rating": 4.7,
+      "ratingCount": 120000
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 import type { Change } from './commands/command';
-import type { Forecast, Location, Place, PlaceSuggestion, Trip, TripState } from './model/types';
+import type {
+  Forecast,
+  Location,
+  Place,
+  PlaceSuggestion,
+  PopularList,
+  Trip,
+  TripState,
+} from './model/types';
 
 export interface TripRepository {
   listTrips(): Promise<Trip[]>;
@@ -43,6 +51,8 @@ export interface PlaceSearch {
   ): Promise<PlaceSuggestion[]>;
   /** Resolves a picked suggestion to a full Place. Ends the session. Rejects on failure. */
   details(suggestion: PlaceSuggestion, sessionToken: string): Promise<Place>;
+  /** Up to 20 per group for the city; places in both groups appear once. Rejects on failure. */
+  popular(city: Location): Promise<PopularList>;
 }
 
 export interface KeyValueStore {

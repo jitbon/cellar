@@ -1,0 +1,37 @@
+{
+  "places": [
+    {
+      "placeId": "test-katz",
+      "name": "Katz's Delicatessen",
+      "kind": "Deli",
+      "address": "205 E Houston St, New York",
+      "lat": 40.7223,
+      "lon": -73.9874,
+      "types": ["deli", "restaurant", "food"],
+      "rating": 4.5,
+      "ratingCount": 40211
+    },
+    {
+      "placeId": "test-joes",
+      "name": "Joe's Pizza",
+      "kind": "Pizza restaurant",
+      "address": "7 Carmine St, New York",
+      "lat": 40.7306,
+      "lon": -74.0021,
+      "types": ["pizza_restaurant", "restaurant", "food"],
+      "rating": 4.5,
+      "ratingCount": 15000
+    },
+    {
+      "placeId": "test-tacos",
+      "name": "Los Tacos No. 1",
+      "kind": "Mexican restaurant",
+      "address": "75 9th Ave, New York",
+      "lat": 40.7441,
+      "lon": -74.0063,
+      "types": ["mexican_restaurant", "restaurant", "food"],
+      "rating": 4.6,
+      "ratingCount": 12000
+    }
+  ]
+}
