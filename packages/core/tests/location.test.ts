@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { setTripLocation } from '../src/commands/location';
+import { setTripCoverPhoto } from '../src/commands/trip';
 import { History } from '../src/history';
 import type { DaySetting, Location } from '../src/model/types';
 import {
@@ -53,6 +54,42 @@ describe('setTripLocation', () => {
     expect(tripLocation(h.state)).toEqual(kyoto);
     h.undo();
     expect(tripLocation(h.state)).toBeNull();
+  });
+});
+
+describe('setTripLocation and the cover photo', () => {
+  const chosen = () =>
+    expectOk(
+      setTripCoverPhoto('Kyoto_B.jpg')(expectOk(setTripLocation(kyoto)(newTripState())).state),
+    ).state;
+
+  it('clears a chosen cover when the location changes, in the same change', () => {
+    const r = expectOk(setTripLocation(osaka)(chosen()));
+    expect(r.state.trip.coverPhoto).toBeNull();
+    expect(r.changes).toEqual([
+      expect.objectContaining({
+        table: 'trips',
+        row: expect.objectContaining({ coverPhoto: null }),
+      }),
+    ]);
+  });
+
+  it('clears it when the location is removed', () => {
+    expect(expectOk(setTripLocation(null)(chosen())).state.trip.coverPhoto).toBeNull();
+  });
+
+  it('keeps it when the same location is set again', () => {
+    expect(expectOk(setTripLocation({ ...kyoto })(chosen())).state.trip.coverPhoto).toBe(
+      'Kyoto_B.jpg',
+    );
+  });
+
+  it('undo brings the cover back with the old location', () => {
+    const h = new History(chosen());
+    h.apply(setTripLocation(osaka));
+    h.undo();
+    expect(h.state.trip.coverPhoto).toBe('Kyoto_B.jpg');
+    expect(tripLocation(h.state)).toEqual(kyoto);
   });
 });
 

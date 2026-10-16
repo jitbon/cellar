@@ -5,7 +5,13 @@ export * from './model/ids';
 export * from './model/ordering';
 export * from './commands/command';
 export * from './ports';
-export { createTrip, renameTrip, updateTripDates, DEFAULT_BLOCK_NAMES } from './commands/trip';
+export {
+  createTrip,
+  renameTrip,
+  setTripCoverPhoto,
+  updateTripDates,
+  DEFAULT_BLOCK_NAMES,
+} from './commands/trip';
 export {
   addTypedPlacement,
   updatePlacement,
@@ -26,6 +32,7 @@ export {
   setBlockMeal,
   impactOfRemoveBlock,
 } from './commands/block';
+export { tripToday, tripStatus, tripStatusLabel } from './queries/status';
 export { isMealBlock, isMealName } from './queries/meal';
 export { setDayWindow } from './commands/daySetting';
 export { setTripLocation, setDayLocation } from './commands/location';

@@ -1,16 +1,27 @@
 import { validationError } from '../model/errors';
 import type { DaySetting, ISODate, Location } from '../model/types';
 import { validateLocation } from '../model/validation';
-import { locationFields, locationOf } from '../queries/location';
+import { locationFields, locationOf, tripLocation } from '../queries/location';
+import { locationKey } from '../weather/status';
 import type { Command } from './command';
 import { commit } from './diff';
 
-/** Sets (or, with null, clears) the trip location. */
+const keyOf = (l: Location | null) => (l ? locationKey(l) : null);
+
+/**
+ * Sets (or, with null, clears) the trip location. A different location drops the chosen cover
+ * photo, since it belonged to the old city.
+ */
 export function setTripLocation(location: Location | null): Command {
   return (state) => {
     const error = location ? validateLocation(location) : null;
     if (error) return { ok: false, error };
-    return commit(state, { ...state, trip: { ...state.trip, ...locationFields(location) } });
+    const moved = keyOf(location) !== keyOf(tripLocation(state));
+    const coverPhoto = moved ? null : state.trip.coverPhoto;
+    return commit(state, {
+      ...state,
+      trip: { ...state.trip, ...locationFields(location), coverPhoto },
+    });
   };
 }
 

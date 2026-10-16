@@ -7,6 +7,7 @@ export type ValidationCode =
   | 'DATE_OUT_OF_RANGE'
   | 'INVALID_LINK'
   | 'INVALID_LOCATION'
+  | 'INVALID_COVER_PHOTO'
   | 'INVALID_PLACE'
   | 'INVALID_WINDOW'
   | 'NOT_FOUND';

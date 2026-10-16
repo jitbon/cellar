@@ -88,6 +88,13 @@ export function validatePlace(place: Place | null): ValidationError | null {
   return valid ? null : validationError('INVALID_PLACE', 'That place is not valid.');
 }
 
+/** A Commons file name: 1-300 characters (matches the trips.cover_photo check). */
+export function validateCoverPhoto(file: string): ValidationError | null {
+  return file.length >= 1 && file.length <= 300
+    ? null
+    : validationError('INVALID_COVER_PHOTO', 'That cover photo is not valid.');
+}
+
 export function validateWindow(win: TimeWindow): ValidationError | null {
   const inDay = (m: number) => Number.isInteger(m) && m >= 0 && m <= 1439;
   if (!inDay(win.startMin) || !inDay(win.endMin) || win.startMin === win.endMin) {

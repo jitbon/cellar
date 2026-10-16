@@ -19,6 +19,7 @@ export {
   TriangleAlert,
   Flag,
   GripVertical,
+  ImageOff,
   MapPin,
   MoreHorizontal,
   PanelRight,

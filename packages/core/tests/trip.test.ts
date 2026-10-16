@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createTrip, renameTrip } from '../src/commands/trip';
+import { createTrip, renameTrip, setTripCoverPhoto } from '../src/commands/trip';
 import { cell } from '../src/queries/cell';
 import { expectOk, newTripState } from './fixtures';
 
@@ -89,6 +89,41 @@ describe('renameTrip', () => {
     const r = renameTrip(' ')(newTripState());
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error.code).toBe('EMPTY_NAME');
+  });
+});
+
+describe('setTripCoverPhoto', () => {
+  it('starts with no chosen cover', () => {
+    expect(newTripState().trip.coverPhoto).toBeNull();
+  });
+
+  it('sets the cover with one trips upsert, and undo restores null', () => {
+    const state = newTripState();
+    const r = expectOk(setTripCoverPhoto('Kyoto_B.jpg')(state));
+    expect(r.state.trip.coverPhoto).toBe('Kyoto_B.jpg');
+    expect(r.changes).toHaveLength(1);
+    expect(r.changes[0]).toMatchObject({
+      table: 'trips',
+      op: 'upsert',
+      row: { id: state.trip.id, coverPhoto: 'Kyoto_B.jpg' },
+    });
+    const back = expectOk(r.inverse(r.state));
+    expect(back.state.trip.coverPhoto).toBeNull();
+  });
+
+  it('clears the cover with null', () => {
+    const chosen = expectOk(setTripCoverPhoto('Kyoto_B.jpg')(newTripState())).state;
+    const r = expectOk(setTripCoverPhoto(null)(chosen));
+    expect(r.state.trip.coverPhoto).toBeNull();
+  });
+
+  it('rejects an empty name and one over 300 characters, accepts exactly 300', () => {
+    for (const bad of ['', 'x'.repeat(301)]) {
+      const r = setTripCoverPhoto(bad)(newTripState());
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.error.code).toBe('INVALID_COVER_PHOTO');
+    }
+    expect(setTripCoverPhoto('x'.repeat(300))(newTripState()).ok).toBe(true);
   });
 });
 

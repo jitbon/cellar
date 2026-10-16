@@ -2,7 +2,12 @@ import { newId, positionBetween } from '../model/ids';
 import type { Block, ISODate, Location, TripState } from '../model/types';
 import { locationFields } from '../queries/location';
 import { DEFAULT_BLOCK_WINDOWS } from '../queries/window';
-import { validateDateRange, validateLocation, validateTripName } from '../model/validation';
+import {
+  validateCoverPhoto,
+  validateDateRange,
+  validateLocation,
+  validateTripName,
+} from '../model/validation';
 import type { Command, Ok, Result } from './command';
 import { commit } from './diff';
 
@@ -89,6 +94,15 @@ export function renameTrip(name: string): Command {
     const error = validateTripName(name);
     if (error) return { ok: false, error };
     return commit(state, { ...state, trip: { ...state.trip, name: name.trim() } });
+  };
+}
+
+/** Sets the trip's cover photo (a Commons file name); null returns to the automatic photo. */
+export function setTripCoverPhoto(file: string | null): Command {
+  return (state) => {
+    const error = file === null ? null : validateCoverPhoto(file);
+    if (error) return { ok: false, error };
+    return commit(state, { ...state, trip: { ...state.trip, coverPhoto: file } });
   };
 }
 
