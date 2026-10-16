@@ -26,6 +26,9 @@ quick-adding events."
   the line shows everything again.
 - Q: How should the two Popular groups be laid out? → A: As two sub-tabs, "THINGS TO DO" on the
   left and "FOOD" on the right, showing one group at a time (Things to do first).
+- Q: How is the city chosen, given the traveler may not stay in one city all day? → A: A city
+  search: Popular starts on the trip's city, "Change" opens a search for any city, with the
+  trip's other cities offered as quick picks. Trips without a location can search directly.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -145,8 +148,9 @@ list as an Activity and the line clears, ready for the next one.
   city, each with name, kind, short address, rating and review count, ordered by popularity, as
   two sub-tabs ("THINGS TO DO" left, "FOOD" right; one group visible at a time, Things to do
   first, arrow keys switch).
-- **FR-003**: The selected city MUST default to the trip location; when days have location
-  overrides, the traveler MUST be able to switch among the trip's distinct cities.
+- **FR-003**: The selected city MUST default to the trip location. The traveler MUST be able to
+  search for any city (not only the trip's), with the trip's other cities offered as quick
+  picks; a trip without a location MUST offer the search too. The choice lasts for the session.
 - **FR-004**: Popular cards MUST be draggable onto schedule cells, creating an event linked to
   the place (name, address, coordinates as in feature 004), typed Food for food places and
   Activity otherwise. Dragging MUST NOT add the place to the traveler's list.

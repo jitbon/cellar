@@ -4,6 +4,7 @@ import {
   createTrip,
   deleteAccount,
   goToDay,
+  mockOpenMeteo,
   mockPlaces,
   setDayLocationDirect,
   setItemPanel,
@@ -305,21 +306,36 @@ test.describe('US1: browse popular places and place them', () => {
     await expect(cellOf(page, '2027-04-03', 'Lunch').getByTestId('chip')).toHaveCount(0);
   });
 
-  test('quickstart 10: a trip with another city offers a selector and requests the new city', async ({
-    page,
-  }) => {
+  test('quickstart 10: change city to another trip city or any searched city', async ({ page }) => {
+    await mockOpenMeteo(page, 'ok');
     const requests = await mockPlaces(page, 'ok');
     await openPopular(page, 'NYC pop e', { days: { '2027-04-03': BOSTON } });
-    const select = list(page).getByLabel('City');
-    await expect(select).toBeVisible();
-    await expect(select.locator('option')).toHaveText([NEW_YORK.name, BOSTON.name]);
+    await expect(list(page).getByText(NEW_YORK.name, { exact: true })).toBeVisible();
     await expect(card(page, MET)).toBeVisible();
 
-    await select.selectOption({ label: BOSTON.name });
+    // A trip city from the quick picks.
+    await list(page).getByRole('button', { name: 'Change city' }).click();
+    const picks = list(page).getByRole('group', { name: 'Trip cities' });
+    await expect(picks.getByRole('button')).toHaveText([BOSTON.name]);
+    await picks.getByRole('button', { name: BOSTON.name }).click();
     await expect.poll(() => requests.filter((r) => r.city === BOSTON.name).length).toBe(2);
     for (const body of requests.filter((r) => r.city === BOSTON.name)) {
       expect(body.near).toEqual({ lat: BOSTON.lat, lon: BOSTON.lon });
     }
+
+    // Any city by search, even one the trip doesn't visit.
+    await list(page).getByRole('button', { name: 'Change city' }).click();
+    await list(page).getByRole('combobox', { name: 'Search for a city' }).fill('Kyo');
+    await page
+      .getByRole('option', { name: /^Kyoto/ })
+      .first()
+      .click();
+    await expect
+      .poll(
+        () =>
+          requests.filter((r) => r.action === 'popular' && /^Kyoto/.test(String(r.city))).length,
+      )
+      .toBe(2);
   });
 
   test('quickstart 11: a trip without a location asks for one and opens the location dialog', async ({
@@ -328,7 +344,7 @@ test.describe('US1: browse popular places and place them', () => {
     const requests = await mockPlaces(page, 'ok');
     await openPopular(page, 'NYC pop f', { located: false });
     await expect(
-      list(page).getByText('Set where this trip is to see popular places'),
+      list(page).getByText('Search for a city, or set where this trip is, to see popular places'),
     ).toBeVisible();
     await list(page).getByRole('button', { name: 'Set trip location' }).click();
     await expect(page.getByRole('dialog', { name: 'Trip location' })).toBeVisible();

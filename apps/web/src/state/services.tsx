@@ -51,6 +51,11 @@ export function useKeyValueStore(): KeyValueStore | null {
   return useContext(ServicesContext)?.store ?? null;
 }
 
+/** The city/weather lookup, or null outside a ServicesProvider. */
+export function useWeatherService(): WeatherService | null {
+  return useContext(ServicesContext)?.weather ?? null;
+}
+
 /** Current user; `loading` is true until the stored session has been read. */
 export function useAuthUser(): { user: AuthUser | null; loading: boolean } {
   const { auth, ready } = useServices();

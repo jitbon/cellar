@@ -1,8 +1,16 @@
 import { useId, useState, type KeyboardEvent } from 'react';
-import { locationKey, tripCities, type PopularPlace, type TripState } from '@cellar/core';
+import {
+  locationKey,
+  tripCities,
+  type Location,
+  type PopularPlace,
+  type TripState,
+} from '@cellar/core';
 import type { Dispatch } from '../grid/PlacementChip';
 import { Button } from '../ui/Button';
 import { PopularCard } from './PopularCard';
+import { LocationPicker } from '../weather/LocationPicker';
+import { useWeatherService } from '../../state/services';
 import { usePopularPlaces } from '../../state/usePopularPlaces';
 import styles from './PopularTab.module.css';
 
@@ -29,11 +37,20 @@ interface Props {
   onAddedToList?: (name: string) => void;
 }
 
-/** Well-known things to do and places to eat in the trip's city (or another city of the trip). */
+/**
+ * Well-known things to do and places to eat. Starts on the trip's city; the traveler can search
+ * any other city (the trip's other cities are offered as quick picks).
+ */
 export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Props) {
+  const weather = useWeatherService();
   const cities = tripCities(state);
-  const [chosenKey, setChosenKey] = useState<string | null>(null);
-  const city = cities.find((c) => locationKey(c) === chosenKey) ?? cities[0] ?? null;
+  const [chosen, setChosen] = useState<Location | null>(null);
+  const [changing, setChanging] = useState(false);
+  const city = chosen ?? cities[0] ?? null;
+  const choose = (next: Location) => {
+    setChosen(next);
+    setChanging(false);
+  };
   const { list, status } = usePopularPlaces(city);
   const [group, setGroup] = useState<Group>('todo');
   const idBase = useId();
@@ -42,8 +59,15 @@ export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Pr
   if (!city) {
     return (
       <div className={styles.tab}>
-        <p className={styles.note}>Set where this trip is to see popular places</p>
-        <Button onClick={onSetLocation}>Set trip location</Button>
+        <p className={styles.note}>
+          Search for a city, or set where this trip is, to see popular places
+        </p>
+        {weather ? (
+          <LocationPicker service={weather} onSelect={choose} label="Search for a city" />
+        ) : null}
+        <Button className={styles.setTrip} onClick={onSetLocation}>
+          Set trip location
+        </Button>
       </div>
     );
   }
@@ -58,26 +82,43 @@ export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Pr
   }
 
   const current = GROUPS.find((g) => g.id === group)!;
+  const otherCities = cities.filter((c) => locationKey(c) !== locationKey(city));
   const places: PopularPlace[] = list ? list[group] : [];
 
   return (
     <div className={styles.tab}>
-      {cities.length > 1 ? (
-        <label className={styles.city}>
-          City
-          <select
-            className={styles.select}
-            value={locationKey(city)}
-            onChange={(e) => setChosenKey(e.target.value)}
-          >
-            {cities.map((c) => (
-              <option key={locationKey(c)} value={locationKey(c)}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
+      {changing ? (
+        <div className={styles.cityChange}>
+          {weather ? (
+            <LocationPicker
+              service={weather}
+              onSelect={choose}
+              label="Search for a city"
+              autoFocus
+            />
+          ) : null}
+          {otherCities.length > 0 ? (
+            <div className={styles.quickPicks} role="group" aria-label="Trip cities">
+              {otherCities.map((c) => (
+                <Button key={locationKey(c)} onClick={() => choose(c)}>
+                  {c.name}
+                </Button>
+              ))}
+            </div>
+          ) : null}
+          <Button variant="ghost" className={styles.cancel} onClick={() => setChanging(false)}>
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <div className={styles.cityRow}>
+          <span className={styles.cityLabel}>City</span>
+          <span className={styles.cityName}>{city.name}</span>
+          <Button variant="ghost" aria-label="Change city" onClick={() => setChanging(true)}>
+            Change
+          </Button>
+        </div>
+      )}
       {status === 'loading' ? (
         <p role="status" className={styles.note}>
           Loading popular places…
