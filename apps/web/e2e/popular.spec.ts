@@ -306,30 +306,37 @@ test.describe('US1: browse popular places and place them', () => {
     await expect(cellOf(page, '2027-04-03', 'Lunch').getByTestId('chip')).toHaveCount(0);
   });
 
-  test('quickstart 10: change city to another trip city or any searched city', async ({ page }) => {
+  test('quickstart 10: the City dropdown switches trip cities and adds a searched city', async ({
+    page,
+  }) => {
     await mockOpenMeteo(page, 'ok');
     const requests = await mockPlaces(page, 'ok');
     await openPopular(page, 'NYC pop e', { days: { '2027-04-03': BOSTON } });
-    await expect(list(page).getByText(NEW_YORK.name, { exact: true })).toBeVisible();
+    const select = list(page).getByLabel('City');
+    await expect(select.locator('option')).toHaveText([
+      NEW_YORK.name,
+      BOSTON.name,
+      'Search for city…',
+    ]);
     await expect(card(page, MET)).toBeVisible();
 
-    // A trip city from the quick picks.
-    await list(page).getByRole('button', { name: 'Change city' }).click();
-    const picks = list(page).getByRole('group', { name: 'Trip cities' });
-    await expect(picks.getByRole('button')).toHaveText([BOSTON.name]);
-    await picks.getByRole('button', { name: BOSTON.name }).click();
+    await select.selectOption({ label: BOSTON.name });
     await expect.poll(() => requests.filter((r) => r.city === BOSTON.name).length).toBe(2);
     for (const body of requests.filter((r) => r.city === BOSTON.name)) {
       expect(body.near).toEqual({ lat: BOSTON.lat, lon: BOSTON.lon });
     }
 
-    // Any city by search, even one the trip doesn't visit.
-    await list(page).getByRole('button', { name: 'Change city' }).click();
-    await list(page).getByRole('combobox', { name: 'Search for a city' }).fill('Kyo');
-    await page
+    // "Search for city…" asks for any city and adds it to the dropdown.
+    await select.selectOption({ label: 'Search for city…' });
+    const dialog = page.getByRole('dialog', { name: 'Search for a city' });
+    await dialog.getByRole('combobox').fill('Kyo');
+    await dialog
       .getByRole('option', { name: /^Kyoto/ })
       .first()
       .click();
+    await expect(dialog).toBeHidden();
+    await expect(select.locator('option')).toHaveCount(4);
+    await expect(select).toHaveValue(/35\.02/);
     await expect
       .poll(
         () =>
@@ -344,7 +351,7 @@ test.describe('US1: browse popular places and place them', () => {
     const requests = await mockPlaces(page, 'ok');
     await openPopular(page, 'NYC pop f', { located: false });
     await expect(
-      list(page).getByText('Search for a city, or set where this trip is, to see popular places'),
+      list(page).getByText('Set where this trip is, or search for a city, to see popular places'),
     ).toBeVisible();
     await list(page).getByRole('button', { name: 'Set trip location' }).click();
     await expect(page.getByRole('dialog', { name: 'Trip location' })).toBeVisible();

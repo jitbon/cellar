@@ -9,8 +9,7 @@ import {
 import type { Dispatch } from '../grid/PlacementChip';
 import { Button } from '../ui/Button';
 import { PopularCard } from './PopularCard';
-import { LocationPicker } from '../weather/LocationPicker';
-import { useWeatherService } from '../../state/services';
+import { LocationDialog } from '../weather/LocationDialog';
 import { usePopularPlaces } from '../../state/usePopularPlaces';
 import styles from './PopularTab.module.css';
 
@@ -28,6 +27,31 @@ const GROUPS: { id: Group; label: string; type: 'activity' | 'food' }[] = [
   { id: 'food', label: 'Food', type: 'food' },
 ];
 
+const SEARCH = '__search__';
+
+// Cities the traveler searched for, and the current choice, per trip for this session only.
+interface CityChoice {
+  added: Location[];
+  chosenKey: string | null;
+}
+const sessionCities = new Map<string, CityChoice>();
+
+/** Test helper: forgets the session's added cities and choices. */
+export function forgetPopularCities(): void {
+  sessionCities.clear();
+}
+
+function useCityChoice(tripId: string): [CityChoice, (next: CityChoice) => void] {
+  const [choice, setChoice] = useState<CityChoice>(
+    () => sessionCities.get(tripId) ?? { added: [], chosenKey: null },
+  );
+  const update = (next: CityChoice) => {
+    sessionCities.set(tripId, next);
+    setChoice(next);
+  };
+  return [choice, update];
+}
+
 interface Props {
   state: TripState;
   dispatch: Dispatch;
@@ -38,19 +62,32 @@ interface Props {
 }
 
 /**
- * Well-known things to do and places to eat. Starts on the trip's city; the traveler can search
- * any other city (the trip's other cities are offered as quick picks).
+ * Well-known things to do and places to eat. The City dropdown lists the trip's cities, then
+ * any searched city; its last option, "Search for city…", asks for a city and adds it.
  */
 export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Props) {
-  const weather = useWeatherService();
-  const cities = tripCities(state);
-  const [chosen, setChosen] = useState<Location | null>(null);
-  const [changing, setChanging] = useState(false);
-  const city = chosen ?? cities[0] ?? null;
-  const choose = (next: Location) => {
-    setChosen(next);
-    setChanging(false);
+  const [choice, setChoice] = useCityChoice(state.trip.id);
+  const [searching, setSearching] = useState(false);
+  const cities = [...tripCities(state)];
+  for (const c of choice.added) {
+    if (!cities.some((t) => locationKey(t) === locationKey(c))) cities.push(c);
+  }
+  const city = cities.find((c) => locationKey(c) === choice.chosenKey) ?? cities[0] ?? null;
+  const addCity = (next: Location) => {
+    const known = cities.some((c) => locationKey(c) === locationKey(next));
+    setChoice({
+      added: known ? choice.added : [...choice.added, next],
+      chosenKey: locationKey(next),
+    });
   };
+  const searchDialog = searching ? (
+    <LocationDialog
+      title="Search for a city"
+      current={null}
+      onSelect={addCity}
+      onClose={() => setSearching(false)}
+    />
+  ) : null;
   const { list, status } = usePopularPlaces(city);
   const [group, setGroup] = useState<Group>('todo');
   const idBase = useId();
@@ -60,14 +97,13 @@ export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Pr
     return (
       <div className={styles.tab}>
         <p className={styles.note}>
-          Search for a city, or set where this trip is, to see popular places
+          Set where this trip is, or search for a city, to see popular places
         </p>
-        {weather ? (
-          <LocationPicker service={weather} onSelect={choose} label="Search for a city" />
-        ) : null}
-        <Button className={styles.setTrip} onClick={onSetLocation}>
-          Set trip location
-        </Button>
+        <div className={styles.noCity}>
+          <Button onClick={onSetLocation}>Set trip location</Button>
+          <Button onClick={() => setSearching(true)}>Search for a city</Button>
+        </div>
+        {searchDialog}
       </div>
     );
   }
@@ -82,43 +118,29 @@ export function PopularTab({ state, dispatch, onSetLocation, onAddedToList }: Pr
   }
 
   const current = GROUPS.find((g) => g.id === group)!;
-  const otherCities = cities.filter((c) => locationKey(c) !== locationKey(city));
   const places: PopularPlace[] = list ? list[group] : [];
 
   return (
     <div className={styles.tab}>
-      {changing ? (
-        <div className={styles.cityChange}>
-          {weather ? (
-            <LocationPicker
-              service={weather}
-              onSelect={choose}
-              label="Search for a city"
-              autoFocus
-            />
-          ) : null}
-          {otherCities.length > 0 ? (
-            <div className={styles.quickPicks} role="group" aria-label="Trip cities">
-              {otherCities.map((c) => (
-                <Button key={locationKey(c)} onClick={() => choose(c)}>
-                  {c.name}
-                </Button>
-              ))}
-            </div>
-          ) : null}
-          <Button variant="ghost" className={styles.cancel} onClick={() => setChanging(false)}>
-            Cancel
-          </Button>
-        </div>
-      ) : (
-        <div className={styles.cityRow}>
-          <span className={styles.cityLabel}>City</span>
-          <span className={styles.cityName}>{city.name}</span>
-          <Button variant="ghost" aria-label="Change city" onClick={() => setChanging(true)}>
-            Change
-          </Button>
-        </div>
-      )}
+      <label className={styles.city}>
+        City
+        <select
+          className={styles.select}
+          value={locationKey(city)}
+          onChange={(e) => {
+            if (e.target.value === SEARCH) setSearching(true);
+            else setChoice({ ...choice, chosenKey: e.target.value });
+          }}
+        >
+          {cities.map((c) => (
+            <option key={locationKey(c)} value={locationKey(c)}>
+              {c.name}
+            </option>
+          ))}
+          <option value={SEARCH}>Search for city…</option>
+        </select>
+      </label>
+      {searchDialog}
       {status === 'loading' ? (
         <p role="status" className={styles.note}>
           Loading popular places…

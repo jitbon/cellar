@@ -78,13 +78,10 @@
   font-size: var(--font-size-xs);
 }
 
-.cityRow {
+.city {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.cityLabel {
+  flex-direction: column;
+  gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -92,28 +89,20 @@
   text-transform: uppercase;
 }
 
-.cityName {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
+.select {
+  min-height: 28px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   font-size: var(--font-size-md);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
-.cityChange {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.quickPicks {
+.noCity {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.cancel,
-.setTrip {
-  align-self: flex-start;
+  gap: var(--space-3);
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   addItem,
   createTrip,
@@ -15,7 +15,7 @@ import {
   type TripState,
   type WeatherService,
 } from '@cellar/core';
-import { PopularTab } from '../src/components/list/PopularTab';
+import { forgetPopularCities, PopularTab } from '../src/components/list/PopularTab';
 import { katzPopular, metPopular, fakePlaceSearch, withServices } from './setup';
 
 const nyc: Location = { name: 'New York, USA', lat: 40.7128, lon: -74.006, tz: 'America/New_York' };
@@ -79,6 +79,8 @@ function setup(
 }
 
 describe('PopularTab', () => {
+  afterEach(() => forgetPopularCities());
+
   it('shows Things to do and Food as sub-tabs, Things to do first', async () => {
     const user = setup(located);
     const tablist = await screen.findByRole('tablist', { name: 'Popular groups' });
@@ -111,40 +113,84 @@ describe('PopularTab', () => {
     expect(todoTab).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('without a trip location, offers a city search and setting the trip location', async () => {
-    const onSetLocation = vi.fn();
-    const places = fakePlaceSearch();
-    const user = setup(created.state, places, { onSetLocation });
-    expect(
-      screen.getByText('Search for a city, or set where this trip is, to see popular places'),
-    ).toBeVisible();
-    await user.click(screen.getByRole('button', { name: 'Set trip location' }));
-    expect(onSetLocation).toHaveBeenCalledTimes(1);
-    expect(places.popular).not.toHaveBeenCalled();
+  describe('city dropdown', () => {
+    const cityOptions = () =>
+      within(screen.getByRole('combobox', { name: 'City' }))
+        .getAllByRole('option')
+        .map((o) => o.textContent);
 
-    await user.type(screen.getByRole('combobox', { name: 'Search for a city' }), 'Kyo');
-    await user.click(await screen.findByRole('option', { name: 'Kyoto, Japan' }));
-    await waitFor(() => expect(places.popular).toHaveBeenCalledWith(kyoto));
-  });
+    it('lists the trip city with "Search for city…" last', async () => {
+      setup(located);
+      await screen.findByText('The Metropolitan Museum of Art');
+      expect(cityOptions()).toEqual(['New York, USA', 'Search for city…']);
+      expect(screen.getByRole('combobox', { name: 'City' })).toHaveDisplayValue('New York, USA');
+    });
 
-  it('shows the current city and searches any other city', async () => {
-    const places = fakePlaceSearch();
-    const user = setup(located, places);
-    expect(await screen.findByText('New York, USA')).toBeVisible();
-    await user.click(screen.getByRole('button', { name: 'Change city' }));
-    await user.type(screen.getByRole('combobox', { name: 'Search for a city' }), 'Kyo');
-    await user.click(await screen.findByRole('option', { name: 'Kyoto, Japan' }));
-    await waitFor(() => expect(places.popular).toHaveBeenLastCalledWith(kyoto));
-    expect(screen.getByText('Kyoto, Japan')).toBeVisible();
-    expect(screen.queryByRole('combobox', { name: 'Search for a city' })).toBeNull();
-  });
+    it("switches between the trip's cities and requests the new one", async () => {
+      const places = fakePlaceSearch();
+      const user = setup(twoCities, places);
+      await screen.findByText('The Metropolitan Museum of Art');
+      expect(cityOptions()).toEqual(['New York, USA', 'Boston, USA', 'Search for city…']);
+      await user.selectOptions(screen.getByRole('combobox', { name: 'City' }), 'Boston, USA');
+      await waitFor(() => expect(places.popular).toHaveBeenLastCalledWith(boston));
+    });
 
-  it('can cancel a city change', async () => {
-    const user = setup(located);
-    await user.click(await screen.findByRole('button', { name: 'Change city' }));
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.queryByRole('combobox', { name: 'Search for a city' })).toBeNull();
-    expect(screen.getByText('New York, USA')).toBeVisible();
+    it('"Search for city…" asks for a city, adds it to the dropdown and selects it', async () => {
+      const places = fakePlaceSearch();
+      const user = setup(located, places);
+      await screen.findByText('The Metropolitan Museum of Art');
+      await user.selectOptions(screen.getByRole('combobox', { name: 'City' }), 'Search for city…');
+      const dialog = screen.getByRole('dialog', { name: 'Search for a city' });
+      await user.type(within(dialog).getByRole('combobox'), 'Kyo');
+      await user.click(await within(dialog).findByRole('option', { name: 'Kyoto, Japan' }));
+      expect(screen.queryByRole('dialog', { name: 'Search for a city' })).toBeNull();
+      expect(cityOptions()).toEqual(['New York, USA', 'Kyoto, Japan', 'Search for city…']);
+      expect(screen.getByRole('combobox', { name: 'City' })).toHaveDisplayValue('Kyoto, Japan');
+      await waitFor(() => expect(places.popular).toHaveBeenLastCalledWith(kyoto));
+    });
+
+    it('keeps the current city when the search is cancelled', async () => {
+      const user = setup(located);
+      await screen.findByText('The Metropolitan Museum of Art');
+      await user.selectOptions(screen.getByRole('combobox', { name: 'City' }), 'Search for city…');
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.getByRole('combobox', { name: 'City' })).toHaveDisplayValue('New York, USA');
+      expect(cityOptions()).toEqual(['New York, USA', 'Search for city…']);
+    });
+
+    it('without a trip location, offers a city search and setting the trip location', async () => {
+      const onSetLocation = vi.fn();
+      const places = fakePlaceSearch();
+      const user = setup(created.state, places, { onSetLocation });
+      expect(
+        screen.getByText('Set where this trip is, or search for a city, to see popular places'),
+      ).toBeVisible();
+      await user.click(screen.getByRole('button', { name: 'Set trip location' }));
+      expect(onSetLocation).toHaveBeenCalledTimes(1);
+      expect(places.popular).not.toHaveBeenCalled();
+
+      await user.click(screen.getByRole('button', { name: 'Search for a city' }));
+      const dialog = screen.getByRole('dialog', { name: 'Search for a city' });
+      await user.type(within(dialog).getByRole('combobox'), 'Kyo');
+      await user.click(await within(dialog).findByRole('option', { name: 'Kyoto, Japan' }));
+      await waitFor(() => expect(places.popular).toHaveBeenCalledWith(kyoto));
+      expect(screen.getByRole('combobox', { name: 'City' })).toHaveDisplayValue('Kyoto, Japan');
+    });
+
+    it('remembers added cities and the choice for the session', async () => {
+      const user = setup(located);
+      await screen.findByText('The Metropolitan Museum of Art');
+      await user.selectOptions(screen.getByRole('combobox', { name: 'City' }), 'Search for city…');
+      const dialog = screen.getByRole('dialog', { name: 'Search for a city' });
+      await user.type(within(dialog).getByRole('combobox'), 'Kyo');
+      await user.click(await within(dialog).findByRole('option', { name: 'Kyoto, Japan' }));
+      cleanup();
+      setup(located);
+      expect(await screen.findByRole('combobox', { name: 'City' })).toHaveDisplayValue(
+        'Kyoto, Japan',
+      );
+      expect(cityOptions()).toEqual(['New York, USA', 'Kyoto, Japan', 'Search for city…']);
+    });
   });
 
   it('says so when popular places are unavailable', async () => {
@@ -168,27 +214,6 @@ describe('PopularTab', () => {
     places.popular.mockReturnValue(new Promise(() => {}));
     setup(located, places);
     expect(screen.getByText('Loading popular places…')).toBeVisible();
-  });
-
-  it('shows no trip-city quick picks when the trip has one city', async () => {
-    const user = setup(located);
-    await user.click(await screen.findByRole('button', { name: 'Change city' }));
-    expect(screen.queryByRole('group', { name: 'Trip cities' })).toBeNull();
-  });
-
-  it("offers the trip's other cities as quick picks while changing city", async () => {
-    const places = fakePlaceSearch();
-    const user = setup(twoCities, places);
-    await user.click(await screen.findByRole('button', { name: 'Change city' }));
-    const picks = screen.getByRole('group', { name: 'Trip cities' });
-    expect(
-      within(picks)
-        .getAllByRole('button')
-        .map((b) => b.textContent),
-    ).toEqual(['Boston, USA']);
-    expect(places.popular).toHaveBeenCalledTimes(1);
-    await user.click(within(picks).getByRole('button', { name: 'Boston, USA' }));
-    await waitFor(() => expect(places.popular).toHaveBeenLastCalledWith(boston));
   });
 
   it('offers Place in a block, Add to my list and Open in maps in the card menu', async () => {

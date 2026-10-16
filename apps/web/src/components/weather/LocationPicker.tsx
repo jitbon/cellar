@@ -6,7 +6,6 @@ interface Props {
   service: WeatherService;
   onSelect: (location: Location) => void;
   label?: string;
-  autoFocus?: boolean;
 }
 
 const DEBOUNCE_MS = 300;
@@ -15,12 +14,7 @@ const MIN_CHARS = 2;
 type Status = 'idle' | 'ok' | 'empty' | 'error';
 
 /** Search-as-you-type place picker (WAI-ARIA combobox with a listbox popup). */
-export function LocationPicker({
-  service,
-  onSelect,
-  label = 'Search for a place',
-  autoFocus = false,
-}: Props) {
+export function LocationPicker({ service, onSelect, label = 'Search for a place' }: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Location[]>([]);
   const [status, setStatus] = useState<Status>('idle');
@@ -72,7 +66,6 @@ export function LocationPicker({
       <input
         id={`${listId}-input`}
         className={styles.input}
-        autoFocus={autoFocus}
         role="combobox"
         aria-expanded={showList}
         aria-controls={showList ? listId : undefined}
