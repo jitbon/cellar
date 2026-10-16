@@ -71,8 +71,9 @@ const collisionDetection: CollisionDetection = (args) => {
   // A pointer drag that ends outside the grid (over the item panel, say) drops nowhere. Keyboard
   // drags have no pointer and keep using the dragged item's position.
   if (args.pointerCoordinates && !pointerOverDropArea(args.pointerCoordinates)) return [];
-  const hits = pointerWithin(args);
-  const all = hits.length > 0 ? hits : rectIntersection(args);
+  // Pointer drags drop only on what is under the pointer, so a greyed (disabled) cell under it
+  // never hands the drop to a neighbor. Keyboard drags have no pointer and use the item's rect.
+  const all = args.pointerCoordinates ? pointerWithin(args) : rectIntersection(args);
   const placement = all.find(
     (c) => String(c.id).startsWith('placement:') && c.id !== args.active.id,
   );

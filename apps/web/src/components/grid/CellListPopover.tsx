@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { ISODate, Placement, TripState } from '@cellar/core';
+import { isGreyed, type ISODate, type Placement, type TripState } from '@cellar/core';
 import { Popover } from '../ui/Popover';
 import { cellListDropId, placementDragId } from './dndIds';
 import { PlacementChip, type Dispatch } from './PlacementChip';
@@ -29,7 +29,10 @@ export function CellListPopover({
   anchorRef,
   onClose,
 }: Props) {
-  const { setNodeRef, isOver } = useDroppable({ id: cellListDropId(date, blockId) });
+  const { setNodeRef, isOver } = useDroppable({
+    id: cellListDropId(date, blockId),
+    disabled: isGreyed(state, date, blockId),
+  });
   const weekday = new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
     weekday: 'long',
   });

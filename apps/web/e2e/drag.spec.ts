@@ -126,6 +126,50 @@ test.describe('drag (desktop)', () => {
     await page.mouse.up();
   });
 
+  test('greyed cells (before arrival) show no Add and take no drop', async ({ page }) => {
+    await signIn(page, account);
+    await createTrip(page, 'Greyed', '2027-04-01', '2027-04-05');
+    const tripId = page.url().split('/').pop()!;
+    const { data: lunch, error: blockError } = await admin
+      .from('blocks')
+      .select('id')
+      .eq('trip_id', tripId)
+      .eq('name', 'Lunch')
+      .single();
+    if (blockError) throw blockError;
+    const day = await admin
+      .from('day_settings')
+      .upsert({ trip_id: tripId, date: '2027-04-02', arrival_block_id: lunch.id });
+    if (day.error) throw day.error;
+    const item = await admin
+      .from('items')
+      .insert({ id: randomUUID(), trip_id: tripId, name: 'Early market', type: 'food' });
+    if (item.error) throw item.error;
+    await page.reload();
+
+    const greyed = cellOf(page, '2027-04-02', 'Morning');
+    await expect(greyed.getByRole('img', { name: 'Outside travel window' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Add event to Morning on 2027-04-02' }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Add event to Lunch on 2027-04-02' }),
+    ).toBeVisible();
+
+    const panel = page.getByRole('complementary', { name: 'Activities and food' });
+    const row = panel.getByText('Early market', { exact: true });
+    await dragTo(page, await center(row), await center(greyed));
+    await expect(greyed).not.toHaveAttribute('data-drop-target', 'true');
+    await page.mouse.up();
+    await expect(page.getByTestId('chip')).toHaveCount(0);
+
+    // The same item still drops into the first open block that day.
+    const open = cellOf(page, '2027-04-02', 'Lunch');
+    await dragTo(page, await center(row), await center(open));
+    await page.mouse.up();
+    await expect(open.getByText('Early market', { exact: true })).toBeVisible();
+  });
+
   test('a list item dragged from the panel shows the same lifted chip and lands in the cell', async ({
     page,
   }) => {

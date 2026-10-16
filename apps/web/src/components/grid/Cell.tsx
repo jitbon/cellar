@@ -46,13 +46,14 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
   const label = `Add event to ${blockName} on ${date}`;
-  const { setNodeRef } = useDroppable({ id: cellDropId(date, blockId) });
+  // Outside the travel window: nothing new goes in (events already here stay and can move out).
+  const greyed = isGreyed(state, date, blockId);
+  const { setNodeRef } = useDroppable({ id: cellDropId(date, blockId), disabled: greyed });
   const overId = useDragOverId();
   const overCell = overId === cellDropId(date, blockId);
   // Over the cell itself, or over one of its chips (the collision logic prefers chips).
   const isOver =
     overCell || (overId !== null && placements.some((p) => placementDragId(p.id) === overId));
-  const greyed = isGreyed(state, date, blockId);
   const suggestions = adding ? suggestItems(state, text) : [];
   const places = usePlaceSuggestions(adding ? text : '', suggestNear(state, date));
   const [pickFailed, setPickFailed] = useState(false);
@@ -179,7 +180,7 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
         </div>
       ) : null}
       {overCell && !adding ? <span className={styles.insertEnd} aria-hidden="true" /> : null}
-      {adding ? (
+      {adding && !greyed ? (
         <div>
           <input
             ref={inputRef}
@@ -232,7 +233,7 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
             </p>
           ) : null}
         </div>
-      ) : (
+      ) : greyed ? null : (
         <button
           type="button"
           className={`${styles.add} ${placements.length === 0 ? styles.addEmpty : styles.addCorner}`}

@@ -6,10 +6,14 @@ import { validateItemName, validateLink, validateNotes, validatePlace } from '..
 import { placeFields, placeOf } from '../places/fields';
 import type { Command } from './command';
 import { commit } from './diff';
+import { isGreyed } from '../queries/greyed';
 
 const notFound = (what: string) => validationError('NOT_FOUND', `${what} not found.`);
 
-/** Checks the target cell exists in this trip. */
+/**
+ * Checks the target cell exists in this trip and is inside the day's travel window: cells before
+ * arrival or after departure take nothing new (events already there stay, and can move out).
+ */
 export function validateCell(
   state: TripState,
   date: ISODate,
@@ -18,6 +22,12 @@ export function validateCell(
   if (!state.blocks.some((b) => b.id === blockId)) return notFound('Block');
   if (date < state.trip.startDate || date > state.trip.endDate) {
     return validationError('DATE_OUT_OF_RANGE', 'That date is outside the trip.');
+  }
+  if (isGreyed(state, date, blockId)) {
+    return validationError(
+      'OUTSIDE_TRAVEL_WINDOW',
+      'That time is outside the travel window for that day.',
+    );
   }
   return null;
 }
@@ -183,7 +193,9 @@ export function movePlacement(
   return (state) => {
     const existing = state.placements.find((p) => p.id === id);
     if (!existing) return { ok: false, error: notFound('Placement') };
-    const error = validateCell(state, date, blockId);
+    // Reordering inside its own cell is always allowed, even in a greyed cell.
+    const sameCell = existing.date === date && existing.blockId === blockId;
+    const error = sameCell ? null : validateCell(state, date, blockId);
     if (error) return { ok: false, error };
     const position = positionAmong(cellPlacements(state, date, blockId, id), {
       beforeId: beforePlacementId,

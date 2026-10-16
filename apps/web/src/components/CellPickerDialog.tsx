@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { days, orderedBlocks, type ISODate, type TripState } from '@cellar/core';
+import { days, isGreyed, orderedBlocks, type ISODate, type TripState } from '@cellar/core';
 import { Button } from './ui/Button';
 import { Dialog } from './ui/Dialog';
 import styles from './CellPickerDialog.module.css';
@@ -16,12 +16,19 @@ interface Props {
 export function CellPickerDialog({ title, confirmLabel, state, onPick, onClose }: Props) {
   const allDays = days(state.trip);
   const blocks = orderedBlocks(state);
+  // Blocks outside a day's travel window take nothing new, so they cannot be picked.
+  const firstOpen = (day: ISODate) => blocks.find((b) => !isGreyed(state, day, b.id))?.id ?? '';
   const [date, setDate] = useState(allDays[0].date);
-  const [blockId, setBlockId] = useState(blocks[0].id);
+  const [blockId, setBlockId] = useState(() => firstOpen(allDays[0].date));
+
+  function chooseDate(next: ISODate) {
+    setDate(next);
+    if (!blockId || isGreyed(state, next, blockId)) setBlockId(firstOpen(next));
+  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    onPick(date, blockId);
+    if (blockId) onPick(date, blockId);
   }
 
   return (
@@ -29,7 +36,11 @@ export function CellPickerDialog({ title, confirmLabel, state, onPick, onClose }
       <form className={styles.form} onSubmit={onSubmit}>
         <label className={styles.label}>
           Day
-          <select className={styles.select} value={date} onChange={(e) => setDate(e.target.value)}>
+          <select
+            className={styles.select}
+            value={date}
+            onChange={(e) => chooseDate(e.target.value)}
+          >
             {allDays.map((d) => (
               <option key={d.date} value={d.date}>
                 {d.weekday} {d.date}
@@ -44,16 +55,19 @@ export function CellPickerDialog({ title, confirmLabel, state, onPick, onClose }
             value={blockId}
             onChange={(e) => setBlockId(e.target.value)}
           >
-            {blocks.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
+            {blocks.map((b) => {
+              const outside = isGreyed(state, date, b.id);
+              return (
+                <option key={b.id} value={b.id} disabled={outside}>
+                  {outside ? `${b.name} (outside travel window)` : b.name}
+                </option>
+              );
+            })}
           </select>
         </label>
         <div className={styles.actions}>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" variant="primary">
+          <Button type="submit" variant="primary" disabled={!blockId}>
             {confirmLabel}
           </Button>
         </div>

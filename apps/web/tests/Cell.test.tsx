@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 import {
   cell,
   createTrip,
+  addTypedPlacement,
   placeFields,
+  setDayWindow,
   type Command,
   type PlaceSearch,
   type PlaceSuggestion,
@@ -193,5 +195,34 @@ describe('Cell', () => {
       screen.getByRole('button', { name: /show all 5 events in afternoon/i }),
     ).toHaveTextContent('+3 more');
     expect(screen.queryByText('E5')).toBeNull();
+  });
+});
+
+describe('a greyed cell (outside the travel window)', () => {
+  // Departing at Lunch on DATE greys Afternoon; an event was already there.
+  function greyedState(): TripState {
+    const lunch = initial.blocks.find((b) => b.name === 'Lunch')!;
+    const withEvent = addTypedPlacement(DATE, afternoon.id, 'Late walk')(initial);
+    if (!withEvent.ok) throw new Error('fixture');
+    const r = setDayWindow(DATE, null, lunch.id)(withEvent.state);
+    if (!r.ok) throw new Error('fixture');
+    return r.state;
+  }
+
+  it('offers no "Add event" and still shows the events already there', () => {
+    render(
+      <TooltipProvider>
+        <Cell
+          state={greyedState()}
+          date={DATE}
+          blockId={afternoon.id}
+          blockName="Afternoon"
+          dispatch={() => ({ ok: false, error: { code: 'X', message: 'x' } }) as never}
+        />
+      </TooltipProvider>,
+    );
+    expect(screen.queryByRole('button', { name: /add event to afternoon/i })).toBeNull();
+    expect(screen.getByText('Late walk')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Outside travel window' })).toBeInTheDocument();
   });
 });
