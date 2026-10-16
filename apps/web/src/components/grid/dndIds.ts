@@ -7,13 +7,18 @@ export const cellListDropId = (date: ISODate, blockId: string) => `celllist|${da
 export const placementDragId = (id: string) => `placement:${id}`;
 export const itemDragId = (id: string) => `item:${id}`;
 export const blockDragId = (id: string) => `block:${id}`;
+/** A Popular card, by provider place id; the card's place and type ride along as drag data. */
+export const popularDragId = (placeId: string) => `popular:${placeId}`;
 
 export function parseCellDropId(id: string): { date: ISODate; blockId: string } | null {
   const [kind, date, blockId] = id.split('|');
   return kind === 'cell' || kind === 'celllist' ? { date, blockId } : null;
 }
 
-export function parsePrefixed(id: string, prefix: 'placement' | 'item' | 'block'): string | null {
+export function parsePrefixed(
+  id: string,
+  prefix: 'placement' | 'item' | 'block' | 'popular',
+): string | null {
   return id.startsWith(`${prefix}:`) ? id.slice(prefix.length + 1) : null;
 }
 

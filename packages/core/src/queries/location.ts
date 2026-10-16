@@ -1,4 +1,5 @@
 import type { ISODate, Location, LocationFields, TripState } from '../model/types';
+import { locationKey } from '../weather/status';
 
 export function locationOf(fields: LocationFields | undefined): Location | null {
   if (
@@ -43,6 +44,19 @@ export function dayLocationOverride(state: TripState, date: ISODate): Location |
 /** Effective location for a day: its override, else the trip location. */
 export const dayLocation = (state: TripState, date: ISODate): Location | null =>
   dayLocationOverride(state, date) ?? tripLocation(state);
+
+/** The trip location, then each distinct day-override location in date order (no repeats). */
+export function tripCities(state: TripState): Location[] {
+  const first = tripLocation(state);
+  if (!first) return [];
+  const found = new Map<string, Location>([[locationKey(first), first]]);
+  const overrides = [...state.daySettings].sort((a, b) => (a.date < b.date ? -1 : 1));
+  for (const setting of overrides) {
+    const location = locationOf(setting);
+    if (location && !found.has(locationKey(location))) found.set(locationKey(location), location);
+  }
+  return [...found.values()];
+}
 
 // Words that describe the trip rather than the place ("Summer vacation in Rome").
 const TRIP_WORDS = new Set([

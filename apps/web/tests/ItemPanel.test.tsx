@@ -39,7 +39,15 @@ const ramen = seeded.items.find((i) => i.name === 'Ramen')!;
 seeded = apply(seeded, placeItem(ramen.id, '2027-04-02', lunch.id));
 seeded = apply(seeded, placeItem(ramen.id, '2027-04-03', lunch.id));
 
-function Harness({ onDispatch }: { onDispatch?: (c: Command) => void }) {
+const noop = () => {};
+
+function Harness({
+  onDispatch,
+  onSetLocation = noop,
+}: {
+  onDispatch?: (c: Command) => void;
+  onSetLocation?: () => void;
+}) {
   const [state, setState] = useState(seeded);
   const dispatch = (command: Command) => {
     onDispatch?.(command);
@@ -47,7 +55,7 @@ function Harness({ onDispatch }: { onDispatch?: (c: Command) => void }) {
     if (r.ok) setState(r.state);
     return r;
   };
-  return <ItemPanel state={state} dispatch={dispatch} />;
+  return <ItemPanel state={state} dispatch={dispatch} onSetLocation={onSetLocation} />;
 }
 
 function setup(onDispatch?: (c: Command) => void, places?: PlaceSearch) {
@@ -103,6 +111,84 @@ describe('ItemPanel', () => {
     expect(screen.getByRole('menuitem', { name: 'Edit Museum' })).toBeVisible();
     expect(screen.getByRole('menuitem', { name: 'Delete Museum' })).toBeVisible();
     expect(screen.getByRole('menuitem', { name: 'Place Museum in a block' })).toBeVisible();
+  });
+
+  describe('tabs', () => {
+    const memoryStore = (initial: Record<string, string> = {}) => {
+      const data = { ...initial };
+      return {
+        data,
+        get: (k: string) => data[k] ?? null,
+        set: (k: string, v: string) => void (data[k] = v),
+        remove: (k: string) => void delete data[k],
+      };
+    };
+
+    it('has My list and Popular tabs, with My list selected first', () => {
+      setup();
+      expect(screen.getByRole('tablist', { name: 'List views' })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'My list' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('tab', { name: 'Popular' })).toHaveAttribute(
+        'aria-selected',
+        'false',
+      );
+      expect(screen.getByRole('tabpanel', { name: 'My list' })).toBeInTheDocument();
+    });
+
+    it('switches to the Popular panel and back', async () => {
+      const user = setup();
+      await user.click(screen.getByRole('tab', { name: 'Popular' }));
+      expect(screen.getByRole('tab', { name: 'Popular' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('tabpanel', { name: 'Popular' })).toBeInTheDocument();
+      expect(names()).toEqual([]);
+      await user.click(screen.getByRole('tab', { name: 'My list' }));
+      expect(names()).toEqual(['Ramen', 'RAMÉN Bar', 'Museum']);
+    });
+
+    it('moves between tabs with the arrow keys, Home and End', async () => {
+      const user = setup();
+      screen.getByRole('tab', { name: 'My list' }).focus();
+      await user.keyboard('{ArrowRight}');
+      expect(screen.getByRole('tab', { name: 'Popular' })).toHaveFocus();
+      expect(screen.getByRole('tab', { name: 'Popular' })).toHaveAttribute('aria-selected', 'true');
+      await user.keyboard('{ArrowRight}');
+      expect(screen.getByRole('tab', { name: 'My list' })).toHaveFocus();
+      await user.keyboard('{End}');
+      expect(screen.getByRole('tab', { name: 'Popular' })).toHaveFocus();
+      await user.keyboard('{Home}');
+      expect(screen.getByRole('tab', { name: 'My list' })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('only the selected tab is in the tab order', () => {
+      setup();
+      expect(screen.getByRole('tab', { name: 'My list' })).toHaveAttribute('tabindex', '0');
+      expect(screen.getByRole('tab', { name: 'Popular' })).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('remembers the selected tab per device', async () => {
+      const store = memoryStore();
+      render(<Harness />, { wrapper: withServices({ store }) });
+      await userEvent.setup().click(screen.getByRole('tab', { name: 'Popular' }));
+      expect(store.data['cellar.panelTab']).toBe('popular');
+    });
+
+    it('opens on the remembered tab', () => {
+      render(<Harness />, {
+        wrapper: withServices({ store: memoryStore({ 'cellar.panelTab': 'popular' }) }),
+      });
+      expect(screen.getByRole('tab', { name: 'Popular' })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('passes the set-location request through from the Popular tab', async () => {
+      const onSetLocation = vi.fn();
+      render(<Harness onSetLocation={onSetLocation} />, {
+        wrapper: withPlaces(fakePlaceSearch()),
+      });
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('tab', { name: 'Popular' }));
+      await user.click(screen.getByRole('button', { name: 'Set trip location' }));
+      expect(onSetLocation).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('place suggestions', () => {
@@ -196,7 +282,7 @@ describe('ItemPanel', () => {
           if (r.ok) setState(r.state);
           return r;
         };
-        return <ItemPanel state={state} dispatch={dispatch} />;
+        return <ItemPanel state={state} dispatch={dispatch} onSetLocation={noop} />;
       }
       render(<LinkedHarness />, { wrapper: withServices({ store }) });
       const user = userEvent.setup();
@@ -225,7 +311,7 @@ describe('ItemPanel', () => {
           if (r.ok) setState(r.state);
           return r;
         };
-        return <ItemPanel state={state} dispatch={dispatch} />;
+        return <ItemPanel state={state} dispatch={dispatch} onSetLocation={noop} />;
       }
       render(<LinkedHarness />, { wrapper: withServices({ store, places }) });
       return userEvent.setup();

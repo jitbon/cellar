@@ -14,7 +14,7 @@ export {
   type PlacementPatch,
 } from './commands/placement';
 export { addItem, updateItem, deleteItem, type ItemPatch } from './commands/item';
-export { placeItem } from './commands/placement';
+export { placeItem, placePlace } from './commands/placement';
 export { placedCount, filterItems, suggestItems } from './queries/items';
 export {
   addBlock,
@@ -29,6 +29,7 @@ export { isMealBlock, isMealName } from './queries/meal';
 export { setDayWindow } from './commands/daySetting';
 export { setTripLocation, setDayLocation } from './commands/location';
 export {
+  tripCities,
   tripLocation,
   dayLocation,
   dayLocationOverride,

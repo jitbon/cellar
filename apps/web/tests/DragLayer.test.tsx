@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { addTypedPlacement, createTrip, updatePlacement } from '@cellar/core';
-import { chelseaPlace } from './setup';
+import { chelseaPlace, katzPopular } from './setup';
 import { DragLayer } from '../src/components/grid/DragLayer';
-import { placementDragId } from '../src/components/grid/dndIds';
+import { placementDragId, popularDragId } from '../src/components/grid/dndIds';
 
 // DragOverlay only renders its children during a real drag; render them directly here.
 vi.mock('@dnd-kit/core', async (importOriginal) => ({
@@ -26,6 +26,14 @@ describe('DragLayer', () => {
     const id = placementDragId(linked.state.placements[0]!.id);
     render(<DragLayer state={linked.state} activeId={id} />);
     expect(screen.getByLabelText('Linked place')).toBeInTheDocument();
+  });
+
+  it('shows the name, type and pin of a popular card being dragged', () => {
+    const popular = { place: katzPopular, type: 'food' as const };
+    render(<DragLayer state={plain} activeId={popularDragId('test-katz')} popular={popular} />);
+    expect(screen.getByText("Katz's Delicatessen")).toBeInTheDocument();
+    expect(screen.getByLabelText('Linked place')).toBeInTheDocument();
+    expect(document.querySelector('[data-drag-overlay]')?.className).toMatch(/food/);
   });
 
   it('shows no pin for an unlinked placement', () => {

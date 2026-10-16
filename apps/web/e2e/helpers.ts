@@ -148,6 +148,23 @@ export async function setTripLocationDirect(
   if (error) throw error;
 }
 
+/** Sets one day's own location straight in the database (test setup only). */
+export async function setDayLocationDirect(
+  tripId: string,
+  date: string,
+  loc: { name: string; lat: number; lon: number; tz: string },
+): Promise<void> {
+  const { error } = await admin.from('day_settings').upsert({
+    trip_id: tripId,
+    date,
+    location_name: loc.name,
+    location_lat: loc.lat,
+    location_lon: loc.lon,
+    location_tz: loc.tz,
+  });
+  if (error) throw error;
+}
+
 /** Opens the "⋯" actions menu of a placement chip. */
 export async function openChipMenu(page: Page, name: string): Promise<void> {
   await page.getByRole('button', { name: `Actions for ${name}` }).click();

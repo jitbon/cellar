@@ -140,6 +140,40 @@ export function placeItem(
   };
 }
 
+/**
+ * Places a real place straight into a cell as a linked event, without touching the list
+ * (a popular place the traveler has not saved).
+ */
+export function placePlace(
+  place: Place,
+  type: ItemType,
+  date: ISODate,
+  blockId: string,
+  beforePlacementId?: string,
+): Command {
+  return (state) => {
+    const error = validatePlace(place) ?? validateCell(state, date, blockId);
+    if (error) return { ok: false, error };
+    const placement: Placement = {
+      id: newId(),
+      tripId: state.trip.id,
+      date,
+      blockId,
+      position: positionAmong(cellPlacements(state, date, blockId), {
+        beforeId: beforePlacementId,
+      }),
+      name: place.name.trim(),
+      type,
+      notes: null,
+      link: null,
+      ...placeFields(place),
+      sourceItemId: null,
+      updatedAt: '',
+    };
+    return commit(state, { ...state, placements: [...state.placements, placement] });
+  };
+}
+
 export function movePlacement(
   id: string,
   date: ISODate,

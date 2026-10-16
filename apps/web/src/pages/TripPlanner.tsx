@@ -255,7 +255,11 @@ export function TripPlanner() {
               />
               <div className={styles.panelSlot}>
                 <div className={styles.handle} aria-hidden="true" />
-                <ItemPanel state={state} dispatch={dispatch} />
+                <ItemPanel
+                  state={state}
+                  dispatch={dispatch}
+                  onSetLocation={() => setLocationOpen(true)}
+                />
               </div>
             </>
           ) : null}

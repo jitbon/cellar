@@ -27,6 +27,7 @@ export {
   Plus,
   Redo2,
   Search,
+  Star,
   Sun,
   Undo2,
   Utensils,

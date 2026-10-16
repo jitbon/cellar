@@ -10,6 +10,7 @@ import {
   useSensor,
   useSensors,
   type Announcements,
+  type Active,
   type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
@@ -21,10 +22,12 @@ import {
   movePlacement,
   orderedBlocks,
   placeItem,
+  placePlace,
+  popularToPlace,
   type TripState,
 } from '@cellar/core';
 import { DragOverContext, parseCellDropId, parsePrefixed } from './dndIds';
-import { DragLayer } from './DragLayer';
+import { DragLayer, type PopularDrag } from './DragLayer';
 import type { Dispatch } from './PlacementChip';
 
 /** Mouse and pen only: touch is handled by TouchSensor's long press, so scrolling still works. */
@@ -68,14 +71,16 @@ interface Props {
 export function DndProvider({ state, dispatch, children }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [popular, setPopular] = useState<PopularDrag | null>(null);
   const sensors = useSensors(
     useSensor(MousePointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const nameOf = (id: string | number): string => {
+  const nameOf = (id: string | number, data?: PopularDrag | null): string => {
     const key = String(id);
+    if (parsePrefixed(key, 'popular')) return data?.place.name ?? 'place';
     const placementId = parsePrefixed(key, 'placement');
     if (placementId) return state.placements.find((p) => p.id === placementId)?.name ?? 'event';
     const itemId = parsePrefixed(key, 'item');
@@ -90,26 +95,33 @@ export function DndProvider({ state, dispatch, children }: Props) {
     return key;
   };
 
+  const popularData = (active: Active): PopularDrag | null =>
+    parsePrefixed(String(active.id), 'popular')
+      ? ((active.data.current as PopularDrag | undefined) ?? null)
+      : null;
+
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Picked up ${nameOf(active.id)}.`,
+    onDragStart: ({ active }) => `Picked up ${nameOf(active.id, popularData(active))}.`,
     onDragOver: ({ active, over }) =>
       over
-        ? `${nameOf(active.id)} is over ${nameOf(over.id)}.`
-        : `${nameOf(active.id)} is not over a cell.`,
+        ? `${nameOf(active.id, popularData(active))} is over ${nameOf(over.id)}.`
+        : `${nameOf(active.id, popularData(active))} is not over a cell.`,
     onDragEnd: ({ active, over }) =>
       over
-        ? `Dropped ${nameOf(active.id)} on ${nameOf(over.id)}.`
-        : `Dropped ${nameOf(active.id)}.`,
-    onDragCancel: ({ active }) => `Cancelled moving ${nameOf(active.id)}.`,
+        ? `Dropped ${nameOf(active.id, popularData(active))} on ${nameOf(over.id)}.`
+        : `Dropped ${nameOf(active.id, popularData(active))}.`,
+    onDragCancel: ({ active }) => `Cancelled moving ${nameOf(active.id, popularData(active))}.`,
   };
 
   function onDragStart({ active }: DragStartEvent) {
     setActiveId(String(active.id));
+    setPopular(popularData(active));
   }
 
   function onDragEnd({ active, over }: DragEndEvent) {
     setActiveId(null);
     setOverId(null);
+    setPopular(null);
     if (!over) return;
     const activeId = String(active.id);
     const overId = String(over.id);
@@ -141,6 +153,13 @@ export function DndProvider({ state, dispatch, children }: Props) {
     } else if (overCell) {
       ({ date, blockId } = overCell);
     } else {
+      return;
+    }
+
+    const dragged = popularData(active);
+    if (dragged) {
+      // Only the event is created; the traveler's list is untouched.
+      dispatch(placePlace(popularToPlace(dragged.place), dragged.type, date, blockId, beforeId));
       return;
     }
 
@@ -177,10 +196,11 @@ export function DndProvider({ state, dispatch, children }: Props) {
       onDragCancel={() => {
         setActiveId(null);
         setOverId(null);
+        setPopular(null);
       }}
     >
       <DragOverContext.Provider value={overId}>{children}</DragOverContext.Provider>
-      <DragLayer state={state} activeId={activeId} />
+      <DragLayer state={state} activeId={activeId} popular={popular} />
     </DndContext>
   );
 }

@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import {
   addItem,
@@ -15,6 +15,7 @@ import {
   type Place,
   type TripState,
 } from '@cellar/core';
+import { useKeyValueStore } from '../../state/services';
 import { CellPickerDialog } from '../CellPickerDialog';
 import { itemDragId } from '../grid/dndIds';
 import { TYPE_ICON, TYPE_LABEL, type Dispatch } from '../grid/PlacementChip';
@@ -27,10 +28,18 @@ import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { PlaceLine } from '../places/PlaceLine';
 import { PlaceNameField } from '../places/PlaceNameField';
 import { Popover } from '../ui/Popover';
+import { PopularTab } from './PopularTab';
 import { TextField } from '../ui/TextField';
 import styles from './ItemPanel.module.css';
 
 type TypeFilter = 'all' | ItemType;
+type PanelTab = 'list' | 'popular';
+const PANEL_TABS: { id: PanelTab; label: string }[] = [
+  { id: 'list', label: 'My list' },
+  { id: 'popular', label: 'Popular' },
+];
+const TAB_KEY = 'cellar.panelTab';
+
 const TYPE_FILTERS: { id: TypeFilter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'activity', label: 'Activities' },
@@ -233,7 +242,39 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
   );
 }
 
-export function ItemPanel({ state, dispatch }: { state: TripState; dispatch: Dispatch }) {
+interface PanelProps {
+  state: TripState;
+  dispatch: Dispatch;
+  /** Opens the trip location dialog (the Popular tab needs a location). */
+  onSetLocation: () => void;
+}
+
+export function ItemPanel({ state, dispatch, onSetLocation }: PanelProps) {
+  const store = useKeyValueStore();
+  const tabsId = useId();
+  const [tab, setTab] = useState<PanelTab>(() =>
+    store?.get(TAB_KEY) === 'popular' ? 'popular' : 'list',
+  );
+  const selectTab = (next: PanelTab, focus = false) => {
+    setTab(next);
+    store?.set(TAB_KEY, next);
+    if (focus) document.getElementById(`${tabsId}-tab-${next}`)?.focus();
+  };
+  // ARIA tabs pattern: arrows (and Home/End) move between tabs and select them.
+  const onTabKeyDown = (e: KeyboardEvent) => {
+    const at = PANEL_TABS.findIndex((t) => t.id === tab);
+    const to =
+      e.key === 'ArrowRight' || e.key === 'ArrowLeft'
+        ? (at + (e.key === 'ArrowRight' ? 1 : PANEL_TABS.length - 1)) % PANEL_TABS.length
+        : e.key === 'Home'
+          ? 0
+          : e.key === 'End'
+            ? PANEL_TABS.length - 1
+            : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    selectTab(PANEL_TABS[to].id, true);
+  };
   const [type, setType] = useState<TypeFilter>('all');
   const [unplacedOnly, setUnplacedOnly] = useState(false);
   const [query, setQuery] = useState('');
@@ -250,11 +291,13 @@ export function ItemPanel({ state, dispatch }: { state: TripState; dispatch: Dis
       <div className={styles.header}>
         <h2 className={styles.title}>Activities &amp; food</h2>
         <div ref={addRef} className={styles.addWrap}>
-          <Button aria-expanded={adding} onClick={() => setAdding((o) => !o)}>
-            <Icon as={Plus} />
-            Add
-          </Button>
-          {adding ? (
+          {tab === 'list' ? (
+            <Button aria-expanded={adding} onClick={() => setAdding((o) => !o)}>
+              <Icon as={Plus} />
+              Add
+            </Button>
+          ) : null}
+          {adding && tab === 'list' ? (
             <Popover id="add-item-form" anchorRef={addRef} onClose={() => setAdding(false)}>
               <ItemForm
                 submitLabel="Add to list"
@@ -269,49 +312,79 @@ export function ItemPanel({ state, dispatch }: { state: TripState; dispatch: Dis
           ) : null}
         </div>
       </div>
-      <div className={styles.search}>
-        <Icon as={Search} />
-        <input
-          type="search"
-          className={styles.searchInput}
-          aria-label="Search items"
-          placeholder="Search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+      <div className={styles.tabs} role="tablist" aria-label="List views" onKeyDown={onTabKeyDown}>
+        {PANEL_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`${tabsId}-tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`${tabsId}-panel`}
+            tabIndex={tab === t.id ? 0 : -1}
+            className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
+            onClick={() => selectTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
-      <div className={styles.filters}>
-        <div className={styles.segmented} role="group" aria-label="Filter list">
-          {TYPE_FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              className={`${styles.segment} ${type === f.id ? styles.segmentActive : ''}`}
-              aria-pressed={type === f.id}
-              onClick={() => setType(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          className={`${styles.toggleChip} ${unplacedOnly ? styles.segmentActive : ''}`}
-          aria-pressed={unplacedOnly}
-          onClick={() => setUnplacedOnly((o) => !o)}
-        >
-          Not yet placed
-        </button>
+      <div
+        role="tabpanel"
+        id={`${tabsId}-panel`}
+        aria-labelledby={`${tabsId}-tab-${tab}`}
+        className={styles.tabPanel}
+      >
+        {tab === 'popular' ? (
+          <PopularTab state={state} dispatch={dispatch} onSetLocation={onSetLocation} />
+        ) : (
+          <>
+            <div className={styles.search}>
+              <Icon as={Search} />
+              <input
+                type="search"
+                className={styles.searchInput}
+                aria-label="Search items"
+                placeholder="Search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <div className={styles.filters}>
+              <div className={styles.segmented} role="group" aria-label="Filter list">
+                {TYPE_FILTERS.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    className={`${styles.segment} ${type === f.id ? styles.segmentActive : ''}`}
+                    aria-pressed={type === f.id}
+                    onClick={() => setType(f.id)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className={`${styles.toggleChip} ${unplacedOnly ? styles.segmentActive : ''}`}
+                aria-pressed={unplacedOnly}
+                onClick={() => setUnplacedOnly((o) => !o)}
+              >
+                Not yet placed
+              </button>
+            </div>
+            {items.length === 0 ? (
+              <p className={styles.empty}>No items.</p>
+            ) : (
+              <ul className={styles.list}>
+                {items.map((item) => (
+                  <ItemRow key={item.id} state={state} item={item} dispatch={dispatch} />
+                ))}
+              </ul>
+            )}
+          </>
+        )}
       </div>
-      {items.length === 0 ? (
-        <p className={styles.empty}>No items.</p>
-      ) : (
-        <ul className={styles.list}>
-          {items.map((item) => (
-            <ItemRow key={item.id} state={state} item={item} dispatch={dispatch} />
-          ))}
-        </ul>
-      )}
     </aside>
   );
 }
