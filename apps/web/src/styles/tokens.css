@@ -12,7 +12,9 @@
   --color-activity-bg: #edf2fa;
   --color-food: #9a5b00;
   --color-food-bg: #fbf1e1;
-  --color-food-row: #fdf8f0;
+  --color-meal-label: #cdeeea;
+  --color-meal-row: #e3f5f3;
+  --color-meal-icon: #0b6b66;
   --color-header-bg: #0b2d63;
   --color-header-text: #ffffff;
   --color-header-muted: #b9c8e4;
@@ -88,7 +90,9 @@
     --color-activity-bg: #1a2740;
     --color-food: #f0b878;
     --color-food-bg: #3a2a14;
-    --color-food-row: #1a1913;
+    --color-meal-label: #1b4240;
+    --color-meal-row: #132d2c;
+    --color-meal-icon: #7fded5;
     --color-header-bg: #0a1a36;
     --color-header-text: #ffffff;
     --color-header-muted: #b9c8e4;

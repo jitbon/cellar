@@ -125,5 +125,5 @@
 .mealIcon {
   display: inline-flex;
   margin-right: var(--space-2);
-  color: var(--color-food);
+  color: var(--color-meal-icon);
 }

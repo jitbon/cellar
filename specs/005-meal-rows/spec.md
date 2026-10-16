@@ -22,7 +22,7 @@ food rows is slightly different, I know that they are flexible but just for visu
 ### User Story 1 - Tell meal rows from activity rows at a glance (Priority: P1)
 
 Looking at the schedule, the traveler sees meal rows (Breakfast, Lunch, Dinner, Dessert by
-default) with a light food tint and a fork-and-knife icon on the row label, so food and
+default) with a teal tint and a fork-and-knife icon on the row label, so food and
 activity slots are easy to tell apart. It is only a visual hint: any item can still go in any
 row.
 
@@ -49,7 +49,7 @@ and tint; Morning and Afternoon don't.
   meal word (breakfast, brunch, lunch, dinner, supper, dessert, snack(s), meal(s), tea, coffee,
   drinks, happy hour), matched as whole words.
 - **FR-002**: Meal rows MUST show a fork-and-knife icon labelled "Meal row" on the row label
-  (not color alone), a food-tinted label and a fainter tint on the day cells, using design
+  (not color alone), a teal-tinted label and a lighter teal on the day cells, using design
   tokens with WCAG AA text contrast in light and dark.
 - **FR-003**: The row menu MUST offer "Make meal row" / "Not a meal row"; the choice is stored per
   row, synced like other row changes, and undoable.

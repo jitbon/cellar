@@ -57,10 +57,10 @@
   background-color: var(--color-bg);
 }
 
-/* Meal rows: a light food tint on the label and a fainter one on the day cells (inherited). */
+/* Meal rows: a teal label and a lighter teal on the day cells (inherited by both). */
 .meal {
-  --cell-bg: var(--color-food-row);
-  --label-bg: var(--color-food-bg);
+  --cell-bg: var(--color-meal-row);
+  --label-bg: var(--color-meal-label);
 }
 
 .dayNav {

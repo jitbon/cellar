@@ -9,5 +9,5 @@
 
 ## Phase 2: UI
 
-- [X] T003 Add token `--color-food-row` (light and dark) in `apps/web/src/styles/tokens.css` with contrast pairs in `apps/web/tests/tokens.test.ts` per FR-002
+- [X] T003 Add tokens `--color-meal-label`, `--color-meal-row`, `--color-meal-icon` (teal; light and dark) in `apps/web/src/styles/tokens.css` with contrast pairs in `apps/web/tests/tokens.test.ts` per FR-002
 - [X] T004 Tint meal rows (`--cell-bg`, `--label-bg` set on the row in `Grid.tsx` / `Grid.module.css`, read by `Cell.module.css` and `BlockLabel.module.css`), show the "Meal row" icon and the menu toggle in `apps/web/src/components/grid/BlockLabel.tsx`; tests in `apps/web/tests/BlockLabel.test.tsx` and `apps/web/e2e/meal-rows.spec.ts` per FR-002, FR-003
