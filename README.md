@@ -5,7 +5,8 @@ Lunch, Afternoon, …), type events straight into cells or drag them in from a p
 activities and food places, customize the blocks, mark arrival/departure days, and undo freely.
 Items can be linked to real places while you type, and opened in Google Maps, Apple Maps or
 Waze. A Popular tab suggests well-known things to do and places to eat in the trip's city, ready
-to drag onto the schedule. Trips sync across your devices. Each block shows a weather forecast icon for its time window,
+to drag onto the schedule. Trip cards and the trip page show a photo of the city, and Popular cards
+show photos of the places. Trips sync across your devices. Each block shows a weather forecast icon for its time window,
 with details on hover or tap.
 
 - `packages/core` — platform-agnostic domain logic (commands, queries, undo/redo, merge)
@@ -16,7 +17,8 @@ Setup, automated checks and manual validation scenarios:
 [specs/001-block-trip-planner/quickstart.md](specs/001-block-trip-planner/quickstart.md) and
 [specs/002-weather-forecast/quickstart.md](specs/002-weather-forecast/quickstart.md), and
 [specs/004-map-locations/quickstart.md](specs/004-map-locations/quickstart.md), and
-[specs/006-popular-places/quickstart.md](specs/006-popular-places/quickstart.md).
+[specs/006-popular-places/quickstart.md](specs/006-popular-places/quickstart.md), and
+[specs/007-trip-photos/quickstart.md](specs/007-trip-photos/quickstart.md).
 
 ## Integrations
 
@@ -58,3 +60,24 @@ Setup, automated checks and manual validation scenarios:
   city name and its coordinates are sent. After updating, restart `supabase functions serve places`
   so the running function picks up the new action. Setup details:
   [specs/006-popular-places/quickstart.md](specs/006-popular-places/quickstart.md).
+
+- **Trip photos.**
+  - **City photos** (trip cards, the trip page banner, the cover picker) come from Wikipedia and
+    Wikimedia Commons through their public API, called from the browser. It is free, needs no
+    key, and the photos are openly licensed, so each one is credited ("Photo: author · license",
+    linked to its Commons page). Lookups are cached on the device for 7 days. Only the city name
+    is sent. The cover you pick is saved with the trip (Commons file name only, migration
+    `0009_cover_photo.sql`; apply it locally with `supabase migration up --local`, no reset
+    needed). If Wikimedia is unreachable, cards show a placeholder.
+  - **Place photos** (Popular thumbnails and the detail view) come from Google through the same
+    `places` function. The photo names ride along in the Popular Text Search (already the
+    Enterprise tier, no extra charge); the new `photo` action turns a name into a short-lived
+    image URL. **Place Details Photos** is billed as an Enterprise SKU: 1,000 free requests per
+    month, then $7 per 1,000. Thumbnails are requested only for cards in view and the detail view
+    asks for one large photo, so normal personal use (about 110 Popular visits a month) stays
+    free. Set a daily quota cap of about 60 on **Place Photos** as a cost backstop. Google's
+    terms do not allow caching photo names, so names and image URLs live in memory for the
+    session only (never in local storage or the database), and the authors are credited under the
+    photo and in the Popular list footer. After updating, restart
+    `supabase functions serve places` so the running function picks up the `photo` action and
+    the photo field in `popular`.

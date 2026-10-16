@@ -2,8 +2,10 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import {
   createAccount,
   createTrip,
+  dateIn,
   deleteAccount,
   mockOpenMeteo,
+  mockWikimedia,
   mockPlaces,
   goToDay,
   openDayMenu,
@@ -243,8 +245,8 @@ test.describe('layout (360 px)', () => {
     const groups = list.getByRole('tablist', { name: 'Popular groups' });
     await inside(groups);
     const cards = list.getByRole('listitem');
-    expect(await cards.count()).toBe(3);
-    for (let i = 0; i < 3; i++) await inside(cards.nth(i));
+    expect(await cards.count()).toBe(12);
+    for (let i = 0; i < 12; i++) await inside(cards.nth(i));
     expect(await pageScrolls()).toBe(false);
 
     await groups.getByRole('tab', { name: 'Food', exact: true }).click();
@@ -256,6 +258,72 @@ test.describe('layout (360 px)', () => {
 
     await list.getByRole('button', { name: 'Actions for The Metropolitan Museum of Art' }).click();
     await inside(page.getByRole('menu'));
+    expect(await pageScrolls()).toBe(false);
+  });
+});
+
+test.describe('photos layout (360 px)', () => {
+  test.skip(({ hasTouch }) => !hasTouch, 'measured on the phone project');
+
+  test('the banner uses the small height; trip cards and the detail view fit without horizontal scroll', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    await mockPlaces(page, 'ok');
+    await mockWikimedia(page, 'ok');
+    await signIn(page, account);
+    await createTrip(
+      page,
+      'Layout photos',
+      dateIn('America/New_York', -1),
+      dateIn('America/New_York', 3),
+    );
+    await setTripLocationDirect(page.url().split('/').pop()!, {
+      name: 'New York, USA',
+      lat: 40.7128,
+      lon: -74.006,
+      tz: 'America/New_York',
+    });
+    const pageScrolls = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      );
+
+    await page.reload();
+    const banner = page.getByTestId('city-banner');
+    await expect(banner.locator('img')).toBeVisible();
+    expect((await banner.boundingBox())!.height).toBeCloseTo(56, 0);
+    const box = (await banner.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(360);
+    expect(await pageScrolls()).toBe(false);
+
+    await setItemPanel(page, true);
+    const list = page.getByRole('complementary', { name: 'Activities and food' });
+    await list.getByRole('tab', { name: 'Popular' }).click();
+    await list.getByRole('button', { name: 'The Metropolitan Museum of Art', exact: true }).click();
+    const detail = page.getByRole('dialog', { name: 'The Metropolitan Museum of Art' });
+    await expect(detail.getByRole('img')).toBeVisible();
+    const dialogBox = (await detail.boundingBox())!;
+    expect(dialogBox.x).toBeGreaterThanOrEqual(0);
+    expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(360);
+    expect(await pageScrolls()).toBe(false);
+    await detail.getByRole('button', { name: 'Close' }).click();
+
+    await page.goto('/');
+    const card = page.getByRole('listitem').filter({ hasText: 'Layout photos' });
+    await expect(card.getByRole('img', { name: 'New York, USA' })).toBeVisible();
+    const cardBox = (await card.boundingBox())!;
+    expect(cardBox.x).toBeGreaterThanOrEqual(0);
+    expect(cardBox.x + cardBox.width).toBeLessThanOrEqual(360);
+    expect(await pageScrolls()).toBe(false);
+
+    await card.getByRole('button', { name: 'Actions for Layout photos' }).click();
+    await page.getByRole('menuitem', { name: 'Change cover photo' }).click();
+    const picker = page.getByRole('dialog', { name: 'Change cover photo' });
+    await expect(picker.getByRole('button', { name: /^Photo \d by / })).toHaveCount(6);
+    const pickerBox = (await picker.boundingBox())!;
+    expect(pickerBox.x + pickerBox.width).toBeLessThanOrEqual(360);
     expect(await pageScrolls()).toBe(false);
   });
 });

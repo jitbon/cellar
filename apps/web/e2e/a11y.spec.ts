@@ -7,6 +7,7 @@ import {
   deleteAccount,
   goToDay,
   mockOpenMeteo,
+  mockWikimedia,
   mockPlaces,
   openChipMenu,
   openDayMenu,
@@ -275,5 +276,60 @@ for (const scheme of ['light', 'dark'] as const) {
     await setItemPanel(page, true);
     await expect(list.getByText('Popular places unavailable right now')).toBeVisible();
     await expectNoSeriousViolations(page); // unavailable state
+  });
+}
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`axe (${scheme}): trip cards with photos, cover picker, city banner and place detail`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await page.emulateMedia({ colorScheme: scheme });
+    await mockPlaces(page, 'ok');
+    await mockWikimedia(page, 'ok');
+    await signIn(page, account);
+    await createTrip(
+      page,
+      `Axe photos ${scheme}`,
+      dateIn('America/New_York', -1),
+      dateIn('America/New_York', 3),
+    );
+    const id = page.url().split('/').pop()!;
+    await setTripLocationDirect(id, {
+      name: 'New York, USA',
+      lat: 40.7128,
+      lon: -74.006,
+      tz: 'America/New_York',
+    });
+
+    // The city banner, with its Today header.
+    await page.reload();
+    await expect(page.getByTestId('city-banner').locator('img')).toBeVisible();
+    await expectNoSeriousViolations(page);
+
+    // The detail view of a Popular card (photo, credit over the overlay).
+    await setItemPanel(page, true);
+    const list = page.getByRole('complementary', { name: 'Activities and food' });
+    await list.getByRole('tab', { name: 'Popular' }).click();
+    await list.getByRole('button', { name: 'The Metropolitan Museum of Art', exact: true }).click();
+    const detail = page.getByRole('dialog', { name: 'The Metropolitan Museum of Art' });
+    await expect(detail.getByRole('img', { name: 'The Metropolitan Museum of Art' })).toBeVisible();
+    await expectNoSeriousViolations(page);
+    await detail.getByRole('button', { name: 'Close' }).click();
+
+    // "Your trips" with photos and the cover picker.
+    await page.goto('/');
+    await expect(
+      page
+        .getByRole('listitem')
+        .filter({ hasText: `Axe photos ${scheme}` })
+        .getByRole('img', { name: 'New York, USA' }),
+    ).toBeVisible();
+    await expectNoSeriousViolations(page);
+    await page.getByRole('button', { name: `Actions for Axe photos ${scheme}` }).click();
+    await page.getByRole('menuitem', { name: 'Change cover photo' }).click();
+    const picker = page.getByRole('dialog', { name: 'Change cover photo' });
+    await expect(picker.getByRole('button', { name: /^Photo \d by / })).toHaveCount(6);
+    await expectNoSeriousViolations(page);
   });
 }
