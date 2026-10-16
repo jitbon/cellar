@@ -1,0 +1,47 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "100": {
+        "pageid": 100,
+        "ns": 6,
+        "title": "File:Kyoto_A.jpg"
+      },
+      "101": {
+        "pageid": 101,
+        "ns": 6,
+        "title": "File:Kyoto_B.jpg"
+      },
+      "102": {
+        "pageid": 102,
+        "ns": 6,
+        "title": "File:Kyoto_C.jpg"
+      },
+      "103": {
+        "pageid": 103,
+        "ns": 6,
+        "title": "File:Kyoto_D.jpg"
+      },
+      "104": {
+        "pageid": 104,
+        "ns": 6,
+        "title": "File:Kyoto_E.jpg"
+      },
+      "105": {
+        "pageid": 105,
+        "ns": 6,
+        "title": "File:Kyoto_F.jpg"
+      },
+      "106": {
+        "pageid": 106,
+        "ns": 6,
+        "title": "File:Kyoto_map.svg"
+      },
+      "107": {
+        "pageid": 107,
+        "ns": 6,
+        "title": "File:Flag_of_Japan.png"
+      }
+    }
+  }
+}

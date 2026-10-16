@@ -2,6 +2,8 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import type {
+  CityPhoto,
+  CityPhotoService,
   Location,
   Place,
   PlaceSearch,
@@ -77,6 +79,7 @@ export const popularPlace = (
   name: string,
   types: string[],
   kind = 'Museum',
+  photo: PopularPlace['photo'] = null,
 ): PopularPlace => ({
   placeId,
   name,
@@ -87,12 +90,20 @@ export const popularPlace = (
   types,
   rating: 4.8,
   ratingCount: 104512,
+  photo,
 });
 
-export const metPopular = popularPlace('test-met', 'The Metropolitan Museum of Art', [
-  'art_museum',
-  'museum',
-]);
+export const metPopular = popularPlace(
+  'test-met',
+  'The Metropolitan Museum of Art',
+  ['art_museum', 'museum'],
+  'Museum',
+  {
+    name: 'places/test-met/photos/p1',
+    author: 'Ann Lee',
+    authorUri: 'https://maps.google.com/contrib/1',
+  },
+);
 export const katzPopular = popularPlace(
   'test-katz',
   "Katz's Delicatessen",
@@ -118,11 +129,14 @@ export function fakePlaceSearch(
     popular?: (city: Location) => PopularList;
     /** Makes `popular` reject. */
     popularFail?: boolean;
+    /** Makes `photoUrl` reject. */
+    photoFail?: boolean;
   } = {},
 ): PlaceSearch & {
   suggest: ReturnType<typeof vi.fn>;
   details: ReturnType<typeof vi.fn>;
   popular: ReturnType<typeof vi.fn>;
+  photoUrl: ReturnType<typeof vi.fn>;
 } {
   const {
     suggestions = [],
@@ -130,8 +144,13 @@ export function fakePlaceSearch(
     fail = false,
     popular = defaultPopular,
     popularFail = false,
+    photoFail = false,
   } = opts;
   return {
+    photoUrl: vi.fn(async (name: string, maxWidthPx: number) => {
+      if (photoFail) throw new Error('unavailable');
+      return `https://photos.test/${name}?w=${maxWidthPx}`;
+    }),
     popular: vi.fn(async (city: Location) => {
       if (popularFail) throw new Error('unavailable');
       return popular(city);
@@ -143,6 +162,48 @@ export function fakePlaceSearch(
     details: vi.fn(async () => {
       if (fail) throw new Error('unavailable');
       return place;
+    }),
+  };
+}
+
+/** A city photo with a credit; `file` also decides the image URL. */
+export const cityPhoto = (file: string, credit = 'Jane Doe'): CityPhoto => ({
+  file,
+  url: `https://photos.test/city/${file}`,
+  width: 1280,
+  height: 720,
+  credit,
+  license: 'CC BY-SA 4.0',
+  sourceUrl: `https://commons.wikimedia.org/wiki/File:${file}`,
+});
+
+/** A fake CityPhotoService: `lead` is the first photo, `more` all of them. */
+export function fakeCityPhotos(
+  opts: { photos?: CityPhoto[]; fail?: boolean } = {},
+): CityPhotoService & {
+  lead: ReturnType<typeof vi.fn>;
+  more: ReturnType<typeof vi.fn>;
+  byFile: ReturnType<typeof vi.fn>;
+} {
+  const {
+    photos = ['Kyoto_A.jpg', 'Kyoto_B.jpg', 'Kyoto_C.jpg'].map((f) => cityPhoto(f)),
+    fail = false,
+  } = opts;
+  const guard = () => {
+    if (fail) throw new Error('unavailable');
+  };
+  return {
+    lead: vi.fn(async () => {
+      guard();
+      return photos[0] ?? null;
+    }),
+    more: vi.fn(async (_city: string, limit: number) => {
+      guard();
+      return photos.slice(0, limit);
+    }),
+    byFile: vi.fn(async (file: string) => {
+      guard();
+      return photos.find((p) => p.file === file) ?? null;
     }),
   };
 }

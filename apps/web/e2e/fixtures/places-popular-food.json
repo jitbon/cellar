@@ -9,7 +9,12 @@
       "lon": -73.9874,
       "types": ["deli", "restaurant", "food"],
       "rating": 4.5,
-      "ratingCount": 40211
+      "ratingCount": 40211,
+      "photo": {
+        "name": "places/test-katz/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
     },
     {
       "placeId": "test-joes",
@@ -20,7 +25,12 @@
       "lon": -74.0021,
       "types": ["pizza_restaurant", "restaurant", "food"],
       "rating": 4.5,
-      "ratingCount": 15000
+      "ratingCount": 15000,
+      "photo": {
+        "name": "places/test-joes/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
     },
     {
       "placeId": "test-tacos",
@@ -31,7 +41,12 @@
       "lon": -74.0063,
       "types": ["mexican_restaurant", "restaurant", "food"],
       "rating": 4.6,
-      "ratingCount": 12000
+      "ratingCount": 12000,
+      "photo": {
+        "name": "places/test-tacos/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
     }
   ]
 }

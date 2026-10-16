@@ -58,6 +58,7 @@ describe('design tokens', () => {
       ...['meal-row', 'meal-icon'],
       ...['header-text'],
       ...['header-muted', 'greyed-hatch', 'danger', 'focus'],
+      ...['photo-overlay', 'on-photo'],
     ].map((n) => `--color-${n}`);
     for (let i = 1; i <= 8; i++) names.push(`--space-${i}`);
     for (const r of ['xs', 'sm', 'md', 'pill']) names.push(`--radius-${r}`);
@@ -67,6 +68,7 @@ describe('design tokens', () => {
     }
     names.push('--size-icon-button', '--size-touch', '--font-family');
     names.push('--size-control', '--size-control-sm', '--motion-fade');
+    names.push('--size-banner', '--size-banner-sm', '--size-thumb', '--size-cover');
     for (const n of names) expect(light[n], n).toBeDefined();
   });
 
@@ -96,6 +98,24 @@ describe('design tokens', () => {
         );
       });
     }
+  }
+
+  // Text over a photo sits on the overlay. Worst case is a white photo behind it, so the overlay
+  // is composited over white before measuring.
+  for (const [theme, values] of [
+    ['light', light],
+    ['dark', dark],
+  ] as const) {
+    it(`${theme}: on-photo over the photo overlay (on a white photo) meets 4.5:1`, () => {
+      const m = values['--color-photo-overlay']!.match(/rgb\((\d+) (\d+) (\d+) \/ (\d+)%\)/);
+      expect(m, '--color-photo-overlay').not.toBeNull();
+      const alpha = Number(m![4]) / 100;
+      const opaque = [m![1], m![2], m![3]]
+        .map((c) => Math.round(255 - alpha * (255 - Number(c))))
+        .map((c) => c.toString(16).padStart(2, '0'))
+        .join('');
+      expect(contrast(values['--color-on-photo']!, `#${opaque}`)).toBeGreaterThanOrEqual(4.5);
+    });
   }
 
   // Weather glyphs are non-text graphics: WCAG 1.4.11 asks for 3:1 against what they sit on.

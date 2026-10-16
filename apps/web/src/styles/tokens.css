@@ -29,6 +29,8 @@
   --color-danger-bg: #fdecea;
   --color-focus: #1d6ff2;
   --color-backdrop: rgb(13 27 46 / 50%);
+  --color-photo-overlay: rgb(11 45 99 / 70%);
+  --color-on-photo: #ffffff;
 
   --color-weather-clear: #b76e00;
   --color-weather-partly-cloudy: #a07a1a;
@@ -75,6 +77,10 @@
   --size-day-cell: 40px;
   --size-control: 28px;
   --size-control-sm: 26px;
+  --size-banner: 84px;
+  --size-banner-sm: 56px;
+  --size-thumb: 40px;
+  --size-cover: 150px;
 
   --motion-fade: 300ms;
 }
@@ -111,6 +117,7 @@
     --color-danger-bg: #4a1f1c;
     --color-focus: #6aa3ff;
     --color-backdrop: rgb(0 0 0 / 60%);
+    --color-photo-overlay: rgb(5 12 26 / 70%);
 
     --color-weather-clear: #f5b83d;
     --color-weather-partly-cloudy: #d9b25a;

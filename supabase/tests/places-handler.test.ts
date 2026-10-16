@@ -227,7 +227,7 @@ describe('handlePlaces errors', () => {
 });
 
 const FIELD_MASK =
-  'places.id,places.displayName,places.shortFormattedAddress,places.location,places.types,places.primaryType,places.primaryTypeDisplayName,places.rating,places.userRatingCount';
+  'places.id,places.displayName,places.shortFormattedAddress,places.location,places.types,places.primaryType,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.photos';
 
 const popularBody = { action: 'popular', city: 'New York, USA', near: { lat: 40.7, lon: -74 } };
 
@@ -301,6 +301,7 @@ describe('handlePlaces popular', () => {
           types: ['museum'],
           rating: 4.6,
           ratingCount: 1234,
+          photo: null,
         },
         {
           placeId: 'p2',
@@ -312,9 +313,49 @@ describe('handlePlaces popular', () => {
           types: [],
           rating: null,
           ratingCount: null,
+          photo: null,
         },
       ],
     });
+  });
+
+  it('maps the first photo and its first author attribution', async () => {
+    const photos = [
+      {
+        name: 'places/p1/photos/AXCi_1',
+        authorAttributions: [
+          { displayName: 'Jane Doe', uri: 'https://maps.google.com/contrib/1' },
+          { displayName: 'Second', uri: 'https://maps.google.com/contrib/2' },
+        ],
+      },
+      { name: 'places/p1/photos/AXCi_2', authorAttributions: [{ displayName: 'Other' }] },
+    ];
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse({
+        places: [
+          googlePlace('p1', { photos }),
+          googlePlace('p2', {
+            photos: [
+              { name: 'places/p2/photos/Z', authorAttributions: [{ displayName: 'No Uri' }] },
+            ],
+          }),
+          googlePlace('p3', { photos: [{ name: 'places/p3/photos/Y' }] }),
+          googlePlace('p4', { photos: [] }),
+        ],
+      }),
+    );
+    const res = await handlePlaces(post({ ...popularBody, group: 'todo' }), env, fetchFn);
+    const body = await res.json();
+    expect(body.places.map((p: { photo: unknown }) => p.photo)).toEqual([
+      {
+        name: 'places/p1/photos/AXCi_1',
+        author: 'Jane Doe',
+        authorUri: 'https://maps.google.com/contrib/1',
+      },
+      { name: 'places/p2/photos/Z', author: 'No Uri', authorUri: null },
+      { name: 'places/p3/photos/Y', author: '', authorUri: null },
+      null,
+    ]);
   });
 
   it('drops places missing an id, a name or a location and caps at 20', async () => {
@@ -371,6 +412,85 @@ describe('handlePlaces popular', () => {
     );
     expect(non2xx.status).toBe(503);
     const rejected = await handlePlaces(post(body), env, vi.fn().mockRejectedValue(new Error('x')));
+    expect(rejected.status).toBe(503);
+    expect(await rejected.json()).toEqual({ error: 'unavailable' });
+  });
+});
+
+describe('handlePlaces photo', () => {
+  const NAME = 'places/ChIJ_abc-1/photos/AXCi_2-x';
+  const photoBody = { action: 'photo', name: NAME, maxWidthPx: 160 };
+
+  it('GETs the media URL with the key and returns only the photo URI', async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ name: `${NAME}/photoUri`, photoUri: 'https://lh3.example/x' }),
+      );
+    const res = await handlePlaces(post({ ...photoBody, trip: 'Secret trip name' }), env, fetchFn);
+    expect(res.status).toBe(200);
+    const [url, init] = fetchFn.mock.calls[0];
+    expect(url).toBe(
+      `https://places.googleapis.com/v1/${NAME}/media?maxWidthPx=160&skipHttpRedirect=true`,
+    );
+    expect(init.method).toBe('GET');
+    expect(init.headers['X-Goog-Api-Key']).toBe('test-key');
+    expect(await res.json()).toEqual({ photoUri: 'https://lh3.example/x' });
+  });
+
+  it('answers 400 for a bad name or width without calling Google', async () => {
+    for (const body of [
+      { ...photoBody, name: undefined },
+      { ...photoBody, name: '' },
+      { ...photoBody, name: 'places/abc' },
+      { ...photoBody, name: 'places/abc/photos/' },
+      { ...photoBody, name: 'places/abc/photos/x/../y' },
+      { ...photoBody, name: 'places/a b/photos/x' },
+      { ...photoBody, name: `${NAME}?key=1` },
+      { ...photoBody, name: `x${NAME}` },
+      { ...photoBody, maxWidthPx: 47 },
+      { ...photoBody, maxWidthPx: 1601 },
+      { ...photoBody, maxWidthPx: 160.5 },
+      { ...photoBody, maxWidthPx: '160' },
+      { ...photoBody, maxWidthPx: undefined },
+    ]) {
+      const fetchFn = vi.fn();
+      const res = await handlePlaces(post(body), env, fetchFn);
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: 'bad_request' });
+      expect(fetchFn).not.toHaveBeenCalled();
+    }
+  });
+
+  it('accepts the width limits 48 and 1600', async () => {
+    for (const maxWidthPx of [48, 1600]) {
+      const fetchFn = vi
+        .fn()
+        .mockResolvedValue(jsonResponse({ photoUri: 'https://lh3.example/x' }));
+      const res = await handlePlaces(post({ ...photoBody, maxWidthPx }), env, fetchFn);
+      expect(res.status).toBe(200);
+    }
+  });
+
+  it('answers 503 without a key, on a Google error, a missing photoUri and when fetch rejects', async () => {
+    expect((await handlePlaces(post(photoBody), {}, vi.fn())).status).toBe(503);
+    const non2xx = await handlePlaces(
+      post(photoBody),
+      env,
+      vi.fn().mockResolvedValue(jsonResponse({}, 404)),
+    );
+    expect(non2xx.status).toBe(503);
+    const noUri = await handlePlaces(
+      post(photoBody),
+      env,
+      vi.fn().mockResolvedValue(jsonResponse({})),
+    );
+    expect(noUri.status).toBe(503);
+    const rejected = await handlePlaces(
+      post(photoBody),
+      env,
+      vi.fn().mockRejectedValue(new Error('x')),
+    );
     expect(rejected.status).toBe(503);
     expect(await rejected.json()).toEqual({ error: 'unavailable' });
   });

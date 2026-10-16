@@ -9,7 +9,12 @@
       "lon": -73.9632,
       "types": ["art_museum", "museum", "tourist_attraction"],
       "rating": 4.8,
-      "ratingCount": 104512
+      "ratingCount": 104512,
+      "photo": {
+        "name": "places/test-met/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
     },
     {
       "placeId": "test-park",
@@ -20,7 +25,12 @@
       "lon": -73.9654,
       "types": ["park", "tourist_attraction"],
       "rating": 4.8,
-      "ratingCount": 270000
+      "ratingCount": 270000,
+      "photo": {
+        "name": "places/test-park/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
     },
     {
       "placeId": "test-esb",
@@ -31,7 +41,12 @@
       "lon": -73.9857,
       "types": ["tourist_attraction"],
       "rating": 4.7,
-      "ratingCount": 120000
+      "ratingCount": 120000,
+      "photo": {
+        "name": "places/test-esb/photos/p1",
+        "author": "Ann Lee",
+        "authorUri": "https://maps.google.com/contrib/1"
+      }
     }
   ]
 }

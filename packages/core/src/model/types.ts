@@ -39,6 +39,13 @@ export interface PlaceSuggestion {
   types: string[];
 }
 
+/** A provider photo of a place. The name expires, so it is session memory only, never stored. */
+export interface PlacePhotoRef {
+  name: string;
+  author: string;
+  authorUri: string | null;
+}
+
 /** A place suggested for a city. Transient: kept in session memory only, never stored. */
 export interface PopularPlace {
   placeId: string;
@@ -51,7 +58,26 @@ export interface PopularPlace {
   types: string[];
   rating: number | null;
   ratingCount: number | null;
+  /** The first provider photo, or null when the place has none. */
+  photo: PlacePhotoRef | null;
 }
+
+/** A photo of a city from an openly licensed source, with what its credit line needs. */
+export interface CityPhoto {
+  /** Commons file name (what `Trip.coverPhoto` stores). */
+  file: string;
+  url: string;
+  width: number;
+  height: number;
+  credit: string;
+  license: string;
+  sourceUrl: string;
+}
+
+export type TripStatus =
+  | { kind: 'before'; days: number }
+  | { kind: 'during'; day: number; of: number }
+  | { kind: 'after' };
 
 export interface PopularList {
   city: Location;
@@ -68,6 +94,8 @@ export interface Trip extends LocationFields {
   name: string;
   startDate: ISODate;
   endDate: ISODate;
+  /** Commons file name of the cover photo the traveler chose; null follows the automatic photo. */
+  coverPhoto: string | null;
   deletedAt: string | null;
   updatedAt: string;
 }

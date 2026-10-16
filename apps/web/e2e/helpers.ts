@@ -38,6 +38,8 @@ export async function signIn(page: Page, account: Account): Promise<void> {
   // developer machine holds a real Google key. A spec that did not choose a mock gets a failing
   // one, so no test can reach Google.
   if (!placesMocked.has(page)) await mockPlaces(page, 'fail');
+  // Same for city photos: trip cards and the banner would otherwise reach Wikimedia.
+  if (!wikimediaMocked.has(page)) await mockWikimedia(page, 'fail');
   await page.goto('/signin');
   await page.getByLabel('Email').fill(account.email);
   await page.getByLabel('Password').fill(account.password);
@@ -96,10 +98,66 @@ export async function mockOpenMeteo(page: Page, mode: 'ok' | 'fail'): Promise<vo
   });
 }
 
+const wikimediaMocked = new WeakSet<Page>();
+
+export interface WikimediaRequest {
+  /** 'search' and 'images' go to Wikipedia, 'imageinfo' to Commons. */
+  kind: 'search' | 'images' | 'imageinfo';
+  url: string;
+}
+
+const photoFixture = (name: string) => new URL(`./fixtures/${name}`, import.meta.url).pathname;
+
+/**
+ * Routes Wikipedia, Commons and the image host to fixtures so e2e never reaches Wikimedia.
+ * Returns the requests seen, in order. `fail` answers every call with 503.
+ */
+export async function mockWikimedia(page: Page, mode: 'ok' | 'fail'): Promise<WikimediaRequest[]> {
+  wikimediaMocked.add(page);
+  const requests: WikimediaRequest[] = [];
+  const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
+  await page.route(
+    /^https:\/\/(en\.wikipedia|commons\.wikimedia)\.org\/w\/api\.php/,
+    async (route) => {
+      const request = route.request();
+      if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+      const q = new URL(request.url()).searchParams;
+      const generator = q.get('generator');
+      const kind =
+        generator === 'search' ? 'search' : generator === 'images' ? 'images' : 'imageinfo';
+      requests.push({ kind, url: request.url() });
+      if (mode === 'fail')
+        return route.fulfill({ status: 503, headers: cors, body: 'unavailable' });
+      const file = {
+        search: 'wikimedia-search-kyoto.json',
+        images: 'wikimedia-images-kyoto.json',
+        imageinfo: 'wikimedia-imageinfo.json',
+      }[kind];
+      const body = JSON.parse(fixture(file));
+      if (kind === 'imageinfo') {
+        // Answer only for the files asked about, like the real API.
+        const wanted = new Set((q.get('titles') ?? '').split('|'));
+        body.query.pages = Object.fromEntries(
+          Object.entries(body.query.pages as Record<string, { title: string }>).filter(([, p]) =>
+            wanted.has(p.title),
+          ),
+        );
+      }
+      return route.fulfill({ headers: cors, json: body });
+    },
+  );
+  await page.route('https://upload.wikimedia.org/**', (route) =>
+    mode === 'fail'
+      ? route.fulfill({ status: 503, body: 'unavailable' })
+      : route.fulfill({ path: photoFixture('photo-a.jpg') }),
+  );
+  return requests;
+}
+
 const placesMocked = new WeakSet<Page>();
 
 export interface PlacesRequest {
-  action: 'suggest' | 'details' | 'popular';
+  action: 'suggest' | 'details' | 'popular' | 'photo';
   [key: string]: unknown;
 }
 
@@ -118,6 +176,12 @@ export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<Place
     requests.push(body);
     if (mode === 'fail') {
       return route.fulfill({ status: 503, headers: cors, json: { error: 'unavailable' } });
+    }
+    if (body.action === 'photo') {
+      // A URL on the app's own origin, served from a fixture image below.
+      const origin = new URL(page.url()).origin;
+      const photoUri = `${origin}/__test-photo/${String(body.name)}.jpg`;
+      return route.fulfill({ headers: cors, json: { photoUri } });
     }
     let file: string;
     if (body.action === 'suggest') {
@@ -141,6 +205,9 @@ export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<Place
     }
     return route.fulfill({ headers: cors, body: fixture(file), contentType: 'application/json' });
   });
+  await page.route('**/__test-photo/**', (route) =>
+    route.fulfill({ path: photoFixture('photo-b.jpg') }),
+  );
   return requests;
 }
 

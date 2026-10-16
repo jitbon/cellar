@@ -6,10 +6,14 @@ const BIAS_RADIUS_M = 30_000;
 const MAX_SUGGESTIONS = 5;
 const POPULAR_RADIUS_M = 15_000;
 const MAX_POPULAR = 20;
-// rating and userRatingCount put the request in Google's Enterprise tier (see research R2).
+// rating and userRatingCount put the request in Google's Enterprise tier (see research R2); the
+// photo names ride along in that same request at no extra charge.
 const POPULAR_FIELDS =
-  'places.id,places.displayName,places.shortFormattedAddress,places.location,places.types,places.primaryType,places.primaryTypeDisplayName,places.rating,places.userRatingCount';
+  'places.id,places.displayName,places.shortFormattedAddress,places.location,places.types,places.primaryType,places.primaryTypeDisplayName,places.rating,places.userRatingCount,places.photos';
 const TIMEOUT_MS = 5000;
+const PHOTO_NAME = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
+const MIN_PHOTO_WIDTH = 48;
+const MAX_PHOTO_WIDTH = 1600;
 
 // CORS is limited to the configured app origins: the request Origin is echoed only when listed,
 // otherwise the allow-origin header is omitted so browsers block the response.
@@ -138,6 +142,15 @@ interface GooglePlace {
   primaryTypeDisplayName?: { text?: string };
   rating?: number;
   userRatingCount?: number;
+  photos?: { name?: string; authorAttributions?: { displayName?: string; uri?: string }[] }[];
+}
+
+/** The first photo's name and author; Google names expire, so the client never stores them. */
+function firstPhoto(p: GooglePlace) {
+  const first = p.photos?.[0];
+  if (!first?.name) return null;
+  const author = first.authorAttributions?.[0];
+  return { name: first.name, author: author?.displayName ?? '', authorUri: author?.uri ?? null };
 }
 
 const POPULAR_QUERY = {
@@ -196,11 +209,40 @@ async function popular(
           types: p.types ?? [],
           rating: p.rating ?? null,
           ratingCount: p.userRatingCount ?? null,
+          photo: firstPhoto(p),
         },
       ];
     })
     .slice(0, MAX_POPULAR);
   return json(cors, { places });
+}
+
+async function photo(
+  cors: Cors,
+  body: Record<string, unknown>,
+  key: string,
+  fetchFn: typeof fetch,
+): Promise<Response> {
+  const { name, maxWidthPx } = body;
+  if (typeof name !== 'string' || !PHOTO_NAME.test(name)) return badRequest(cors);
+  if (
+    typeof maxWidthPx !== 'number' ||
+    !Number.isInteger(maxWidthPx) ||
+    maxWidthPx < MIN_PHOTO_WIDTH ||
+    maxWidthPx > MAX_PHOTO_WIDTH
+  ) {
+    return badRequest(cors);
+  }
+
+  // skipHttpRedirect returns the image URL as JSON; it needs no key, so the browser loads it.
+  const res = await fetchFn(
+    `${GOOGLE}/${name}/media?maxWidthPx=${maxWidthPx}&skipHttpRedirect=true`,
+    { method: 'GET', headers: { 'X-Goog-Api-Key': key }, signal: AbortSignal.timeout(TIMEOUT_MS) },
+  );
+  if (!res.ok) return unavailable(cors);
+  const data = (await res.json()) as { photoUri?: string };
+  if (!isString(data.photoUri)) return unavailable(cors);
+  return json(cors, { photoUri: data.photoUri });
 }
 
 export async function handlePlaces(
@@ -220,7 +262,8 @@ export async function handlePlaces(
   } catch {
     return badRequest(cors);
   }
-  if (body.action !== 'suggest' && body.action !== 'details' && body.action !== 'popular') {
+  const actions = ['suggest', 'details', 'popular', 'photo'];
+  if (typeof body.action !== 'string' || !actions.includes(body.action)) {
     return badRequest(cors);
   }
   if (!env.key) return unavailable(cors);
@@ -228,6 +271,7 @@ export async function handlePlaces(
   try {
     if (body.action === 'suggest') return await suggest(cors, body, env.key, fetchFn);
     if (body.action === 'details') return await details(cors, body, env.key, fetchFn);
+    if (body.action === 'photo') return await photo(cors, body, env.key, fetchFn);
     return await popular(cors, body, env.key, fetchFn);
   } catch {
     return unavailable(cors);

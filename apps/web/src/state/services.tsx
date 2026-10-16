@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type {
   AuthService,
   AuthUser,
+  CityPhotoService,
   KeyValueStore,
   PlaceSearch,
   TripRepository,
@@ -15,6 +16,7 @@ export interface Services {
   outbox: Outbox;
   weather: WeatherService;
   places: PlaceSearch;
+  cityPhotos: CityPhotoService;
   store: KeyValueStore;
   /** Resolves once the persisted session has been read. */
   ready: Promise<void>;
@@ -44,6 +46,11 @@ export function useServices(): Services {
  */
 export function usePlaceSearch(): PlaceSearch | null {
   return useContext(ServicesContext)?.places ?? null;
+}
+
+/** City photos, or null outside a ServicesProvider so photo spots show their placeholder. */
+export function useCityPhotos(): CityPhotoService | null {
+  return useContext(ServicesContext)?.cityPhotos ?? null;
 }
 
 /** The device-local key-value store, or null outside a ServicesProvider. */

@@ -45,7 +45,7 @@ export class SupabasePlaceSearch implements PlaceSearch {
           near: { lat: city.lat, lon: city.lon },
           group,
         })
-      ).places;
+      ).places.map((p) => ({ ...p, photo: p.photo ?? null }));
     const [todo, food] = await Promise.all([fetchGroup('todo'), fetchGroup('food')]);
     // A place both searches returned is shown once: Food when it is a food place, else Things to do.
     const inTodo = new Set(todo.map((p) => p.placeId));
@@ -57,6 +57,15 @@ export class SupabasePlaceSearch implements PlaceSearch {
       food: food.filter((p) => !shared(p) || isFoodPlace(p.types)),
       fetchedAt: new Date().toISOString(),
     };
+  }
+
+  async photoUrl(photoName: string, maxWidthPx: number): Promise<string> {
+    const data = await this.call<{ photoUri: string }>({
+      action: 'photo',
+      name: photoName,
+      maxWidthPx,
+    });
+    return data.photoUri;
   }
 
   async details(suggestion: PlaceSuggestion, sessionToken: string): Promise<Place> {

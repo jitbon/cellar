@@ -1,0 +1,145 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "200": {
+        "pageid": 200,
+        "ns": 6,
+        "title": "File:Kyoto_A.jpg",
+        "imageinfo": [
+          {
+            "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Kyoto_A.jpg/1280px-Kyoto_A.jpg",
+            "thumbwidth": 1280,
+            "thumbheight": 720,
+            "width": 4000,
+            "height": 2250,
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Kyoto_A.jpg",
+            "extmetadata": {
+              "Artist": {
+                "value": "<a href=\"https://commons.wikimedia.org/wiki/User:Jane_Doe\">Jane Doe</a>"
+              },
+              "LicenseShortName": {
+                "value": "CC BY-SA 4.0"
+              }
+            }
+          }
+        ]
+      },
+      "201": {
+        "pageid": 201,
+        "ns": 6,
+        "title": "File:Kyoto_B.jpg",
+        "imageinfo": [
+          {
+            "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kyoto_B.jpg/1280px-Kyoto_B.jpg",
+            "thumbwidth": 1280,
+            "thumbheight": 720,
+            "width": 4000,
+            "height": 2250,
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Kyoto_B.jpg",
+            "extmetadata": {
+              "Artist": {
+                "value": "<a href=\"https://commons.wikimedia.org/wiki/User:Jane_Doe\">Jane Doe</a>"
+              },
+              "LicenseShortName": {
+                "value": "CC BY-SA 4.0"
+              }
+            }
+          }
+        ]
+      },
+      "202": {
+        "pageid": 202,
+        "ns": 6,
+        "title": "File:Kyoto_C.jpg",
+        "imageinfo": [
+          {
+            "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Kyoto_C.jpg/1280px-Kyoto_C.jpg",
+            "thumbwidth": 1280,
+            "thumbheight": 720,
+            "width": 4000,
+            "height": 2250,
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Kyoto_C.jpg",
+            "extmetadata": {
+              "Artist": {
+                "value": "<a href=\"https://commons.wikimedia.org/wiki/User:Jane_Doe\">Jane Doe</a>"
+              },
+              "LicenseShortName": {
+                "value": "CC BY-SA 4.0"
+              }
+            }
+          }
+        ]
+      },
+      "203": {
+        "pageid": 203,
+        "ns": 6,
+        "title": "File:Kyoto_D.jpg",
+        "imageinfo": [
+          {
+            "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Kyoto_D.jpg/1280px-Kyoto_D.jpg",
+            "thumbwidth": 1280,
+            "thumbheight": 720,
+            "width": 4000,
+            "height": 2250,
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Kyoto_D.jpg",
+            "extmetadata": {
+              "Artist": {
+                "value": "<a href=\"https://commons.wikimedia.org/wiki/User:Jane_Doe\">Jane Doe</a>"
+              },
+              "LicenseShortName": {
+                "value": "CC BY-SA 4.0"
+              }
+            }
+          }
+        ]
+      },
+      "204": {
+        "pageid": 204,
+        "ns": 6,
+        "title": "File:Kyoto_E.jpg",
+        "imageinfo": [
+          {
+            "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Kyoto_E.jpg/1280px-Kyoto_E.jpg",
+            "thumbwidth": 1280,
+            "thumbheight": 720,
+            "width": 4000,
+            "height": 2250,
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Kyoto_E.jpg",
+            "extmetadata": {
+              "Artist": {
+                "value": "<a href=\"https://commons.wikimedia.org/wiki/User:Jane_Doe\">Jane Doe</a>"
+              },
+              "LicenseShortName": {
+                "value": "CC BY-SA 4.0"
+              }
+            }
+          }
+        ]
+      },
+      "205": {
+        "pageid": 205,
+        "ns": 6,
+        "title": "File:Kyoto_F.jpg",
+        "imageinfo": [
+          {
+            "thumburl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Kyoto_F.jpg/1280px-Kyoto_F.jpg",
+            "thumbwidth": 1280,
+            "thumbheight": 720,
+            "width": 4000,
+            "height": 2250,
+            "descriptionurl": "https://commons.wikimedia.org/wiki/File:Kyoto_F.jpg",
+            "extmetadata": {
+              "Artist": {
+                "value": "<a href=\"https://commons.wikimedia.org/wiki/User:Jane_Doe\">Jane Doe</a>"
+              },
+              "LicenseShortName": {
+                "value": "CC BY-SA 4.0"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

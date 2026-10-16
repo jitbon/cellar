@@ -1,5 +1,6 @@
 import type { Change } from './commands/command';
 import type {
+  CityPhoto,
   Forecast,
   Location,
   Place,
@@ -53,6 +54,17 @@ export interface PlaceSearch {
   details(suggestion: PlaceSuggestion, sessionToken: string): Promise<Place>;
   /** Up to 20 per group for the city; places in both groups appear once. Rejects on failure. */
   popular(city: Location): Promise<PopularList>;
+  /** A short-lived image URL for a photo name, max width in px. Rejects on failure. */
+  photoUrl(photoName: string, maxWidthPx: number): Promise<string>;
+}
+
+export interface CityPhotoService {
+  /** The city's lead photo, or null when none. Rejects on failure. */
+  lead(cityName: string): Promise<CityPhoto | null>;
+  /** Up to `limit` landscape photos of the city (lead first). Rejects on failure. */
+  more(cityName: string, limit: number): Promise<CityPhoto[]>;
+  /** A specific photo by file name (for a chosen cover), or null if gone. Rejects on failure. */
+  byFile(file: string): Promise<CityPhoto | null>;
 }
 
 export interface KeyValueStore {

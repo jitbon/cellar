@@ -1,0 +1,22 @@
+.credit {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.credit:hover {
+  text-decoration: underline;
+}
+
+.onPhoto {
+  color: var(--color-on-photo);
+}
+
+.onPhoto:focus-visible {
+  outline-color: var(--color-on-photo);
+}

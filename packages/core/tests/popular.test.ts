@@ -13,6 +13,7 @@ const met: PopularPlace = {
   types: ['art_museum', 'museum', 'tourist_attraction'],
   rating: 4.8,
   ratingCount: 104512,
+  photo: null,
 };
 
 describe('popularToPlace', () => {

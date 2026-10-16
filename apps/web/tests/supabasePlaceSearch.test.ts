@@ -38,7 +38,14 @@ describe('suggest', () => {
 
 const nyc = { name: 'New York, USA', lat: 40.7128, lon: -74.006, tz: 'America/New_York' };
 
-const popularPlace = (placeId: string, types: string[], name = `Place ${placeId}`) => ({
+const photoRef = { name: 'places/met/photos/p1', author: 'Ann Lee', authorUri: 'https://x.test/1' };
+
+const popularPlace = (
+  placeId: string,
+  types: string[],
+  name = `Place ${placeId}`,
+  photo: unknown = null,
+) => ({
   placeId,
   name,
   kind: 'Place',
@@ -48,6 +55,7 @@ const popularPlace = (placeId: string, types: string[], name = `Place ${placeId}
   types,
   rating: 4.5,
   ratingCount: 100,
+  photo,
 });
 
 describe('popular', () => {
@@ -99,6 +107,37 @@ describe('popular', () => {
   it('rejects when either call errors', async () => {
     const { client } = popularClient([], [], true);
     await expect(new SupabasePlaceSearch(client).popular(nyc)).rejects.toThrow();
+  });
+
+  it('passes each place photo through, and uses null when the function sent none', async () => {
+    const withPhoto = popularPlace('met', ['museum'], 'Met', photoRef);
+    const legacy: Record<string, unknown> = popularPlace('katz', ['deli', 'restaurant']);
+    delete legacy.photo;
+    const { client } = popularClient([withPhoto], [legacy]);
+    const list = await new SupabasePlaceSearch(client).popular(nyc);
+    expect(list.todo[0]!.photo).toEqual(photoRef);
+    expect(list.food[0]!.photo).toBeNull();
+  });
+});
+
+describe('photoUrl', () => {
+  it('invokes the photo action and returns the photo URI', async () => {
+    const { client, invoke } = clientWith({
+      data: { photoUri: 'https://lh3.test/x' },
+      error: null,
+    });
+    const url = await new SupabasePlaceSearch(client).photoUrl('places/met/photos/p1', 160);
+    expect(invoke).toHaveBeenCalledWith('places', {
+      body: { action: 'photo', name: 'places/met/photos/p1', maxWidthPx: 160 },
+    });
+    expect(url).toBe('https://lh3.test/x');
+  });
+
+  it('rejects when the invoke fails', async () => {
+    const { client } = clientWith({ data: null, error: new Error('503') });
+    await expect(
+      new SupabasePlaceSearch(client).photoUrl('places/met/photos/p1', 160),
+    ).rejects.toThrow();
   });
 });
 

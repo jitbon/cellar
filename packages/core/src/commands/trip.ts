@@ -63,6 +63,7 @@ export function createTrip(
       name: name.trim(),
       startDate: start,
       endDate: end,
+      coverPhoto: null,
       deletedAt: null,
       ...locationFields(location),
       updatedAt: now,

@@ -8,6 +8,7 @@ import { Outbox } from './adapters/outbox';
 import { SupabaseAuthService } from './adapters/supabaseAuthService';
 import { SupabasePlaceSearch } from './adapters/supabasePlaceSearch';
 import { SupabaseTripRepository } from './adapters/supabaseTripRepository';
+import { WikimediaCityPhotos } from './adapters/wikimediaCityPhotos';
 import { supabase } from './lib/supabaseClient';
 import { ServicesProvider } from './state/services';
 import '@fontsource-variable/public-sans';
@@ -20,10 +21,13 @@ const outbox = new Outbox((changes) => repo.save(changes));
 const weather = new OpenMeteoWeatherService();
 const places = new SupabasePlaceSearch(supabase);
 const store = new LocalStorageStore();
+const cityPhotos = new WikimediaCityPhotos(store);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ServicesProvider services={{ auth, repo, outbox, weather, places, store, ready: auth.ready }}>
+    <ServicesProvider
+      services={{ auth, repo, outbox, weather, places, cityPhotos, store, ready: auth.ready }}
+    >
       <BrowserRouter>
         <App />
       </BrowserRouter>
