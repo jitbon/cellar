@@ -93,6 +93,22 @@ describe('ItemPanel', () => {
     expect(within(panel()).queryAllByText(/placed \d+×/)).toHaveLength(0);
   });
 
+  it('shows ×N beside the struck-through name when an item is placed more than once', () => {
+    const museum = seeded.items.find((i) => i.name === 'Museum')!;
+    render(<Harness initial={apply(seeded, placeItem(museum.id, '2027-04-01', lunch.id))} />);
+    const rowOf = (name: string) =>
+      within(panel())
+        .getAllByRole('listitem')
+        .find((li) => within(li).queryByTestId('item-name')?.textContent === name)!;
+    // Ramen is placed twice, Museum once.
+    expect(within(rowOf('Ramen')).getByText('×2')).toBeInTheDocument();
+    expect(rowOf('Ramen')).toHaveTextContent('placed 2 times');
+    expect(within(rowOf('Ramen')).getByText('×2').className).not.toMatch(/placed/);
+    expect(rowOf('Museum')).toHaveTextContent('Museum, placed');
+    expect(within(rowOf('Museum')).queryByText(/^×/)).toBeNull();
+    expect(within(rowOf('RAMÉN Bar')).queryByText(/^×/)).toBeNull();
+  });
+
   it('keeps a placed item draggable and its menu available', () => {
     setup();
     expect(screen.getByRole('button', { name: 'Drag Ramen' })).toBeInTheDocument();

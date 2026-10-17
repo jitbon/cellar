@@ -1,11 +1,5 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-  type RefObject,
-} from 'react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+import { useAnchoredPosition } from './useAnchoredPosition';
 import styles from './Popover.module.css';
 
 interface Props {
@@ -16,9 +10,6 @@ interface Props {
   children: ReactNode;
 }
 
-const GAP = 4;
-const MARGIN = 8;
-
 /**
  * A small panel under its anchor (above when there is no room below). It stays next to its
  * trigger in the page, so Tab moves into it, but is placed against the window so scroll areas
@@ -27,32 +18,7 @@ const MARGIN = 8;
  */
 export function Popover({ id, anchorRef, onClose, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
-
-  useLayoutEffect(() => {
-    function place() {
-      const anchor = anchorRef.current?.getBoundingClientRect();
-      const panel = ref.current?.getBoundingClientRect();
-      if (!anchor || !panel) return;
-      const below = anchor.bottom + GAP;
-      const above = anchor.top - GAP - panel.height;
-      const maxTop = window.innerHeight - MARGIN - panel.height;
-      const top = below <= maxTop ? below : above >= MARGIN ? above : Math.max(MARGIN, maxTop);
-      const maxLeft = window.innerWidth - MARGIN - panel.width;
-      const left = Math.max(MARGIN, Math.min(anchor.right - panel.width, maxLeft));
-      setPosition((p) => (p && p.top === top && p.left === left ? p : { top, left }));
-    }
-    place();
-    window.addEventListener('scroll', place, true);
-    window.addEventListener('resize', place);
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(place);
-    if (ref.current) observer?.observe(ref.current);
-    return () => {
-      window.removeEventListener('scroll', place, true);
-      window.removeEventListener('resize', place);
-      observer?.disconnect();
-    };
-  }, [anchorRef]);
+  const style = useAnchoredPosition(anchorRef, ref);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -74,13 +40,7 @@ export function Popover({ id, anchorRef, onClose, children }: Props) {
   }, [anchorRef, onClose]);
 
   return (
-    <div
-      ref={ref}
-      id={id}
-      className={styles.popover}
-      data-popover
-      style={position ?? { visibility: 'hidden' }}
-    >
+    <div ref={ref} id={id} className={styles.popover} data-popover style={style}>
       {children}
     </div>
   );

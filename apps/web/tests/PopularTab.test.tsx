@@ -312,6 +312,18 @@ describe('PopularTab', () => {
       );
     });
 
+    it('shows ×N when the place is on the schedule more than once', async () => {
+      const twice = apply(
+        metPlaced,
+        placePlace(popularToPlace(metPopular), 'activity', '2027-04-02', located.blocks[0].id),
+      );
+      setup(twice);
+      await screen.findByText(metPopular.name);
+      const met = screen.getByText(metPopular.name).closest('li')!;
+      expect(within(met).getByText('×2')).toBeInTheDocument();
+      expect(met).toHaveTextContent('placed 2 times');
+    });
+
     it('shows no count and keeps the drag handle and menu on a struck-through card', async () => {
       const user = setup(metPlaced);
       await screen.findByText(metPopular.name);

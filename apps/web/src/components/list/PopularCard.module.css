@@ -135,3 +135,11 @@
     transform: translate(-50%, -50%);
   }
 }
+
+/* The name and its "×2" repeat count on one line; the name shrinks, the count never does. */
+.nameLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}

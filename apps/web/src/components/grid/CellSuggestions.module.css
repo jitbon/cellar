@@ -1,5 +1,12 @@
 .list {
-  margin: var(--space-2) 0 0;
+  /* Placed against the window by useAnchoredPosition: over the grid, never resizing the cell. */
+  position: fixed;
+  z-index: 50;
+  width: max-content;
+  max-width: min(20rem, calc(100vw - 16px));
+  max-height: min(20rem, calc(100vh - 16px));
+  overflow-y: auto;
+  margin: 0;
   padding: var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);

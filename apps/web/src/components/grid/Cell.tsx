@@ -230,6 +230,7 @@ export function Cell({ state, date, blockId, blockName, dispatch, weather = null
           />
           <CellSuggestions
             id={listId}
+            anchorRef={inputRef}
             items={suggestions}
             activeIndex={activeIndex}
             onChoose={choose}

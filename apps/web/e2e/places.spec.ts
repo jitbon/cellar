@@ -357,3 +357,35 @@ test.describe('US3: link, change or remove a place', () => {
     await expect(chip).toBeVisible();
   });
 });
+
+test.describe('Cell suggestions float over the grid', () => {
+  test('typing in a cell shows suggestions without making the cell taller', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'NYC float', '2027-04-01', '2027-04-05');
+    await setTripLocationDirect(tripIdOf(page.url()), NEW_YORK);
+    await page.reload();
+
+    const cell = page.getByTestId('cell:2027-04-01:Lunch');
+    await page.getByRole('button', { name: 'Add event to Lunch on 2027-04-01' }).click();
+    const input = page.getByRole('combobox', { name: /Add event to Lunch/ });
+    const before = (await cell.boundingBox())!.height;
+
+    await input.fill('chel');
+    const options = page.getByRole('listbox', { name: 'Suggestions' });
+    await expect(options.getByRole('option', { name: /Chelsea Market/ })).toBeVisible();
+    expect((await cell.boundingBox())!.height).toBe(before);
+
+    // The list is drawn over the cells below it, not under them.
+    const box = (await options.boundingBox())!;
+    const onTop = await page.evaluate(
+      ([x, y]) => !!document.elementFromPoint(x!, y!)?.closest('[role="listbox"]'),
+      [box.x + box.width / 2, box.y + box.height / 2],
+    );
+    expect(onTop).toBe(true);
+
+    // Picking a suggestion still works from the floating list.
+    await options.getByRole('option', { name: /Chelsea Market/ }).click();
+    await expect(cell.getByTestId('chip').filter({ hasText: 'Chelsea Market' })).toBeVisible();
+  });
+});

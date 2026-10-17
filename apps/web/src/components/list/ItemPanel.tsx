@@ -7,7 +7,7 @@ import {
   placeItem,
   isFoodPlace,
   matchesItemName,
-  isItemPlaced,
+  placedCount,
   placeOf,
   suggestNear,
   updateItem,
@@ -17,6 +17,7 @@ import {
   type TripState,
 } from '@cellar/core';
 import { useKeyValueStore } from '../../state/services';
+import { placedText, RepeatCount } from './RepeatCount';
 import { CellPickerDialog } from '../CellPickerDialog';
 import { itemDragId } from '../grid/dndIds';
 import { TYPE_ICON, TYPE_LABEL, type Dispatch } from '../grid/PlacementChip';
@@ -130,7 +131,8 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
   const [editing, setEditing] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const placed = isItemPlaced(state, item.id);
+  const count = placedCount(state, item.id);
+  const placed = count > 0;
   const place = placeOf(item);
 
   return (
@@ -154,9 +156,12 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
         <Icon as={TYPE_ICON[item.type]} />
       </span>
       <span className={styles.text}>
-        <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
-          <span data-testid="item-name">{item.name}</span>
-          {placed ? <span className="visually-hidden">, placed</span> : null}
+        <span className={styles.nameLine}>
+          <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
+            <span data-testid="item-name">{item.name}</span>
+            {placed ? <span className="visually-hidden">{placedText(count)}</span> : null}
+          </span>
+          <RepeatCount count={count} />
         </span>
         <PlaceLine place={place} />
       </span>

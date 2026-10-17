@@ -3,6 +3,7 @@ import { useDraggable } from '@dnd-kit/core';
 import {
   addItem,
   isPlacePlaced,
+  placementsOfPlace,
   placePlace,
   popularToPlace,
   type ItemType,
@@ -17,6 +18,7 @@ import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { usePlacePhoto } from '../../state/usePlacePhoto';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { PlaceDetail } from './PlaceDetail';
+import { placedText, RepeatCount } from './RepeatCount';
 import { ratingText } from './rating';
 import styles from './PopularCard.module.css';
 
@@ -47,6 +49,7 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
   const meta = [place.kind, place.address].filter(Boolean).join(' · ');
   const rating = ratingText(place);
   const placed = isPlacePlaced(state, place.placeId);
+  const count = placementsOfPlace(state, place.placeId).length;
   const addToList = () => {
     if (dispatch(addItem(place.name, type, null, null, linked)).ok) onAddedToList?.(place.name);
   };
@@ -90,12 +93,15 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
         )}
       </span>
       <span className={styles.text}>
-        <button type="button" className={styles.nameButton} onClick={() => setDetail(true)}>
-          <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
-            {place.name}
-            {placed ? <span className="visually-hidden">, placed</span> : null}
-          </span>
-        </button>
+        <span className={styles.nameLine}>
+          <button type="button" className={styles.nameButton} onClick={() => setDetail(true)}>
+            <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
+              {place.name}
+              {placed ? <span className="visually-hidden">{placedText(count)}</span> : null}
+            </span>
+          </button>
+          <RepeatCount count={count} />
+        </span>
         {meta ? <span className={styles.meta}>{meta}</span> : null}
         {rating ? (
           <span className={styles.meta}>
