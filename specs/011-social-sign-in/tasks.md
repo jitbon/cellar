@@ -121,8 +121,8 @@ contracts/auth-service.md. Supabase Auth does linking (R2–R3): Cellar writes n
 
 - [X] T028 [P] Extend `apps/web/e2e/a11y.spec.ts`: `/signin` and `/signup` with all three providers mocked on, light and dark, no serious axe violations; the callback page "Signing you in…" state
 - [X] T029 [P] Extend `apps/web/e2e/layout.spec.ts` (or the auth spec): at 360 px the provider buttons fit without horizontal scroll and each is ≥ 44 px tall; buttons are reachable and usable with Tab/Enter
-- [ ] T030 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, the db tests and the full e2e suite; fix failures (known flakes: `e2e/perf.spec.ts` under load, `e2e/sync.spec.ts` FR-002)
-- [ ] T031 Walk through `specs/011-social-sign-in/quickstart.md` — automated parts now; scenarios with real providers when the project owner has configured keys and restarted the local stack (record which were run)
+- [X] T030 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, the db tests and the full e2e suite; fix failures (known flakes: `e2e/perf.spec.ts` under load, `e2e/sync.spec.ts` FR-002)
+- [X] T031 Walk through `specs/011-social-sign-in/quickstart.md` — automated parts now; scenarios with real providers when the project owner has configured keys and restarted the local stack (record which were run)
 
 ---
 
