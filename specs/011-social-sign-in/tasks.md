@@ -28,8 +28,8 @@ contracts/auth-service.md. Supabase Auth does linking (R2–R3): Cellar writes n
 
 ## Phase 1: Setup
 
-- [ ] T001 Add `supabase/.env` to `.gitignore` (provider keys; research R11), and confirm with `git check-ignore supabase/.env`
-- [ ] T002 [P] In `supabase/config.toml`: add `[auth.external.google]`, `[auth.external.facebook]` and update `[auth.external.apple]` with `enabled = env(SUPABASE_AUTH_EXTERNAL_<P>_ENABLED)`, `client_id = env(SUPABASE_AUTH_EXTERNAL_<P>_CLIENT_ID)`, `secret = env(SUPABASE_AUTH_EXTERNAL_<P>_SECRET)` (empty `redirect_uri`/`url`, `skip_nonce_check = false`, `email_optional = false`); add `"http://localhost:*/auth/callback"` and `"http://127.0.0.1:*/auth/callback"` to `additional_redirect_urls`; leave `[auth.email] enable_confirmations = true`. Do not restart the local stack (project owner only); note in the commit that it takes effect on the next restart. Verify the env() form for `enabled` is accepted by `supabase` config parsing (`supabase status` still works); if booleans cannot come from env, use `enabled = false` with a comment pointing to quickstart step 1
+- [X] T001 Add `supabase/.env` to `.gitignore` (provider keys; research R11), and confirm with `git check-ignore supabase/.env`
+- [X] T002 [P] In `supabase/config.toml`: add `[auth.external.google]`, `[auth.external.facebook]` and update `[auth.external.apple]` with `enabled = env(SUPABASE_AUTH_EXTERNAL_<P>_ENABLED)`, `client_id = env(SUPABASE_AUTH_EXTERNAL_<P>_CLIENT_ID)`, `secret = env(SUPABASE_AUTH_EXTERNAL_<P>_SECRET)` (empty `redirect_uri`/`url`, `skip_nonce_check = false`, `email_optional = false`); add `"http://localhost:*/auth/callback"` and `"http://127.0.0.1:*/auth/callback"` to `additional_redirect_urls`; leave `[auth.email] enable_confirmations = true`. Do not restart the local stack (project owner only); note in the commit that it takes effect on the next restart. Verify the env() form for `enabled` is accepted by `supabase` config parsing (`supabase status` still works); if booleans cannot come from env, use `enabled = false` with a comment pointing to quickstart step 1
 
 ---
 

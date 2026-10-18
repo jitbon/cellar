@@ -13,8 +13,9 @@ The e2e suite mocks the provider round trip (research R10), so it needs no provi
 ## Local setup with real providers (project owner)
 
 1. Create the developer apps (research R11) and put the keys in a gitignored `supabase/.env`:
-   `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`, `…_SECRET`, `…_ENABLED=true` (same for APPLE,
-   FACEBOOK). In each provider console, add the redirect `http://127.0.0.1:54321/auth/v1/callback`.
+   `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` and `…_SECRET` (same for APPLE, FACEBOOK), and set
+   `enabled = true` for each provider in `supabase/config.toml` (the CLI cannot read a boolean
+   from `env()`, so this one is edited by hand and not committed). In each provider console, add the redirect `http://127.0.0.1:54321/auth/v1/callback`.
 2. Restart the local stack so Auth reads the new config: `supabase stop && supabase start`
    (data is kept). Only the project owner does this.
 3. Check: `curl -s http://127.0.0.1:54321/auth/v1/settings -H "apikey: <anon>"` shows the
