@@ -16,6 +16,18 @@ sign in, password reset, sign out, and account deletion with a 30-day grace peri
 sign-in cancels. This feature adds Google, Apple and Facebook as further ways to create an account
 and sign in, alongside email, and makes the email path work cleanly with them.
 
+## Clarifications
+
+### Session 2026-10-18
+
+- Q: Should this feature build all three providers now, or only some of them? → A: Build Google,
+  Apple and Facebook now; each button appears only once that provider is set up in an environment.
+- Q: When someone uses a provider with the same email as an existing Cellar account, should they
+  go straight into that account or confirm first? → A: Link automatically when the provider has
+  verified the email; no password prompt.
+- Q: Should Settings only show which sign-in methods an account has, or also let people add and
+  remove them? → A: Show them only; connecting and disconnecting are out of scope.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Sign up or sign in with Google (Priority: P1)
@@ -169,7 +181,8 @@ has (Email and password, Google, Apple, Facebook).
 - **FR-004**: Any sign-in with a provider MUST cancel a pending account deletion and say so, as
   email sign-in does.
 - **FR-005**: When a provider reports a verified email that matches an existing confirmed
-  account, the sign-in MUST go to that existing account and add the provider to it.
+  account, the sign-in MUST go to that existing account and add the provider to it automatically,
+  with no extra prompt or password.
 - **FR-006**: A provider sign-in MUST NOT attach to an existing account when the provider does
   not report the email as verified; the person MUST be told to use email and password.
 - **FR-007**: An unconfirmed email sign-up's password MUST NOT give access to an account later
@@ -179,11 +192,13 @@ has (Email and password, Google, Apple, Facebook).
 - **FR-009**: Cancelling on the provider's screen or a provider error MUST return the person to
   the page they started from, not signed in, with a short message naming the provider; nothing
   is created.
-- **FR-010**: A provider without configuration in the current environment MUST NOT show its
-  button; the remaining methods MUST keep working.
+- **FR-010**: All three providers are built in this feature. A provider without configuration in
+  the current environment MUST NOT show its button; the remaining methods MUST keep working, and
+  enabling a provider later MUST need only its configuration, no further development.
 - **FR-011**: Email sign-up, confirmation, sign-in and password reset MUST keep working as today;
   password reset MUST also let a provider-only account add a password.
-- **FR-012**: Settings MUST show the account's email and its sign-in methods by name.
+- **FR-012**: Settings MUST show the account's email and its sign-in methods by name, read-only
+  (no connect or disconnect controls).
 - **FR-013**: Cellar MUST request only the person's email and account identifier from providers
   (no contacts, friends, photos or posting rights), and MUST store nothing else from them.
 - **FR-014**: All new controls MUST meet WCAG 2.1 AA, work at 360 px wide, and work with the
