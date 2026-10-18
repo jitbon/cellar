@@ -61,3 +61,11 @@ export { days } from './queries/days';
 export { cell, orderedBlocks } from './queries/cell';
 export { History } from './history';
 export { applyRemote } from './merge';
+export {
+  SIGN_IN_PROVIDERS,
+  METHOD_LABEL,
+  signInMethods,
+  providerCallbackKind,
+  providerMessage,
+  type ProviderCallbackKind,
+} from './auth/providers';

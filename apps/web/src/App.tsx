@@ -1,5 +1,6 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
 import { TooltipProvider } from './components/ui/Tooltip';
+import { AuthCallback } from './pages/AuthCallback';
 import { ResetPassword } from './pages/ResetPassword';
 import { Settings } from './pages/Settings';
 import { SignIn } from './pages/SignIn';
@@ -26,6 +27,7 @@ export function App() {
       <Routes>
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route element={<RequireAuth />}>
           <Route path="/" element={<Trips />} />

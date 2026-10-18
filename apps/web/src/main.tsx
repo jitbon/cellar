@@ -9,13 +9,13 @@ import { SupabaseAuthService } from './adapters/supabaseAuthService';
 import { SupabasePlaceSearch } from './adapters/supabasePlaceSearch';
 import { SupabaseTripRepository } from './adapters/supabaseTripRepository';
 import { WikimediaCityPhotos } from './adapters/wikimediaCityPhotos';
-import { supabase } from './lib/supabaseClient';
+import { supabase, supabaseAnonKey, supabaseUrl } from './lib/supabaseClient';
 import { ServicesProvider } from './state/services';
 import '@fontsource-variable/public-sans';
 import './styles/tokens.css';
 import './styles/global.css';
 
-const auth = new SupabaseAuthService(supabase);
+const auth = new SupabaseAuthService(supabase, { url: supabaseUrl, anonKey: supabaseAnonKey });
 const repo = new SupabaseTripRepository(supabase);
 const outbox = new Outbox((changes) => repo.save(changes));
 const weather = new OpenMeteoWeatherService();

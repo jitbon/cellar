@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { METHOD_LABEL } from '@cellar/core';
 import { ArrowLeft, Icon } from '../components/ui/Icon';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
@@ -46,6 +47,11 @@ export function Settings() {
           <p>
             Signed in as <strong>{user?.email}</strong>
           </p>
+          {user?.methods.length ? (
+            <p>
+              <span>Sign-in methods:</span> {user.methods.map((m) => METHOD_LABEL[m]).join(', ')}
+            </p>
+          ) : null}
           <div className={styles.actionsStart}>
             <Button onClick={() => void onSignOut()}>Sign out</Button>
           </div>

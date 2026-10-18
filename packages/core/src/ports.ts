@@ -21,9 +21,28 @@ export interface TripRepository {
   subscribe(tripId: string, onChange: (c: Change) => void): () => void;
 }
 
+/** Identity providers a person can sign in with (besides email and password). */
+export type SignInProvider = 'google' | 'apple' | 'facebook';
+
+/** A way of signing in to an account. */
+export type SignInMethod = 'email' | SignInProvider;
+
+/** Result of returning from a provider's sign-in screen (see `providerCallbackKind`). */
+export type ProviderSignInOutcome =
+  | { kind: 'signed-in'; provider: SignInProvider; deletionCancelled: boolean; returnTo: string }
+  | {
+      kind: 'cancelled' | 'email-not-verified' | 'no-email' | 'error';
+      /** Null when the pending sign-in is unknown (another tab, expired). */
+      provider: SignInProvider | null;
+      /** The page the person started from ('/signin' or '/signup'). */
+      returnTo: string;
+    };
+
 export interface AuthUser {
   id: string;
   email: string;
+  /** How this account can sign in, ordered email, google, apple, facebook. */
+  methods: SignInMethod[];
 }
 
 export interface AuthService {
@@ -33,6 +52,23 @@ export interface AuthService {
   requestPasswordReset(email: string): Promise<void>;
   updatePassword(newPassword: string): Promise<void>;
   requestAccountDeletion(): Promise<void>;
+  /** Providers turned on in the account service; [] when unknown or the request fails. */
+  availableProviders(): Promise<SignInProvider[]>;
+  /**
+   * Saves the pending sign-in (provider, from, returnTo) and leaves the page for the provider.
+   * Rejects only if the redirect could not start (the page stays; caller shows the error).
+   */
+  startProviderSignIn(
+    provider: SignInProvider,
+    from: '/signin' | '/signup',
+    returnTo: string,
+  ): Promise<void>;
+  /**
+   * Called by /auth/callback. Reads the pending record and the callback URL, waits for the session
+   * when tokens are present, cancels a pending account deletion after a successful sign-in, clears
+   * the pending record, and never throws.
+   */
+  completeProviderSignIn(url: URL): Promise<ProviderSignInOutcome>;
   currentUser(): AuthUser | null;
   onAuthChange(cb: (user: AuthUser | null) => void): () => void;
 }

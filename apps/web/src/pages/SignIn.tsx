@@ -1,15 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { ProviderButtons } from '../components/auth/ProviderButtons';
+import { useProviderOutcomeMessage } from '../components/auth/useProviderOutcome';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
 import { TextField } from '../components/ui/TextField';
+import { safeReturnTo } from '../lib/returnTo';
 import { useServices } from '../state/services';
 import styles from './Auth.module.css';
-
-/** Only same-origin absolute paths are allowed as a post-sign-in destination. */
-export function safeReturnTo(value: string | null): string {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : '/';
-}
 
 export function SignIn() {
   const { auth } = useServices();
@@ -20,6 +18,8 @@ export function SignIn() {
   const [error, setError] = useState<string | null>(null);
   const [cancelled, setCancelled] = useState(false);
   const [busy, setBusy] = useState(false);
+  const providerMessage = useProviderOutcomeMessage();
+  const returnTo = safeReturnTo(params.get('returnTo'));
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -28,7 +28,7 @@ export function SignIn() {
     try {
       const { deletionCancelled } = await auth.signIn(email, password);
       if (deletionCancelled) setCancelled(true);
-      else navigate(safeReturnTo(params.get('returnTo')), { replace: true });
+      else navigate(returnTo, { replace: true });
     } catch (err) {
       setError((err as Error).message || 'Could not sign in.');
     } finally {
@@ -41,39 +41,40 @@ export function SignIn() {
       <main className={styles.page}>
         <p className={styles.wordmark}>Cellar</p>
         <h1>Sign in</h1>
+        {providerMessage ? <Banner tone="error">{providerMessage}</Banner> : null}
         {cancelled ? (
           <>
             <Banner>Your account deletion was cancelled</Banner>
-            <Button
-              variant="primary"
-              onClick={() => navigate(safeReturnTo(params.get('returnTo')))}
-            >
+            <Button variant="primary" onClick={() => navigate(returnTo)}>
               Continue
             </Button>
           </>
         ) : (
-          <form className={styles.form} onSubmit={onSubmit}>
-            <TextField
-              label="Email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={error}
-            />
-            <Button type="submit" variant="primary" disabled={busy}>
-              Sign in
-            </Button>
-          </form>
+          <>
+            <ProviderButtons from="/signin" returnTo={returnTo} />
+            <form className={styles.form} onSubmit={onSubmit}>
+              <TextField
+                label="Email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <TextField
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={error}
+              />
+              <Button type="submit" variant="primary" disabled={busy}>
+                Sign in
+              </Button>
+            </form>
+          </>
         )}
         <div className={styles.links}>
           <Link to="/signup">Create an account</Link>
