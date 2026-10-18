@@ -20,6 +20,16 @@ location and category, and the provider's terms do not allow keeping ratings or 
 This feature gives linked list items and linked schedule events the same detail view, filling in
 the rating, reviews, type and photo from the place provider when the view opens.
 
+## Clarifications
+
+### Session 2026-10-18
+
+- Q: Should the details view also show opening hours, phone and website, or only what Popular
+  shows today? → A: Add today's opening hours (full week on expand) and a website link, in both
+  the linked-place and Popular detail views; no phone number.
+- Q: On the schedule, how should someone open a linked event's details? → A: "View details" in the
+  event's menu; clicking the event still opens the edit dialog.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - See a linked list item's details (Priority: P1)
@@ -93,7 +103,11 @@ planned dates and Open in maps show, with "More details aren't available right n
 - The same place opened again in the same session shows its details at once without asking the
   provider again.
 - A linked item and a Popular card for the same place show the same details.
-- A place with no rating or no photo shows the view without those parts, as Popular does.
+- A place with no rating or no photo shows the view without those parts, as Popular does; the
+  same for no hours or no website.
+- Hours are for the place's own day and time zone, not the traveler's (a Tokyo place viewed from
+  New York shows Tokyo's "today").
+- Places open around the clock read "Open 24 hours"; hours past midnight read e.g. "18:00–02:00".
 - Opening details while offline shows the stored facts and the unavailable note.
 - Closing the view before details arrive cancels nothing visible and causes no error.
 - The view works with keyboard only, at 360 px, and in dark mode, like Popular's.
@@ -109,11 +123,15 @@ planned dates and Open in maps show, with "More details aren't available right n
 - **FR-003**: The view MUST match Popular's detail view: large photo with credit (or the type
   icon), type and address, rating with review count, planned dates, and Open in maps with the
   same choices as elsewhere.
+- **FR-003a**: Both detail views (linked places and Popular) MUST show today's opening hours in
+  the place's local time (e.g. "Open today 9:00–21:00" or "Closed today"), with the full week
+  shown on expand, and a "Website" link that opens in a new tab. Either part is left out when the
+  provider has none. The Popular view fetches these when it opens, like the linked-place view.
 - **FR-004**: The view's actions MUST be: from a list item, Place in a block and Open in maps; from
   an event, Edit event and Open in maps.
 - **FR-005**: The stored facts (name, address, category, planned dates, Open in maps) MUST show
-  immediately; photo, type, rating and review count MUST be fetched from the place provider when
-  the view opens and appear within 2 seconds on a typical connection.
+  immediately; photo, type, rating, review count, opening hours and website MUST be fetched from
+  the place provider when the view opens and appear within 2 seconds on a typical connection.
 - **FR-006**: Fetched details MUST be kept for the rest of the session only (memory), never stored
   on the device or server, matching Popular (provider terms).
 - **FR-007**: When details cannot be fetched, the view MUST still open with the stored facts and a
@@ -129,7 +147,7 @@ planned dates and Open in maps show, with "More details aren't available right n
 - **Linked place** (existing): the place stored with an item or event: provider id, name,
   address, location, category.
 - **Place details** (session only): photo reference and credit, type label, rating, review count,
-  fetched by provider id.
+  weekly opening hours, website address, fetched by provider id.
 
 ## Success Criteria *(mandatory)*
 
@@ -147,7 +165,7 @@ planned dates and Open in maps show, with "More details aren't available right n
 - The existing place service can return a place's photo, type, rating and review count by id;
   each opening (once per place per session) is one more provider request, kept within the
   existing daily caps alongside Popular.
-- Opening hours, phone, website and written reviews are out of scope; "review" means the rating
-  and review count Popular already shows.
+- Phone numbers and written reviews are out of scope; "review" means the rating and review count
+  Popular already shows.
 - Items linked before this feature work without changes (they already store the provider id).
 - The detail view opened from Popular is unchanged.
