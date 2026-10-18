@@ -62,11 +62,9 @@ config and docs
 
 No violations.
 
-**Spec deviation to confirm** (research R9): Supabase Auth stores the provider's basic profile
-(name, picture URL) automatically, so FR-013's "store nothing else" cannot be met as written.
-Proposed wording: "Cellar MUST request no permissions beyond the providers' sign-in defaults and
-MUST NOT use or display profile data; the account service keeps the basic profile the provider
-sends." The spec is left unchanged until the project owner agrees.
+**Spec change agreed** (research R9): Supabase Auth stores the provider's basic profile (name,
+picture URL) automatically; FR-013 now says Cellar requests only default permissions and never
+uses or displays profile data (confirmed by the project owner 2026-10-18).
 
 ## Project Structure
 

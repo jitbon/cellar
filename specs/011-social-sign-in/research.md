@@ -99,7 +99,7 @@ The session user carries `app_metadata.providers` (e.g. `["email", "google"]`).
 - **Decision**: `AuthUser` gains `methods: SignInMethod[]` from that list (unknown entries
   ignored), ordered Email and password, Google, Apple, Facebook. Settings shows them as text.
 
-## R9 — Profile data the account service keeps (FR-013) — **spec deviation to confirm**
+## R9 — Profile data the account service keeps (FR-013) — spec reworded, agreed 2026-10-18
 
 GoTrue's provider code stores the provider's basic profile claims (name, picture URL) in the
 account's metadata and identity records automatically; scopes can be added but not removed

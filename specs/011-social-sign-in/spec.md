@@ -27,6 +27,8 @@ and sign in, alongside email, and makes the email path work cleanly with them.
   verified the email; no password prompt.
 - Q: Should Settings only show which sign-in methods an account has, or also let people add and
   remove them? → A: Show them only; connecting and disconnecting are out of scope.
+- Q: The account service stores each provider's basic profile automatically; may FR-013 allow
+  that? → A: Yes; Cellar requests only default permissions and never uses or shows profile data.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -199,8 +201,10 @@ has (Email and password, Google, Apple, Facebook).
   password reset MUST also let a provider-only account add a password.
 - **FR-012**: Settings MUST show the account's email and its sign-in methods by name, read-only
   (no connect or disconnect controls).
-- **FR-013**: Cellar MUST request only the person's email and account identifier from providers
-  (no contacts, friends, photos or posting rights), and MUST store nothing else from them.
+- **FR-013**: Cellar MUST request no permissions beyond the providers' standard sign-in defaults
+  (no contacts, friends, photo libraries or posting rights) and MUST NOT use or display profile
+  data; it uses only the email and account identifier. The account service keeps the basic profile
+  (name, picture address) the provider sends.
 - **FR-014**: All new controls MUST meet WCAG 2.1 AA, work at 360 px wide, and work with the
   keyboard alone; provider buttons MUST have accessible names "Continue with {Provider}".
 - **FR-015**: Provider secrets MUST NOT appear in client code or the repository.
