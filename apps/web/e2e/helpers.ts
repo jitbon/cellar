@@ -17,8 +17,8 @@ export interface Account {
 }
 
 /** A confirmed user, created through the admin API so no email round trip is needed. */
-export async function createAccount(): Promise<Account> {
-  const email = `e2e-${randomUUID()}@example.com`;
+export async function createAccount(domain = 'example.com'): Promise<Account> {
+  const email = `e2e-${randomUUID()}@${domain}`;
   const password = `pw-${randomUUID()}`;
   const { data, error } = await admin.auth.admin.createUser({
     email,
@@ -278,4 +278,89 @@ export async function setItemPanel(page: Page, open: boolean): Promise<void> {
   const toggle = page.getByRole('button', { name: 'Show list' });
   if (((await toggle.getAttribute('aria-expanded')) === 'true') !== open) await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', String(open));
+}
+
+const anonKey = process.env.VITE_SUPABASE_ANON_KEY ?? '';
+const corsHeaders = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
+
+export type ProviderName = 'google' | 'apple' | 'facebook';
+
+/**
+ * Makes the account service report the listed providers as turned on (they are all off locally).
+ * Only the settings answer is rewritten; everything else reaches the real service.
+ */
+export async function mockProviders(page: Page, providers: ProviderName[]): Promise<void> {
+  await page.route('**/auth/v1/settings', async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      return route.fulfill({ status: 204, headers: corsHeaders });
+    }
+    const res = await route.fetch();
+    const body = await res.json();
+    for (const p of providers) body.external[p] = true;
+    return route.fulfill({ headers: corsHeaders, json: body });
+  });
+}
+
+export type ProviderResult =
+  /** The provider confirms; the person is signed in as this (existing) account. */
+  | { session: Account }
+  /** The provider sends the person back with an error. */
+  | { error: string; errorCode?: string; description?: string; inQuery?: boolean };
+
+/**
+ * Stands in for the provider's whole round trip: the account service's authorize address answers
+ * with a redirect straight back to the app, carrying either a real session for a test account
+ * (signed in through the Auth API) or an error. Returns the providers that were asked for.
+ */
+export async function mockProviderReturn(
+  page: Page,
+  provider: ProviderName,
+  result: ProviderResult,
+): Promise<ProviderName[]> {
+  const asked: ProviderName[] = [];
+  await page.route('**/auth/v1/authorize?**', async (route) => {
+    const requested = new URL(route.request().url());
+    if (requested.searchParams.get('provider') !== provider) return route.fallback();
+    asked.push(provider);
+    const redirectTo = requested.searchParams.get('redirect_to')!;
+    let suffix: string;
+    if ('session' in result) {
+      const client = createClient(url, anonKey, { auth: { persistSession: false } });
+      const { data, error } = await client.auth.signInWithPassword({
+        email: result.session.email,
+        password: result.session.password,
+      });
+      if (error || !data.session) throw error ?? new Error('sign-in failed');
+      const { access_token, refresh_token } = data.session;
+      suffix = `#access_token=${access_token}&refresh_token=${refresh_token}&expires_in=3600&token_type=bearer`;
+    } else {
+      const q = new URLSearchParams({ error: result.error });
+      if (result.errorCode) q.set('error_code', result.errorCode);
+      if (result.description) q.set('error_description', result.description);
+      suffix = `${result.inQuery ? '?' : '#'}${q.toString()}`;
+    }
+    return route.fulfill({ status: 302, headers: { location: redirectTo + suffix } });
+  });
+  return asked;
+}
+
+/** Marks an account for deletion the way the app does, as that account (test setup only). */
+export async function requestDeletionDirect(account: Account): Promise<void> {
+  const client = createClient(url, anonKey, { auth: { persistSession: false } });
+  const { error } = await client.auth.signInWithPassword({
+    email: account.email,
+    password: account.password,
+  });
+  if (error) throw error;
+  const { error: rpcError } = await client.rpc('request_account_deletion');
+  if (rpcError) throw rpcError;
+  await client.auth.signOut();
+}
+
+/** Sets the sign-in methods the account service records for an account (test setup only). */
+export async function setProvidersDirect(account: Account, providers: string[]): Promise<void> {
+  const { error } = await admin.auth.admin.updateUserById(account.id, {
+    app_metadata: { providers },
+  });
+  if (error) throw error;
 }

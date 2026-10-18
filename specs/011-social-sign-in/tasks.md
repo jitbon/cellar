@@ -64,8 +64,8 @@ contracts/auth-service.md. Supabase Auth does linking (R2–R3): Cellar writes n
 - [X] T013 [US1] Create `apps/web/src/components/auth/ProviderButtons.tsx` (+ `ProviderButtons.module.css`, tokens only): full-width buttons ≥ 44 px tall, provider mark (inline SVG, `aria-hidden`) plus "Continue with {Provider}", Google/Apple/Facebook styling per each brand's button guidelines within contrast rules, then an "or" divider; props `from`, `returnTo`; make T009 pass
 - [X] T014 [US1] Create `apps/web/src/pages/AuthCallback.tsx` and add a public `/auth/callback` route (outside `RequireAuth`) in `apps/web/src/App.tsx`; make T010's callback cases pass
 - [X] T015 [US1] In `apps/web/src/pages/SignIn.tsx` and `apps/web/src/pages/SignUp.tsx`: render `ProviderButtons` above the email form (`from` = the page, `returnTo` = the `returnTo` query param or `/`); show a failed outcome from router state as a `Banner` with `providerMessage`; keep the email forms unchanged; make T010's message cases pass
-- [ ] T016 [US1] Add e2e helpers in `apps/web/e2e/helpers.ts`: `mockProviders(page, providers)` (rewrites `/auth/v1/settings` so listed providers are `true`) and `mockProviderReturn(page, provider, result)` where `result` is `{ session: Account }` (signs the account in through the Auth API in Node and answers `/auth/v1/authorize?provider=…` with a 302 to `redirect_to` + `#access_token=…&refresh_token=…&expires_in=3600&token_type=bearer`) or `{ error, errorCode?, description? }` (302 with those params)
-- [ ] T017 [US1] Create `apps/web/e2e/auth-providers.spec.ts` (US1 block): Google button shown only when mocked on, and no buttons with none on; continue with Google → trip list; from a signed-out trip link → that trip (FR-003); cancel → back on `/signin` with "Sign-in with Google was cancelled."; account with deletion requested → deletion-cancelled note and the account works (FR-004); generic error → the error message and email sign-in still works (SC-005)
+- [X] T016 [US1] Add e2e helpers in `apps/web/e2e/helpers.ts`: `mockProviders(page, providers)` (rewrites `/auth/v1/settings` so listed providers are `true`) and `mockProviderReturn(page, provider, result)` where `result` is `{ session: Account }` (signs the account in through the Auth API in Node and answers `/auth/v1/authorize?provider=…` with a 302 to `redirect_to` + `#access_token=…&refresh_token=…&expires_in=3600&token_type=bearer`) or `{ error, errorCode?, description? }` (302 with those params)
+- [X] T017 [US1] Create `apps/web/e2e/auth-providers.spec.ts` (US1 block): Google button shown only when mocked on, and no buttons with none on; continue with Google → trip list; from a signed-out trip link → that trip (FR-003); cancel → back on `/signin` with "Sign-in with Google was cancelled."; account with deletion requested → deletion-cancelled note and the account works (FR-004); generic error → the error message and email sign-in still works (SC-005)
 
 **Checkpoint**: Google sign-in works end to end with the mocked provider
 
@@ -77,8 +77,8 @@ contracts/auth-service.md. Supabase Auth does linking (R2–R3): Cellar writes n
 
 **Independent Test**: Quickstart 10; mocked e2e below.
 
-- [ ] T018 [P] [US2] Extend `apps/web/e2e/auth-providers.spec.ts` (US2 block): with Apple on, "Continue with Apple" signs in an account whose email is a `@privaterelay.appleid.com` address and Settings shows that address; cancel → "Sign-in with Apple was cancelled."
-- [ ] T019 [US2] Check `ProviderButtons` renders Apple's mark and black/white button per Apple's guidelines in light and dark themes (`apps/web/src/components/auth/ProviderButtons.module.css`), and add an Apple-order case to `apps/web/tests/ProviderButtons.test.tsx` if T009 did not cover all three
+- [X] T018 [P] [US2] Extend `apps/web/e2e/auth-providers.spec.ts` (US2 block): with Apple on, "Continue with Apple" signs in an account whose email is a `@privaterelay.appleid.com` address and Settings shows that address; cancel → "Sign-in with Apple was cancelled."
+- [X] T019 [US2] Check `ProviderButtons` renders Apple's mark and black/white button per Apple's guidelines in light and dark themes (`apps/web/src/components/auth/ProviderButtons.module.css`), and add an Apple-order case to `apps/web/tests/ProviderButtons.test.tsx` if T009 did not cover all three
 
 ---
 
@@ -88,9 +88,9 @@ contracts/auth-service.md. Supabase Auth does linking (R2–R3): Cellar writes n
 
 **Independent Test**: Quickstart 6–8 (real Google; Supabase Auth does the linking, research R2–R3).
 
-- [ ] T020 [P] [US4] Extend `apps/web/e2e/auth-providers.spec.ts`: a provider return with `error_code=provider_email_needs_verification` shows "Google didn't confirm your email. Sign in with your email and password instead." on `/signin` (FR-006)
+- [X] T020 [P] [US4] Extend `apps/web/e2e/auth-providers.spec.ts`: a provider return with `error_code=provider_email_needs_verification` shows "Google didn't confirm your email. Sign in with your email and password instead." on `/signin` (FR-006)
 - [X] T021 [P] [US4] Add a case to `apps/web/tests/supabaseAuthService.test.ts` (or an e2e step) confirming password reset is unchanged for an account whose `methods` are `['google']` (`requestPasswordReset` called with the same redirect as today) (FR-011)
-- [ ] T022 [US4] Record in `specs/011-social-sign-in/quickstart.md` that scenarios 6–7 depend on Supabase Auth v2.197.0 behavior and must be repeated after auth upgrades (no code change)
+- [X] T022 [US4] Record in `specs/011-social-sign-in/quickstart.md` that scenarios 6–7 depend on Supabase Auth v2.197.0 behavior and must be repeated after auth upgrades (no code change)
 
 ---
 
@@ -100,8 +100,8 @@ contracts/auth-service.md. Supabase Auth does linking (R2–R3): Cellar writes n
 
 **Independent Test**: Quickstart 11; mocked e2e below.
 
-- [ ] T023 [P] [US3] Extend `apps/web/e2e/auth-providers.spec.ts`: with Facebook on, continue with Facebook → trip list; a return with `error=server_error&error_description=Error getting user email from external provider` shows "Facebook didn't share an email address. Allow email access or use another option." and no session exists (FR-008)
-- [ ] T024 [US3] Check Facebook's mark and button colors in `apps/web/src/components/auth/ProviderButtons.module.css` meet WCAG AA text contrast in both themes
+- [X] T023 [P] [US3] Extend `apps/web/e2e/auth-providers.spec.ts`: with Facebook on, continue with Facebook → trip list; a return with `error=server_error&error_description=Error getting user email from external provider` shows "Facebook didn't share an email address. Allow email access or use another option." and no session exists (FR-008)
+- [X] T024 [US3] Check Facebook's mark and button colors in `apps/web/src/components/auth/ProviderButtons.module.css` meet WCAG AA text contrast in both themes
 
 ---
 
@@ -113,14 +113,14 @@ contracts/auth-service.md. Supabase Auth does linking (R2–R3): Cellar writes n
 
 - [X] T025 [P] [US5] Write failing `apps/web/tests/Settings.test.tsx`: Account section shows the email and "Sign-in methods: Email and password, Google" for `methods: ['email','google']`, and "Google" alone for `['google']`; no connect/disconnect controls (FR-012)
 - [X] T026 [US5] Add the methods line to the Account section in `apps/web/src/pages/Settings.tsx` using `METHOD_LABEL`; keep the account in sync via `onAuthChange`; make T025 pass
-- [ ] T027 [US5] Extend `apps/web/e2e/auth-providers.spec.ts`: after a mocked Google sign-in to an account whose `app_metadata.providers` is `['email','google']` (set with the admin API), Settings shows "Email and password, Google"
+- [X] T027 [US5] Extend `apps/web/e2e/auth-providers.spec.ts`: after a mocked Google sign-in to an account whose `app_metadata.providers` is `['email','google']` (set with the admin API), Settings shows "Email and password, Google"
 
 ---
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T028 [P] Extend `apps/web/e2e/a11y.spec.ts`: `/signin` and `/signup` with all three providers mocked on, light and dark, no serious axe violations; the callback page "Signing you in…" state
-- [ ] T029 [P] Extend `apps/web/e2e/layout.spec.ts` (or the auth spec): at 360 px the provider buttons fit without horizontal scroll and each is ≥ 44 px tall; buttons are reachable and usable with Tab/Enter
+- [X] T028 [P] Extend `apps/web/e2e/a11y.spec.ts`: `/signin` and `/signup` with all three providers mocked on, light and dark, no serious axe violations; the callback page "Signing you in…" state
+- [X] T029 [P] Extend `apps/web/e2e/layout.spec.ts` (or the auth spec): at 360 px the provider buttons fit without horizontal scroll and each is ≥ 44 px tall; buttons are reachable and usable with Tab/Enter
 - [ ] T030 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, the db tests and the full e2e suite; fix failures (known flakes: `e2e/perf.spec.ts` under load, `e2e/sync.spec.ts` FR-002)
 - [ ] T031 Walk through `specs/011-social-sign-in/quickstart.md` — automated parts now; scenarios with real providers when the project owner has configured keys and restarted the local stack (record which were run)
 

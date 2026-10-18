@@ -23,6 +23,9 @@ The e2e suite mocks the provider round trip (research R10), so it needs no provi
 
 ## Scenarios (with at least Google configured)
 
+Scenarios 6 and 7 (linking and the unconfirmed sign-up's password) are behavior of Supabase Auth
+v2.197.0, not Cellar code (research R2-R3). Repeat them after every upgrade of the auth service.
+
 1. **Buttons**: `/signin` and `/signup` show "Continue with Google" (and only providers that are
    on). With none on, the pages look as before.
 2. **New account (US1)**: Continue with Google with an email Cellar has never seen → trip list,

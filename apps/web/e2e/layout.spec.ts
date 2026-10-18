@@ -7,6 +7,8 @@ import {
   mockOpenMeteo,
   mockWikimedia,
   mockPlaces,
+  mockProviderReturn,
+  mockProviders,
   goToDay,
   openDayMenu,
   setItemPanel,
@@ -362,5 +364,38 @@ test.describe('photos layout (all viewports)', () => {
     await page.getByRole('menuitem', { name: 'Hide city banner' }).click();
     await expect(page.getByTestId('city-banner')).toHaveCount(0);
     expect(await fits()).toBe(true);
+  });
+});
+
+test.describe('provider buttons (360 px)', () => {
+  test.skip(({ hasTouch }) => !hasTouch, 'measured on the phone project');
+
+  test('fit without horizontal scroll, are at least 44 px tall and work from the keyboard', async ({
+    page,
+  }) => {
+    await mockProviders(page, ['google', 'apple', 'facebook']);
+    await mockProviderReturn(page, 'google', { error: 'access_denied' });
+    for (const path of ['/signin', '/signup']) {
+      await page.goto(path);
+      const buttons = page.getByRole('button', { name: /^Continue with/ });
+      await expect(buttons).toHaveCount(3);
+      for (let i = 0; i < 3; i++) {
+        const box = (await buttons.nth(i).boundingBox())!;
+        expect(box.height).toBeGreaterThanOrEqual(44);
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(360);
+      }
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      ).toBe(true);
+    }
+
+    // The first stop is the Google button; Enter starts the sign-in.
+    await page.goto('/signin');
+    await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeVisible();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('Sign-in with Google was cancelled.')).toBeVisible();
   });
 });

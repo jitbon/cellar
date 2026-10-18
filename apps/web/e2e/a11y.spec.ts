@@ -9,6 +9,7 @@ import {
   mockOpenMeteo,
   mockWikimedia,
   mockPlaces,
+  mockProviders,
   openChipMenu,
   openDayMenu,
   setItemPanel,
@@ -330,6 +331,40 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.getByRole('menuitem', { name: 'Change cover photo' }).click();
     const picker = page.getByRole('dialog', { name: 'Change cover photo' });
     await expect(picker.getByRole('button', { name: /^Photo \d by / })).toHaveCount(6);
+    await expectNoSeriousViolations(page);
+  });
+}
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`axe (${scheme}): sign-in and create-account with every provider, and the callback page`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await mockProviders(page, ['google', 'apple', 'facebook']);
+
+    for (const path of ['/signin', '/signup']) {
+      await page.goto(path);
+      await expect(page.getByRole('button', { name: 'Continue with Facebook' })).toBeVisible();
+      await expectNoSeriousViolations(page);
+    }
+
+    // Hold the callback page on "Signing you in…": a pending sign-in whose tokens are being checked.
+    await page.addInitScript(() => {
+      sessionStorage.setItem(
+        'cellar:providerSignIn',
+        JSON.stringify({
+          provider: 'google',
+          from: '/signin',
+          returnTo: '/',
+          startedAt: Date.now(),
+        }),
+      );
+    });
+    await page.route('**/auth/v1/user', () => new Promise(() => {}));
+    await page.goto(
+      '/auth/callback#access_token=x&refresh_token=y&expires_in=3600&token_type=bearer',
+    );
+    await expect(page.getByRole('status')).toHaveText('Signing you in…');
     await expectNoSeriousViolations(page);
   });
 }
