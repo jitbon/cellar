@@ -389,3 +389,144 @@ test.describe('Cell suggestions float over the grid', () => {
     await expect(cell.getByTestId('chip').filter({ hasText: 'Chelsea Market' })).toBeVisible();
   });
 });
+
+test.describe('012: details for linked places', () => {
+  const infoRequests = (requests: { action: string }[]) =>
+    requests.filter((r) => r.action === 'info');
+
+  /** Adds "Chelsea Market" to My list from a suggestion and returns the list panel. */
+  async function addChelsea(page: Page, tripName: string) {
+    const list = await openAddForm(page, tripName);
+    await list.getByLabel('Name', { exact: true }).fill('Chelsea Mar');
+    await page.getByRole('option', { name: /Chelsea Market/ }).click();
+    await list.getByRole('button', { name: 'Add to list' }).click();
+    await expect(list.getByRole('listitem').filter({ hasText: 'Chelsea Market' })).toBeVisible();
+    return list;
+  }
+
+  const dialogOf = (page: Page) => page.getByRole('dialog', { name: 'Chelsea Market' });
+
+  test('quickstart 1-2, 5: a linked item opens its details, planned dates and a cached reopen', async ({
+    page,
+  }) => {
+    const requests = await mockPlaces(page, 'ok');
+    const list = await addChelsea(page, 'NYC 012 a');
+
+    // Place it on two days from the item menu.
+    for (const date of ['2027-04-02', '2027-04-04']) {
+      await list.getByRole('button', { name: 'Actions for Chelsea Market' }).click();
+      await page.getByRole('menuitem', { name: 'Place Chelsea Market in a block' }).click();
+      const picker = page.getByRole('dialog', { name: 'Place “Chelsea Market”' });
+      await picker.getByLabel('Day').selectOption(date);
+      await picker.getByLabel('Time block').selectOption({ label: 'Lunch' });
+      await picker.getByRole('button', { name: 'Place', exact: true }).click();
+    }
+
+    await list.getByRole('button', { name: 'Chelsea Market', exact: true }).click();
+    const dialog = dialogOf(page);
+    await expect(dialog).toBeVisible();
+    // Stored facts at once; the rest follows.
+    await expect(dialog).toContainText('75 9th Ave, New York');
+    await expect(dialog.getByRole('button', { name: 'Open in maps' })).toBeVisible();
+    await expect(dialog).toContainText('Market');
+    await expect(dialog).toContainText('4.6 (31,204 reviews)');
+    await expect(dialog.getByText(/^Open today 9:00\sAM–9:00\sPM$/)).toBeVisible();
+    await expect(dialog.getByRole('img', { name: 'Chelsea Market' })).toBeVisible();
+    await expect(dialog.getByRole('link', { name: 'Photo: Ann Lee' })).toBeVisible();
+    const website = dialog.getByRole('link', { name: 'Website' });
+    await expect(website).toHaveAttribute('href', 'https://chelseamarket.com/');
+    await expect(website).toHaveAttribute('target', '_blank');
+    await expect(website).toHaveAttribute('rel', 'noreferrer');
+    await expect(dialog.getByText('Planned: Fri Apr 2 · Lunch')).toBeVisible();
+    await expect(dialog.getByText('Planned: Sun Apr 4 · Lunch')).toBeVisible();
+
+    const week = dialog.getByRole('button', { name: 'Show week' });
+    await week.click();
+    await expect(week).toHaveAttribute('aria-expanded', 'true');
+    await expect(
+      dialog.getByRole('list', { name: 'Opening hours' }).getByRole('listitem'),
+    ).toHaveCount(7);
+    await expect(dialog.getByText('Today', { exact: true })).toBeVisible();
+
+    // Only the place id was sent, once.
+    expect(infoRequests(requests)).toHaveLength(1);
+    expect(Object.keys(infoRequests(requests)[0]).sort()).toEqual(['action', 'placeId']);
+
+    // SC-003: reopening in the same session asks again for nothing.
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    await expect(dialog).toBeHidden();
+    await list.getByRole('button', { name: 'Actions for Chelsea Market' }).click();
+    await page.getByRole('menuitem', { name: 'View details' }).click();
+    await expect(dialogOf(page).getByRole('link', { name: 'Website' })).toBeVisible();
+    expect(infoRequests(requests)).toHaveLength(1);
+  });
+
+  test('quickstart 8: an unlinked item has no View details', async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    const list = await openAddForm(page, 'NYC 012 b');
+    await list.getByLabel('Name', { exact: true }).fill('Rest day');
+    await page.keyboard.press('Enter');
+    await expect(list.getByTestId('item-name').filter({ hasText: 'Rest day' })).toBeVisible();
+    await expect(list.getByRole('button', { name: 'Rest day', exact: true })).toHaveCount(0);
+    await list.getByRole('button', { name: 'Actions for Rest day' }).click();
+    await expect(page.getByRole('menuitem', { name: 'View details' })).toHaveCount(0);
+  });
+
+  test('quickstart 3: View details on a linked event; clicking the event still edits', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'NYC 012 c', '2027-04-01', '2027-04-05');
+    await setTripLocationDirect(tripIdOf(page.url()), NEW_YORK);
+    await page.reload();
+    await expect(page.getByRole('heading', { name: /NYC 012 c/ })).toBeVisible();
+    await goToDay(page, 2);
+    await page.getByRole('button', { name: 'Add event to Lunch on 2027-04-02' }).click();
+    await page.getByRole('combobox', { name: /Add event to Lunch/ }).fill('chel');
+    await page.getByRole('option', { name: /Chelsea Market/ }).click();
+    const chip = page.getByTestId('chip').filter({ hasText: 'Chelsea Market' });
+    await expect(chip).toBeVisible();
+
+    await openChipMenu(page, 'Chelsea Market');
+    await page.getByRole('menuitem', { name: 'View details' }).click();
+    const dialog = dialogOf(page);
+    await expect(dialog).toContainText('4.6 (31,204 reviews)');
+    await expect(dialog.getByRole('button', { name: 'Open in maps' })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Place in a block' })).toHaveCount(0);
+    await dialog.getByRole('button', { name: 'Edit event' }).click();
+    await expect(page.getByRole('dialog', { name: 'Edit event' })).toBeVisible();
+    await expect(dialog).toBeHidden();
+    await page.getByRole('button', { name: 'Cancel' }).click();
+
+    await chip.getByText('Chelsea Market').click();
+    await expect(page.getByRole('dialog', { name: 'Edit event' })).toBeVisible();
+  });
+
+  test('quickstart 6: with the details lookup failing, the stored facts and a note show', async ({
+    page,
+  }) => {
+    await mockPlaces(page, 'ok', { info: 'fail' });
+    const list = await addChelsea(page, 'NYC 012 d');
+    await list.getByRole('button', { name: 'Chelsea Market', exact: true }).click();
+    const dialog = dialogOf(page);
+    await expect(dialog.getByText("More details aren't available right now.")).toBeVisible();
+    await expect(dialog).toContainText('75 9th Ave, New York');
+    await expect(dialog.getByRole('button', { name: 'Open in maps' })).toBeEnabled();
+    await expect(dialog.getByRole('button', { name: 'Place in a block' })).toBeEnabled();
+    await expect(dialog.getByTestId('place-photo-placeholder')).toBeVisible();
+
+    // The trip stays editable.
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    await list.getByRole('button', { name: 'Actions for Chelsea Market' }).click();
+    await page.getByRole('menuitem', { name: 'Edit Chelsea Market' }).click();
+    await expect(page.getByRole('dialog', { name: 'Edit item' })).toBeVisible();
+  });
+
+  test('a place the provider no longer knows says so', async ({ page }) => {
+    await mockPlaces(page, 'ok', { info: 'not-found' });
+    const list = await addChelsea(page, 'NYC 012 e');
+    await list.getByRole('button', { name: 'Chelsea Market', exact: true }).click();
+    await expect(dialogOf(page).getByText('This place may no longer be listed.')).toBeVisible();
+  });
+});

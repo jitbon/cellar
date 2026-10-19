@@ -427,6 +427,21 @@ test.describe('US4: Popular card detail view', () => {
     await expect(detail(page)).toBeHidden();
   });
 
+  test("012: the detail also shows today's hours and a Website link", async ({ page }) => {
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await openPopular(page, 'Detail hours');
+    const card = list(page).getByRole('listitem').filter({ hasText: MET });
+    await card.getByRole('button', { name: MET, exact: true }).click();
+    await expect(detail(page).getByText(/^Open today 9:00\sAM–9:00\sPM$/)).toBeVisible();
+    await expect(detail(page).getByRole('link', { name: 'Website' })).toHaveAttribute(
+      'target',
+      '_blank',
+    );
+    // Popular's own rating stays.
+    await expect(detail(page)).toContainText('4.8 (104,512 reviews)');
+  });
+
   test('place from the detail, see it planned, add to the list and open maps', async ({ page }) => {
     await mockPlaces(page, 'ok');
     await signIn(page, account);

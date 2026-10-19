@@ -399,3 +399,43 @@ test.describe('provider buttons (360 px)', () => {
     await expect(page.getByText('Sign-in with Google was cancelled.')).toBeVisible();
   });
 });
+
+test.describe('linked place details (360 px)', () => {
+  test.skip(({ hasTouch }) => !hasTouch, 'measured on the phone project');
+
+  test('the view fits without horizontal scroll and the week list is readable', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, 'Layout details', '2027-04-01', '2027-04-03');
+    await setItemPanel(page, true);
+    const list = page.getByRole('complementary', { name: 'Activities and food' });
+    await list.getByRole('button', { name: 'Add', exact: true }).click();
+    await list.getByLabel('Name', { exact: true }).fill('Chelsea Mar');
+    await page.getByRole('option', { name: /Chelsea Market/ }).click();
+    await list.getByRole('button', { name: 'Add to list' }).click();
+    await list.getByRole('button', { name: 'Chelsea Market', exact: true }).click();
+
+    const detail = page.getByRole('dialog', { name: 'Chelsea Market' });
+    await detail.getByRole('button', { name: 'Show week' }).click();
+    const week = detail.getByRole('list', { name: 'Opening hours' });
+    await expect(week.getByRole('listitem')).toHaveCount(7);
+    const box = (await detail.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(360);
+    const weekBox = (await week.boundingBox())!;
+    expect(weekBox.x).toBeGreaterThanOrEqual(0);
+    expect(weekBox.x + weekBox.width).toBeLessThanOrEqual(360);
+    // Each line stays on one row: day on the left, hours on the right.
+    for (const line of await week.getByRole('listitem').all()) {
+      expect((await line.boundingBox())!.height).toBeLessThan(24);
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      ),
+    ).toBe(false);
+  });
+});

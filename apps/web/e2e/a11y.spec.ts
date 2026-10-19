@@ -368,3 +368,43 @@ for (const scheme of ['light', 'dark'] as const) {
     await expectNoSeriousViolations(page);
   });
 }
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`axe (${scheme}): linked place details with the week expanded, and the unavailable note`, async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    await page.emulateMedia({ colorScheme: scheme });
+    await mockPlaces(page, 'ok');
+    await signIn(page, account);
+    await createTrip(page, `Axe details ${scheme}`, '2027-04-01', '2027-04-03');
+    await setItemPanel(page, true);
+    const list = page.getByRole('complementary', { name: 'Activities and food' });
+    await list.getByRole('button', { name: 'Add', exact: true }).click();
+    await list.getByLabel('Name', { exact: true }).fill('Chelsea Mar');
+    await page.getByRole('option', { name: /Chelsea Market/ }).click();
+    await list.getByRole('button', { name: 'Add to list' }).click();
+
+    await list.getByRole('button', { name: 'Chelsea Market', exact: true }).click();
+    const detail = page.getByRole('dialog', { name: 'Chelsea Market' });
+    await expect(detail.getByRole('img', { name: 'Chelsea Market' })).toBeVisible();
+    await detail.getByRole('button', { name: 'Show week' }).click();
+    await expect(detail.getByRole('list', { name: 'Opening hours' })).toBeVisible();
+    await expectNoSeriousViolations(page); // hours expanded, website, rating
+    await detail.getByRole('button', { name: 'Close' }).click();
+
+    // The unavailable note, for a place not opened before.
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+    await mockPlaces(page, 'ok', { info: 'fail' });
+    await list.getByRole('button', { name: 'Add', exact: true }).click();
+    await list.getByLabel('Name', { exact: true }).fill('Los Tacos');
+    await page.getByRole('option', { name: /Los Tacos No. 1/ }).click();
+    await list.getByRole('button', { name: 'Add to list' }).click();
+    await list.getByRole('button', { name: 'Los Tacos No. 1', exact: true }).click();
+    const note = page
+      .getByRole('dialog', { name: 'Los Tacos No. 1' })
+      .getByText("More details aren't available right now.");
+    await expect(note).toBeVisible();
+    await expectNoSeriousViolations(page);
+  });
+}

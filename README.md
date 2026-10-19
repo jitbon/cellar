@@ -35,8 +35,11 @@ Setup, automated checks and manual validation scenarios:
   1. In Google Cloud, enable **Places API (New)** and create a server API key restricted to
      that API only.
   2. Set daily quota caps on the project as a cost backstop, for example 1,000 Autocomplete and
-     300 Place Details requests per day (Autocomplete sessions that end in a Place Details call
-     are free; personal use stays within the free monthly caps).
+     about 100 Place Details requests per day (Autocomplete sessions that end in a Place Details
+     call are free; personal use stays within the free monthly caps). The Place Details cap is
+     shared with the detail views below, where each first opening of a place in a session is one
+     Place Details **Enterprise** request (it asks for rating, hours and website), so keep the
+     cap low.
   3. Store the key as a secret and deploy the function:
      `supabase secrets set GOOGLE_PLACES_API_KEY=<your key>` then
      `supabase functions deploy places`.
@@ -60,6 +63,13 @@ Setup, automated checks and manual validation scenarios:
   city name and its coordinates are sent. After updating, restart `supabase functions serve places`
   so the running function picks up the new action. Setup details:
   [specs/006-popular-places/quickstart.md](specs/006-popular-places/quickstart.md).
+
+  **Place details** (`info` action): opening a linked list item, a linked event ("View details")
+  or a Popular place fetches its photo, type, rating, today's hours and website with one Google
+  Place Details call, sent with the place id only. Each place is fetched at most once per browser
+  session and kept in memory only. Restart `supabase functions serve places` after updating.
+  Setup details:
+  [specs/012-linked-place-details/quickstart.md](specs/012-linked-place-details/quickstart.md).
 
 - **Trip photos.**
   - **City photos** (trip cards, the trip page banner, the cover picker) come from Wikipedia and

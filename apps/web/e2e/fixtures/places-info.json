@@ -1,0 +1,49 @@
+{
+  "info": {
+    "placeId": "test-chelsea",
+    "name": "Chelsea Market",
+    "kind": "Market",
+    "types": ["market", "point_of_interest"],
+    "rating": 4.6,
+    "ratingCount": 31204,
+    "photo": {
+      "name": "places/test-chelsea/photos/p1",
+      "author": "Ann Lee",
+      "authorUri": "https://maps.google.com/contrib/1"
+    },
+    "hours": {
+      "periods": [
+        {
+          "open": { "day": 0, "hour": 9, "minute": 0 },
+          "close": { "day": 0, "hour": 21, "minute": 0 }
+        },
+        {
+          "open": { "day": 1, "hour": 9, "minute": 0 },
+          "close": { "day": 1, "hour": 21, "minute": 0 }
+        },
+        {
+          "open": { "day": 2, "hour": 9, "minute": 0 },
+          "close": { "day": 2, "hour": 21, "minute": 0 }
+        },
+        {
+          "open": { "day": 3, "hour": 9, "minute": 0 },
+          "close": { "day": 3, "hour": 21, "minute": 0 }
+        },
+        {
+          "open": { "day": 4, "hour": 9, "minute": 0 },
+          "close": { "day": 4, "hour": 21, "minute": 0 }
+        },
+        {
+          "open": { "day": 5, "hour": 9, "minute": 0 },
+          "close": { "day": 5, "hour": 21, "minute": 0 }
+        },
+        {
+          "open": { "day": 6, "hour": 9, "minute": 0 },
+          "close": { "day": 6, "hour": 21, "minute": 0 }
+        }
+      ]
+    },
+    "utcOffsetMinutes": -240,
+    "website": "https://chelseamarket.com/"
+  }
+}

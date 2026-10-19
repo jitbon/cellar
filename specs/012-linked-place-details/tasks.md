@@ -56,8 +56,8 @@ data-model.md. Request/response, UI layout and text: contracts/places-info.md.
 
 - [X] T012 [US1] Generalize `apps/web/src/components/list/PlaceDetail.tsx` (+ `PlaceDetail.module.css`, tokens only) per research R5 and contracts/places-info.md: props `subject` (`name`, `address`, `kind`, optional `rating`/`ratingCount`/`photo`, the `Place` for Open in maps, `placeId` for planned dates, item `type` for the icon) and `actions: ReactNode`; uses `usePlaceInfo(placeId)` to fill missing facts and add the hours line (formatted with `Intl.DateTimeFormat(navigator.language, { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })` on minutes), "Show week" disclosure and Website link; loading status line; update `apps/web/src/components/list/PopularCard.tsx` to pass its place and existing three actions; make T010 pass
 - [X] T013 [US1] In `apps/web/src/components/list/ItemPanel.tsx` `ItemRow`: for linked items render the name as a button (opens the view; stop the event so the row's double-click edit does not also fire) and add "View details" as the first menu item; render `PlaceDetail` with actions "Place in a block" (opens the existing `CellPickerDialog`) and Open in maps; make T011 pass
-- [ ] T014 [US1] Extend `mockPlaces` in `apps/web/e2e/helpers.ts` to answer `action: 'info'` (`'ok'` → Chelsea Market info with hours and website, plus a photo name handled by the existing photo mock; `'fail'` → 503) and add a way to make only `info` fail or return 404 for one test
-- [ ] T015 [US1] Add e2e in `apps/web/e2e/places.spec.ts`: add "Chelsea Market" to My list from a suggestion, click its name → dialog shows kind, rating, "Open today", Website link, "Show week" lines, Open in maps; close and reopen → no second `info` request (count requests); place it on two days → both planned dates shown; an unlinked item has no View details; Popular card detail shows hours and website (in `apps/web/e2e/photos.spec.ts` where Popular detail is tested)
+- [X] T014 [US1] Extend `mockPlaces` in `apps/web/e2e/helpers.ts` to answer `action: 'info'` (`'ok'` → Chelsea Market info with hours and website, plus a photo name handled by the existing photo mock; `'fail'` → 503) and add a way to make only `info` fail or return 404 for one test
+- [X] T015 [US1] Add e2e in `apps/web/e2e/places.spec.ts`: add "Chelsea Market" to My list from a suggestion, click its name → dialog shows kind, rating, "Open today", Website link, "Show week" lines, Open in maps; close and reopen → no second `info` request (count requests); place it on two days → both planned dates shown; an unlinked item has no View details; Popular card detail shows hours and website (in `apps/web/e2e/photos.spec.ts` where Popular detail is tested)
 
 **Checkpoint**: Linked list items and Popular show full details
 
@@ -71,7 +71,7 @@ data-model.md. Request/response, UI layout and text: contracts/places-info.md.
 
 - [X] T016 [P] [US2] Extend `apps/web/tests/PlacementChip.test.tsx`: a linked event's menu has "View details" first and opens the place dialog with actions "Edit event" and Open in maps (no "Place in a block"); "Edit event" closes the view and opens the edit dialog; clicking the chip still opens edit; an unlinked event has no "View details"
 - [X] T017 [US2] Add "View details" to the menu in `apps/web/src/components/grid/PlacementChip.tsx` for linked events and render `PlaceDetail` with "Edit event" and Open in maps; make T016 pass
-- [ ] T018 [US2] Extend `apps/web/e2e/places.spec.ts`: place the linked item, open the event's menu → View details → dialog with rating and Edit event; clicking the event opens edit
+- [X] T018 [US2] Extend `apps/web/e2e/places.spec.ts`: place the linked item, open the event's menu → View details → dialog with rating and Edit event; clicking the event opens edit
 
 ---
 
@@ -83,14 +83,14 @@ data-model.md. Request/response, UI layout and text: contracts/places-info.md.
 
 - [X] T019 [P] [US3] Extend `apps/web/tests/PlaceDetail.test.tsx`: info failure → name, address, planned dates, Open in maps and the type icon show with "More details aren't available right now."; not-found → "This place may no longer be listed."; nothing in the view blocks closing or the actions
 - [X] T020 [US3] Implement the unavailable and not-found notes in `apps/web/src/components/list/PlaceDetail.tsx` (muted text, not color-only); make T019 pass
-- [ ] T021 [US3] Extend `apps/web/e2e/places.spec.ts`: with `info` failing, a linked item's details show the stored facts and the unavailable note, and the trip stays editable
+- [X] T021 [US3] Extend `apps/web/e2e/places.spec.ts`: with `info` failing, a linked item's details show the stored facts and the unavailable note, and the trip stays editable
 
 ---
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T022 [P] Extend `apps/web/e2e/a11y.spec.ts`: the linked-item detail view with hours expanded, light and dark, no serious axe violations; extend `apps/web/e2e/layout.spec.ts` (mobile-360): the view fits without horizontal scroll and the week list is readable
-- [ ] T023 [P] Update `README.md`: lower the suggested Place Details cap from 300 to about 100 requests per day and say why (shared with autocomplete picks; detail views use Place Details Enterprise), per research R2
+- [X] T022 [P] Extend `apps/web/e2e/a11y.spec.ts`: the linked-item detail view with hours expanded, light and dark, no serious axe violations; extend `apps/web/e2e/layout.spec.ts` (mobile-360): the view fits without horizontal scroll and the week list is readable
+- [X] T023 [P] Update `README.md`: lower the suggested Place Details cap from 300 to about 100 requests per day and say why (shared with autocomplete picks; detail views use Place Details Enterprise), per research R2
 - [ ] T024 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and the full e2e suite; fix failures (known flakes: `e2e/perf.spec.ts` under load, `e2e/sync.spec.ts` FR-002)
 - [ ] T025 Walk through `specs/012-linked-place-details/quickstart.md` live scenarios 1–8 with the real `places` function where available; record which were run
 

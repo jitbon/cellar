@@ -164,7 +164,7 @@ export async function mockWikimedia(page: Page, mode: 'ok' | 'fail'): Promise<Wi
 const placesMocked = new WeakSet<Page>();
 
 export interface PlacesRequest {
-  action: 'suggest' | 'details' | 'popular' | 'photo';
+  action: 'suggest' | 'details' | 'popular' | 'photo' | 'info';
   [key: string]: unknown;
 }
 
@@ -172,7 +172,12 @@ export interface PlacesRequest {
  * Routes the `places` Edge Function to fixtures so e2e never reaches Google. Returns the
  * request bodies seen, in order, so tests can assert what was sent (FR-014).
  */
-export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<PlacesRequest[]> {
+export async function mockPlaces(
+  page: Page,
+  mode: 'ok' | 'fail',
+  /** `info` answers the details lookup differently from the rest (default: like `mode`). */
+  opts: { info?: 'ok' | 'fail' | 'not-found' } = {},
+): Promise<PlacesRequest[]> {
   placesMocked.add(page);
   const requests: PlacesRequest[] = [];
   await page.route('**/functions/v1/places', async (route) => {
@@ -181,6 +186,24 @@ export async function mockPlaces(page: Page, mode: 'ok' | 'fail'): Promise<Place
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
     const body = request.postDataJSON() as PlacesRequest;
     requests.push(body);
+    if (body.action === 'info' && (mode === 'ok' || opts.info)) {
+      const info = opts.info ?? 'ok';
+      if (info === 'fail') {
+        return route.fulfill({ status: 503, headers: cors, json: { error: 'unavailable' } });
+      }
+      if (info === 'not-found') {
+        return route.fulfill({ status: 404, headers: cors, json: { error: 'not-found' } });
+      }
+      // The same details for any place, under its own id so its photo name matches.
+      const id = String(body.placeId);
+      const { info: base } = JSON.parse(fixture('places-info.json'));
+      return route.fulfill({
+        headers: cors,
+        json: {
+          info: { ...base, placeId: id, photo: { ...base.photo, name: `places/${id}/photos/p1` } },
+        },
+      });
+    }
     if (mode === 'fail') {
       return route.fulfill({ status: 503, headers: cors, json: { error: 'unavailable' } });
     }
