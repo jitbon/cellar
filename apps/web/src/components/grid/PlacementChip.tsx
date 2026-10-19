@@ -15,6 +15,7 @@ import {
   type TripState,
 } from '@cellar/core';
 import { CellPickerDialog } from '../CellPickerDialog';
+import { PlaceDetail, linkedSubject } from '../list/PlaceDetail';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { PlaceNameField } from '../places/PlaceNameField';
 import { placementDragId } from './dndIds';
@@ -151,6 +152,7 @@ function PlacementChipImpl({
 }) {
   const [editing, setEditing] = useState(false);
   const [moving, setMoving] = useState(false);
+  const [viewing, setViewing] = useState(false);
   const other = placement.type === 'activity' ? 'food' : 'activity';
   const {
     attributes,
@@ -216,6 +218,7 @@ function PlacementChipImpl({
             </button>
           }
         >
+          {place ? <MenuItem onSelect={() => setViewing(true)}>View details</MenuItem> : null}
           <MenuItem
             aria-label={`Switch ${placement.name} to ${TYPE_LABEL[other]}`}
             onSelect={() => dispatch(updatePlacement(placement.id, { type: other }))}
@@ -262,6 +265,25 @@ function PlacementChipImpl({
           ) : null}
         </Menu>
       </div>
+      {viewing && place ? (
+        <PlaceDetail
+          state={state}
+          subject={linkedSubject(place)}
+          type={placement.type}
+          actions={
+            <Button
+              variant="primary"
+              onClick={() => {
+                setViewing(false);
+                setEditing(true);
+              }}
+            >
+              Edit event
+            </Button>
+          }
+          onClose={() => setViewing(false)}
+        />
+      ) : null}
       {editing ? (
         <EditDialog
           state={state}

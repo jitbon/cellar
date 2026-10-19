@@ -503,3 +503,62 @@ describe('ItemPanel', () => {
     });
   });
 });
+
+describe('linked place details', () => {
+  const linked = apply(seeded, addItem('Chelsea Market', 'activity', null, null, chelseaPlace));
+
+  function setupDetails(places = fakePlaceSearch()) {
+    const store = { get: () => null, set: vi.fn(), remove: vi.fn() };
+    function DetailsHarness() {
+      const [state, setState] = useState(linked);
+      const dispatch = (command: Command) => {
+        const r = command(state);
+        if (r.ok) setState(r.state);
+        return r;
+      };
+      return <ItemPanel state={state} dispatch={dispatch} onSetLocation={noop} />;
+    }
+    render(<DetailsHarness />, { wrapper: withServices({ store, places }) });
+    return { user: userEvent.setup(), places };
+  }
+
+  it('a linked item name is a button that opens the place dialog', async () => {
+    const { user, places } = setupDetails();
+    await user.click(screen.getByRole('button', { name: 'Chelsea Market' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Chelsea Market' });
+    expect(within(dialog).getByText(/75 9th Ave, New York/)).toBeInTheDocument();
+    expect(await within(dialog).findByText('4.6 (31,204 reviews)')).toBeInTheDocument();
+    expect(places.info).toHaveBeenCalledWith('test-chelsea');
+  });
+
+  it('the row menu offers View details first and opens the same dialog', async () => {
+    const { user } = setupDetails();
+    await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+    const items = screen.getAllByRole('menuitem');
+    expect(items[0]).toHaveAccessibleName('View details');
+    await user.click(items[0]);
+    expect(await screen.findByRole('dialog', { name: 'Chelsea Market' })).toBeInTheDocument();
+  });
+
+  it('double-clicking the row still opens Edit', async () => {
+    const { user } = setupDetails();
+    const row = screen.getByRole('button', { name: 'Actions for Chelsea Market' }).closest('li')!;
+    await user.dblClick(within(row).getByText('75 9th Ave, New York'));
+    expect(screen.getByRole('dialog', { name: 'Edit item' })).toBeInTheDocument();
+  });
+
+  it('an unlinked item has a plain name and no View details (FR-009)', async () => {
+    const { user } = setupDetails();
+    expect(screen.queryByRole('button', { name: 'Museum' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Actions for Museum' }));
+    expect(screen.queryByRole('menuitem', { name: /View details/ })).toBeNull();
+  });
+
+  it('Place in a block in the view opens the block picker for that item', async () => {
+    const { user } = setupDetails();
+    await user.click(screen.getByRole('button', { name: 'Chelsea Market' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Chelsea Market' });
+    await user.click(within(dialog).getByRole('button', { name: 'Place in a block' }));
+    expect(screen.getByRole('dialog', { name: 'Place “Chelsea Market”' })).toBeInTheDocument();
+  });
+});

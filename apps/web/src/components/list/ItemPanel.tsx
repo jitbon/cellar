@@ -30,6 +30,7 @@ import { OpenInMapsItems } from '../places/OpenInMapsItems';
 import { PlaceLine } from '../places/PlaceLine';
 import { PlaceNameField } from '../places/PlaceNameField';
 import { Popover } from '../ui/Popover';
+import { PlaceDetail, linkedSubject } from './PlaceDetail';
 import { PopularTab } from './PopularTab';
 import { QuickAddLine } from './QuickAddLine';
 import { TextField } from '../ui/TextField';
@@ -131,6 +132,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
   const [editing, setEditing] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [viewing, setViewing] = useState(false);
   const count = placedCount(state, item.id);
   const placed = count > 0;
   const place = placeOf(item);
@@ -158,7 +160,14 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
       <span className={styles.text}>
         <span className={styles.nameLine}>
           <span className={`${styles.name} ${placed ? styles.placed : ''}`}>
-            <span data-testid="item-name">{item.name}</span>
+            {place ? (
+              // A linked item's name opens its details; the row's double-click Edit skips buttons.
+              <button type="button" className={styles.nameButton} onClick={() => setViewing(true)}>
+                <span data-testid="item-name">{item.name}</span>
+              </button>
+            ) : (
+              <span data-testid="item-name">{item.name}</span>
+            )}
             {placed ? <span className="visually-hidden">{placedText(count)}</span> : null}
           </span>
           <RepeatCount count={count} />
@@ -172,6 +181,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
           </button>
         }
       >
+        {place ? <MenuItem onSelect={() => setViewing(true)}>View details</MenuItem> : null}
         <MenuItem aria-label={`Place ${item.name} in a block`} onSelect={() => setPlacing(true)}>
           Place in a block
         </MenuItem>
@@ -197,6 +207,19 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
         ) : null}
       </Menu>
 
+      {viewing && place ? (
+        <PlaceDetail
+          state={state}
+          subject={linkedSubject(place)}
+          type={item.type}
+          actions={
+            <Button variant="primary" onClick={() => setPlacing(true)}>
+              Place in a block
+            </Button>
+          }
+          onClose={() => setViewing(false)}
+        />
+      ) : null}
       {editing ? (
         <Dialog title="Edit item" onClose={() => setEditing(false)}>
           <ItemForm
@@ -228,6 +251,7 @@ function ItemRow({ state, item, dispatch }: { state: TripState; item: Item; disp
           onPick={(date, blockId) => {
             dispatch(placeItem(item.id, date, blockId));
             setPlacing(false);
+            setViewing(false);
           }}
         />
       ) : null}

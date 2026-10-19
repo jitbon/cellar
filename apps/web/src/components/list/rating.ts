@@ -1,7 +1,7 @@
 import type { PopularPlace } from '@cellar/core';
 
 /** "4.8 (104,512 reviews)"; whatever part the provider did not give is left out. */
-export function ratingText(place: PopularPlace): string {
+export function ratingText(place: Pick<PopularPlace, 'rating' | 'ratingCount'>): string {
   if (place.rating === null) return '';
   const rating = place.rating.toFixed(1);
   if (place.ratingCount === null) return rating;

@@ -196,3 +196,58 @@ describe('PlacementChip', () => {
     }
   });
 });
+
+describe('linked place details', () => {
+  const linked = addTypedPlacement('2027-04-02', afternoon.id, 'Chelsea Market', undefined, {
+    place: chelseaPlace,
+  })(created.state);
+  if (!linked.ok) throw new Error('fixture');
+  const linkedState: TripState = linked.state;
+
+  function setupDetails(chipState: TripState = linkedState) {
+    const dispatch = vi.fn((command: Command) => command(chipState));
+    const places = fakePlaceSearch();
+    render(
+      <TooltipProvider>
+        <PlacementChip state={chipState} placement={chipState.placements[0]!} dispatch={dispatch} />
+      </TooltipProvider>,
+      { wrapper: withServices({ places }) },
+    );
+    return { user: userEvent.setup(), places };
+  }
+
+  it('offers View details first for a linked event and opens the place dialog', async () => {
+    const { user, places } = setupDetails();
+    await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+    const items = screen.getAllByRole('menuitem');
+    expect(items[0]).toHaveAccessibleName('View details');
+    await user.click(items[0]);
+    const dialog = await screen.findByRole('dialog', { name: 'Chelsea Market' });
+    expect(await within(dialog).findByText('4.6 (31,204 reviews)')).toBeInTheDocument();
+    expect(places.info).toHaveBeenCalledWith('test-chelsea');
+    expect(within(dialog).getByRole('button', { name: 'Edit event' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Open in maps' })).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Place in a block' })).toBeNull();
+  });
+
+  it('Edit event closes the view and opens the edit dialog', async () => {
+    const { user } = setupDetails();
+    await user.click(screen.getByRole('button', { name: 'Actions for Chelsea Market' }));
+    await user.click(screen.getByRole('menuitem', { name: 'View details' }));
+    await user.click(await screen.findByRole('button', { name: 'Edit event' }));
+    expect(screen.queryByRole('dialog', { name: 'Chelsea Market' })).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Edit event' })).toBeInTheDocument();
+  });
+
+  it('clicking the chip still opens edit', async () => {
+    const { user } = setupDetails();
+    await user.click(screen.getByText('Chelsea Market'));
+    expect(screen.getByRole('dialog', { name: 'Edit event' })).toBeInTheDocument();
+  });
+
+  it('an unlinked event has no View details', async () => {
+    const { user } = setupDetails(state);
+    await user.click(screen.getByRole('button', { name: 'Actions for Coffee' }));
+    expect(screen.queryByRole('menuitem', { name: 'View details' })).toBeNull();
+  });
+});

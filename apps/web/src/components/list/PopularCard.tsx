@@ -17,7 +17,8 @@ import { Icon, MoreHorizontal, Star } from '../ui/Icon';
 import { Menu, MenuItem, MenuSeparator } from '../ui/Menu';
 import { usePlacePhoto } from '../../state/usePlacePhoto';
 import { OpenInMapsItems } from '../places/OpenInMapsItems';
-import { PlaceDetail } from './PlaceDetail';
+import { Button } from '../ui/Button';
+import { PlaceDetail, popularSubject } from './PlaceDetail';
 import { placedText, RepeatCount } from './RepeatCount';
 import { ratingText } from './rating';
 import styles from './PopularCard.module.css';
@@ -125,10 +126,16 @@ export function PopularCard({ state, place, type, dispatch, onAddedToList }: Pro
       {detail ? (
         <PlaceDetail
           state={state}
-          place={place}
+          subject={popularSubject(place)}
           type={type}
-          onPlace={() => setPlacing(true)}
-          onAddToList={addToList}
+          actions={
+            <>
+              <Button variant="primary" onClick={() => setPlacing(true)}>
+                Place in a block
+              </Button>
+              <Button onClick={addToList}>Add to my list</Button>
+            </>
+          }
           onClose={() => setDetail(false)}
         />
       ) : null}

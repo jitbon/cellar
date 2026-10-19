@@ -69,3 +69,75 @@
   flex-wrap: wrap;
   gap: var(--space-4);
 }
+
+.hours {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.hoursToday {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* A text button, so the disclosure reads as a control without relying on color. */
+.toggle {
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.toggle:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  color: var(--color-text-muted);
+  list-style: none;
+}
+
+.weekLine {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.weekDay {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.todayMark {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.link {
+  align-self: flex-start;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+}
+
+.note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

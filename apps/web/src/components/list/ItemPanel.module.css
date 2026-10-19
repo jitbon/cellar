@@ -164,6 +164,26 @@
   white-space: nowrap;
 }
 
+.nameButton {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nameButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
 .placed {
   color: var(--color-text-muted);
   text-decoration: line-through;
