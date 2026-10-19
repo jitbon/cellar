@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import {
+  kindLabel,
   placementsOfPlace,
   popularToPlace,
   type ISODate,
@@ -53,13 +54,13 @@ export function popularSubject(p: PopularPlace): PlaceSubject {
   };
 }
 
-/** A place stored with an item or event: only name and address are known up front. */
+/** A place stored with an item or event: name, address and its stored type are known up front. */
 export function linkedSubject(place: Place): PlaceSubject {
   return {
     placeId: place.id,
     name: place.name,
     address: place.address,
-    kind: '',
+    kind: kindLabel(place.category),
     rating: null,
     ratingCount: null,
     photo: null,
@@ -94,7 +95,7 @@ export function PlaceDetail({ state, subject, type, actions, onClose }: Props) {
   const fetched = info.status === 'ready' ? info.info : null;
   const photoRef = subject.photo ?? fetched?.photo ?? null;
   const photo = usePlacePhoto(photoRef, PHOTO_WIDTH_PX);
-  const meta = [subject.kind || fetched?.kind, subject.address].filter(Boolean).join(' · ');
+  const meta = [fetched?.kind || subject.kind, subject.address].filter(Boolean).join(' · ');
   const from = subject.rating !== null ? subject : fetched;
   const rating = from ? ratingText(from) : '';
   const planned = placementsOfPlace(state, subject.placeId);
@@ -157,7 +158,9 @@ export function PlaceDetail({ state, subject, type, actions, onClose }: Props) {
               </li>
             ))}
           </ul>
-        ) : null}
+        ) : (
+          <p className={styles.note}>Not planned yet</p>
+        )}
         <div className={styles.actions}>
           {actions}
           <Menu trigger={<Button>Open in maps</Button>}>

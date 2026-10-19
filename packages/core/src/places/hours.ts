@@ -1,6 +1,8 @@
 import type { HoursLine, OpeningHours, PlaceInfo } from '../model/types';
 
 const DAY_MIN = 1440;
+// Some providers end an around-the-clock day at 23:59 rather than 24:00.
+const LAST_MINUTE = DAY_MIN - 1;
 const MINUTE_MS = 60_000;
 // Provider weekdays are Sunday = 0; the week list starts on Monday.
 const MONDAY_FIRST = [1, 2, 3, 4, 5, 6, 0];
@@ -51,7 +53,7 @@ export function openingHours(
       if (line.ranges.length === 0) continue;
       const [first] = line.ranges;
       line.kind =
-        line.ranges.length === 1 && first.openMin === 0 && first.closeMin >= DAY_MIN
+        line.ranges.length === 1 && first.openMin === 0 && first.closeMin >= LAST_MINUTE
           ? 'open-24h'
           : 'open';
     }

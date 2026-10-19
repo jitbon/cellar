@@ -98,7 +98,11 @@ function setupLinked(
 
 describe('PlaceDetail', () => {
   it('is a dialog named after the place with a large photo, its credit, and the details', async () => {
-    const { places } = setup();
+    const { places } = setup({
+      places: fakePlaceSearch({
+        info: (placeId) => ({ ...chelseaInfo, placeId, kind: 'Museum' }),
+      }),
+    });
     const dialog = screen.getByRole('dialog', { name: metPopular.name });
     const img = await within(dialog).findByRole('img', { name: metPopular.name });
     expect(img).toHaveAttribute('src', 'https://photos.test/places/test-met/photos/p1?w=800');
@@ -117,8 +121,9 @@ describe('PlaceDetail', () => {
     expect(screen.getByText('Planned: Tue May 4 · Lunch')).toBeInTheDocument();
   });
 
-  it('shows no "Planned" line when it is not on the schedule', () => {
+  it('says "Not planned yet" when it is not on the schedule', () => {
     setup();
+    expect(screen.getByText('Not planned yet')).toBeInTheDocument();
     expect(screen.queryByText(/^Planned:/)).toBeNull();
   });
 
@@ -170,7 +175,7 @@ describe('PlaceDetail for a linked place', () => {
   it('shows the stored facts at once, with a loading status, then the fetched details', async () => {
     const { places } = setupLinked();
     const dialog = screen.getByRole('dialog', { name: 'Chelsea Market' });
-    expect(within(dialog).getByText('75 9th Ave, New York')).toBeInTheDocument();
+    expect(within(dialog).getByText('Market · 75 9th Ave, New York')).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Open in maps' })).toBeInTheDocument();
     expect(within(dialog).getByRole('status')).toHaveTextContent('Loading details…');
 
@@ -290,8 +295,25 @@ describe('PlaceDetail for a linked place', () => {
     expect(screen.getByText('4.8 (104,512 reviews)')).toBeInTheDocument();
   });
 
+  it('shows the stored category and address at once, then the provider kind once it loads', async () => {
+    setupLinked({ subject: linkedSubject({ ...chelseaPlace, category: 'art_museum' }) });
+    expect(screen.getByText('Art museum · 75 9th Ave, New York')).toBeInTheDocument();
+    expect(await screen.findByText('Market · 75 9th Ave, New York')).toBeInTheDocument();
+  });
+
+  it('shows just the address when there is no stored category', () => {
+    setupLinked({ subject: linkedSubject({ ...chelseaPlace, category: null }) });
+    expect(screen.getByText('75 9th Ave, New York')).toBeInTheDocument();
+  });
+
+  it('says "Not planned yet" for an unplaced linked place', () => {
+    setupLinked();
+    expect(screen.getByText('Not planned yet')).toBeInTheDocument();
+  });
+
   it('shows the actions it is given, plus Open in maps, and the planned dates', async () => {
     const { user, onPlace } = setupLinked({ state: planned() });
+    // The planned fixture places the Met, not this market.
     expect(screen.queryByText(/^Planned:/)).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Place in a block' }));
     expect(onPlace).toHaveBeenCalledTimes(1);
@@ -307,7 +329,7 @@ describe('PlaceDetail when details are unavailable', () => {
       await within(dialog).findByText("More details aren't available right now."),
     ).toBeVisible();
     expect(within(dialog).queryByRole('status')).toBeNull();
-    expect(within(dialog).getByText('75 9th Ave, New York')).toBeInTheDocument();
+    expect(within(dialog).getByText('Market · 75 9th Ave, New York')).toBeInTheDocument();
     expect(within(dialog).getByTestId('place-photo-placeholder')).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Open in maps' })).toBeEnabled();
     expect(within(dialog).getByRole('button', { name: 'Place in a block' })).toBeEnabled();
@@ -319,6 +341,17 @@ describe('PlaceDetail when details are unavailable', () => {
     const places = fakePlaceSearch({ infoNotFound: true });
     setupLinked({ places });
     expect(await screen.findByText('This place may no longer be listed.')).toBeInTheDocument();
-    expect(screen.getByText('75 9th Ave, New York')).toBeInTheDocument();
+    expect(screen.getByText('Market · 75 9th Ave, New York')).toBeInTheDocument();
+  });
+
+  it('shows a stored category as readable words, still, when info is unavailable', async () => {
+    const places = fakePlaceSearch({ infoFail: true });
+    setupLinked({
+      places,
+      subject: linkedSubject({ ...chelseaPlace, category: 'art_museum' }),
+    });
+    expect(screen.getByText('Art museum · 75 9th Ave, New York')).toBeInTheDocument();
+    await screen.findByText("More details aren't available right now.");
+    expect(screen.getByText('Art museum · 75 9th Ave, New York')).toBeInTheDocument();
   });
 });

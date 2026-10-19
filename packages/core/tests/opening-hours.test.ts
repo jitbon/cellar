@@ -48,6 +48,12 @@ describe('openingHours', () => {
     expect(r?.today.kind).toBe('open-24h');
   });
 
+  it('reads 00:00-23:59 on every day as open 24 hours', () => {
+    const r = openingHours({ hours: daily(0, 0, 23, 59), utcOffsetMinutes: 0 }, now);
+    expect(r?.week.every((l) => l.kind === 'open-24h')).toBe(true);
+    expect(r?.today.kind).toBe('open-24h');
+  });
+
   it('marks a day with no period closed', () => {
     const hours: WeeklyHours = { periods: [period(t(1, 9), t(1, 17))] };
     const r = openingHours({ hours, utcOffsetMinutes: 0 }, now);

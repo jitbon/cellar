@@ -55,6 +55,7 @@ export { createForecastCache, type ForecastCache } from './weather/cache';
 export { placeFields, placeOf } from './places/fields';
 export { isFoodPlace } from './places/food';
 export { popularToPlace } from './places/popular';
+export { kindLabel } from './places/kind';
 export { openingHours } from './places/hours';
 export { mapLinks, orderMapApps } from './places/mapLinks';
 export { greyedSide, isGreyed, type GreyedSide } from './queries/greyed';
