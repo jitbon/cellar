@@ -114,3 +114,9 @@ data-model.md. Request/response, UI layout and text: contracts/places-info.md.
 US1 alone is the MVP (linked list items and Popular get the full view with hours and website).
 Then the schedule entry (US2) and the unavailable path (US3), then polish. Merge to `main` after
 the project owner confirms.
+
+## Phase 6: Convergence
+
+- [ ] T026 Show the stored category for linked places until (or instead of) the provider's type: in `linkedSubject` in `apps/web/src/components/list/PlaceDetail.tsx` set `kind` from `Place.category` turned into readable words (e.g. `art_museum` → "Art museum"), keep the fetched `kind` preferred once it arrives, and add `PlaceDetail.test.tsx` cases for a linked subject with a category shown at once and with info unavailable per FR-005, US3/AC1 (partial)
+- [ ] T027 Show "Not planned yet" in `apps/web/src/components/list/PlaceDetail.tsx` when the place has no planned dates, in both the linked and Popular views, updating the existing "shows no Planned line" test in `apps/web/tests/PlaceDetail.test.tsx` per US1 Independent Test (partial)
+- [ ] T028 Treat a day whose only range is 00:00–23:59 as `open-24h` in `packages/core/src/places/hours.ts` (so seven such periods read "Open 24 hours"), with a table case in `packages/core/tests/opening-hours.test.ts` per spec Edge Cases "Open 24 hours" (partial)
