@@ -62,6 +62,53 @@ export interface PopularPlace {
   photo: PlacePhotoRef | null;
 }
 
+/** A day and time in the provider's opening-hours convention. */
+export interface DayTime {
+  /** 0..6, Sunday = 0. */
+  day: number;
+  hour: number;
+  minute: number;
+}
+
+/** Regular opening hours as the provider reports them. */
+export interface WeeklyHours {
+  periods: { open: DayTime; close: DayTime | null }[];
+}
+
+/** What the provider knows about one place. Session memory only, never stored. */
+export interface PlaceInfo {
+  placeId: string;
+  name: string;
+  /** Human-readable type, e.g. "Market"; may be empty. */
+  kind: string;
+  types: string[];
+  rating: number | null;
+  ratingCount: number | null;
+  photo: PlacePhotoRef | null;
+  /** Null when the provider has no hours. */
+  hours: WeeklyHours | null;
+  /** The place's current UTC offset in minutes, when known. */
+  utcOffsetMinutes: number | null;
+  /** Only http(s) addresses are kept. */
+  website: string | null;
+}
+
+/** One day's opening hours in the place's local time. */
+export interface HoursLine {
+  /** 0..6, Sunday = 0. */
+  day: number;
+  kind: 'closed' | 'open-24h' | 'open';
+  /** Minutes since local midnight; closeMin may exceed 1440 for past-midnight closing. */
+  ranges: { openMin: number; closeMin: number }[];
+}
+
+export interface OpeningHours {
+  /** The place's local day. */
+  today: HoursLine;
+  /** Seven lines, Monday first. */
+  week: HoursLine[];
+}
+
 /** A photo of a city from an openly licensed source, with what its credit line needs. */
 export interface CityPhoto {
   /** Commons file name (what `Trip.coverPhoto` stores). */

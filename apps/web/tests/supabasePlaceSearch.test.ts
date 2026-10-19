@@ -181,3 +181,43 @@ describe('details', () => {
     await expect(new SupabasePlaceSearch(client).details(suggestion, 'tok')).rejects.toThrow();
   });
 });
+
+describe('info', () => {
+  const info = {
+    placeId: 'test-chelsea',
+    name: 'Chelsea Market',
+    kind: 'Market',
+    types: ['market'],
+    rating: 4.6,
+    ratingCount: 31204,
+    photo: null,
+    hours: null,
+    utcOffsetMinutes: -240,
+    website: 'https://chelseamarket.com/',
+  };
+
+  it('sends only the action and place id and returns the info', async () => {
+    const { client, invoke } = clientWith({ data: { info }, error: null });
+    const result = await new SupabasePlaceSearch(client).info('test-chelsea');
+    expect(invoke).toHaveBeenCalledWith('places', {
+      body: { action: 'info', placeId: 'test-chelsea' },
+    });
+    expect(result).toEqual(info);
+  });
+
+  it('rejects with code not-found on a 404', async () => {
+    const error = Object.assign(new Error('non-2xx'), { context: { status: 404 } });
+    const { client } = clientWith({ data: null, error });
+    await expect(new SupabasePlaceSearch(client).info('gone')).rejects.toMatchObject({
+      code: 'not-found',
+    });
+  });
+
+  it('rejects without that code on any other failure', async () => {
+    const error = Object.assign(new Error('non-2xx'), { context: { status: 503 } });
+    const { client } = clientWith({ data: null, error });
+    const rejection = new SupabasePlaceSearch(client).info('p');
+    await expect(rejection).rejects.toThrow();
+    await expect(rejection).rejects.not.toMatchObject({ code: 'not-found' });
+  });
+});

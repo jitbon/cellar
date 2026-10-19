@@ -495,3 +495,141 @@ describe('handlePlaces photo', () => {
     expect(await rejected.json()).toEqual({ error: 'unavailable' });
   });
 });
+
+const INFO_MASK =
+  'id,displayName,types,primaryTypeDisplayName,rating,userRatingCount,photos,regularOpeningHours,utcOffsetMinutes,websiteUri';
+
+const periods = [{ open: { day: 1, hour: 9, minute: 0 }, close: { day: 1, hour: 21, minute: 0 } }];
+
+describe('handlePlaces info', () => {
+  it('asks for one place by id with the field mask and no session token', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse(googlePlace('p1')));
+    const res = await handlePlaces(
+      post({ action: 'info', placeId: 'p1', trip: 'Secret trip name' }),
+      env,
+      fetchFn,
+    );
+    expect(res.status).toBe(200);
+    const [url, init] = fetchFn.mock.calls[0];
+    expect(url).toBe('https://places.googleapis.com/v1/places/p1');
+    expect(init.method).toBe('GET');
+    expect(init.headers['X-Goog-Api-Key']).toBe('test-key');
+    expect(init.headers['X-Goog-FieldMask']).toBe(INFO_MASK);
+    expect(String(url)).not.toContain('sessionToken');
+  });
+
+  it('maps hours, offset, website and the first photo', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse(
+        googlePlace('p1', {
+          photos: [
+            {
+              name: 'places/p1/photos/A',
+              authorAttributions: [{ displayName: 'Jane', uri: 'https://maps.google.com/c/1' }],
+            },
+          ],
+          regularOpeningHours: { periods, weekdayDescriptions: ['ignored'] },
+          utcOffsetMinutes: -240,
+          websiteUri: 'https://example.com/',
+        }),
+      ),
+    );
+    const res = await handlePlaces(post({ action: 'info', placeId: 'p1' }), env, fetchFn);
+    expect(await res.json()).toEqual({
+      info: {
+        placeId: 'p1',
+        name: 'Place p1',
+        kind: 'Museum',
+        types: ['museum'],
+        rating: 4.6,
+        ratingCount: 1234,
+        photo: {
+          name: 'places/p1/photos/A',
+          author: 'Jane',
+          authorUri: 'https://maps.google.com/c/1',
+        },
+        hours: { periods },
+        utcOffsetMinutes: -240,
+        website: 'https://example.com/',
+      },
+    });
+  });
+
+  it('defaults missing fields', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ id: 'p2' }));
+    const res = await handlePlaces(post({ action: 'info', placeId: 'p2' }), env, fetchFn);
+    expect(await res.json()).toEqual({
+      info: {
+        placeId: 'p2',
+        name: '',
+        kind: '',
+        types: [],
+        rating: null,
+        ratingCount: null,
+        photo: null,
+        hours: null,
+        utcOffsetMinutes: null,
+        website: null,
+      },
+    });
+  });
+
+  it('keeps a close-less period as a null close', async () => {
+    const open = { day: 0, hour: 0, minute: 0 };
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(googlePlace('p1', { regularOpeningHours: { periods: [{ open }] } })),
+      );
+    const res = await handlePlaces(post({ action: 'info', placeId: 'p1' }), env, fetchFn);
+    expect((await res.json()).info.hours).toEqual({ periods: [{ open, close: null }] });
+  });
+
+  it('drops a website that is not http(s)', async () => {
+    for (const websiteUri of ['javascript:alert(1)', 'ftp://x.test', 'example.com']) {
+      const fetchFn = vi.fn().mockResolvedValue(jsonResponse(googlePlace('p1', { websiteUri })));
+      const res = await handlePlaces(post({ action: 'info', placeId: 'p1' }), env, fetchFn);
+      expect((await res.json()).info.website).toBeNull();
+    }
+    const http = vi
+      .fn()
+      .mockResolvedValue(jsonResponse(googlePlace('p1', { websiteUri: 'http://a.test' })));
+    const res = await handlePlaces(post({ action: 'info', placeId: 'p1' }), env, http);
+    expect((await res.json()).info.website).toBe('http://a.test');
+  });
+
+  it('rejects anything but a 1-300 character placeId with 400', async () => {
+    for (const body of [
+      { action: 'info' },
+      { action: 'info', placeId: '' },
+      { action: 'info', placeId: 'x'.repeat(301) },
+      { action: 'info', placeId: 42 },
+    ]) {
+      const fetchFn = vi.fn();
+      expect((await handlePlaces(post(body), env, fetchFn)).status).toBe(400);
+      expect(fetchFn).not.toHaveBeenCalled();
+    }
+    const ok = vi.fn().mockResolvedValue(jsonResponse(googlePlace('p1')));
+    const long = post({ action: 'info', placeId: 'x'.repeat(300) });
+    expect((await handlePlaces(long, env, ok)).status).toBe(200);
+  });
+
+  it('answers 404 not-found when Google does not know the place', async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ error: { status: 'NOT_FOUND' } }, 404));
+    const res = await handlePlaces(post({ action: 'info', placeId: 'gone' }), env, fetchFn);
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'not-found' });
+  });
+
+  it('answers 503 without a key, on a Google error and when fetch rejects', async () => {
+    const body = { action: 'info', placeId: 'p1' };
+    expect((await handlePlaces(post(body), {}, vi.fn())).status).toBe(503);
+    const failed = vi.fn().mockResolvedValue(jsonResponse({}, 500));
+    expect((await handlePlaces(post(body), env, failed)).status).toBe(503);
+    const rejected = await handlePlaces(post(body), env, vi.fn().mockRejectedValue(new Error('x')));
+    expect(rejected.status).toBe(503);
+    expect(await rejected.json()).toEqual({ error: 'unavailable' });
+  });
+});

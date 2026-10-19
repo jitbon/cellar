@@ -6,6 +6,7 @@ import type {
   CityPhotoService,
   Location,
   Place,
+  PlaceInfo,
   PlaceSearch,
   PlaceSuggestion,
   PopularList,
@@ -119,6 +120,29 @@ export const defaultPopular = (city: Location): PopularList => ({
   fetchedAt: '2027-03-01T10:42:00.000Z',
 });
 
+/** Chelsea Market's details: open 09:00-21:00 every day, rated, with a website. */
+export const chelseaInfo: PlaceInfo = {
+  placeId: 'test-chelsea',
+  name: 'Chelsea Market',
+  kind: 'Market',
+  types: ['market', 'point_of_interest'],
+  rating: 4.6,
+  ratingCount: 31204,
+  photo: {
+    name: 'places/test-chelsea/photos/p1',
+    author: 'Ann Lee',
+    authorUri: 'https://maps.google.com/contrib/1',
+  },
+  hours: {
+    periods: [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+      open: { day, hour: 9, minute: 0 },
+      close: { day, hour: 21, minute: 0 },
+    })),
+  },
+  utcOffsetMinutes: -240,
+  website: 'https://chelseamarket.com/',
+};
+
 /** A fake PlaceSearch; returns no suggestions unless a test passes some. */
 export function fakePlaceSearch(
   opts: {
@@ -131,12 +155,19 @@ export function fakePlaceSearch(
     popularFail?: boolean;
     /** Makes `photoUrl` reject. */
     photoFail?: boolean;
+    /** What `info` resolves with (default: Chelsea Market's details). */
+    info?: (placeId: string) => PlaceInfo;
+    /** Makes `info` reject as unavailable. */
+    infoFail?: boolean;
+    /** Makes `info` reject with code 'not-found'. */
+    infoNotFound?: boolean;
   } = {},
 ): PlaceSearch & {
   suggest: ReturnType<typeof vi.fn>;
   details: ReturnType<typeof vi.fn>;
   popular: ReturnType<typeof vi.fn>;
   photoUrl: ReturnType<typeof vi.fn>;
+  info: ReturnType<typeof vi.fn>;
 } {
   const {
     suggestions = [],
@@ -145,8 +176,16 @@ export function fakePlaceSearch(
     popular = defaultPopular,
     popularFail = false,
     photoFail = false,
+    info = (placeId: string) => ({ ...chelseaInfo, placeId }),
+    infoFail = false,
+    infoNotFound = false,
   } = opts;
   return {
+    info: vi.fn(async (placeId: string) => {
+      if (infoNotFound) throw Object.assign(new Error('not-found'), { code: 'not-found' });
+      if (infoFail) throw new Error('unavailable');
+      return info(placeId);
+    }),
     photoUrl: vi.fn(async (name: string, maxWidthPx: number) => {
       if (photoFail) throw new Error('unavailable');
       return `https://photos.test/${name}?w=${maxWidthPx}`;

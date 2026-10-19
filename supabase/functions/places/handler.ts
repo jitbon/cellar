@@ -143,6 +143,19 @@ interface GooglePlace {
   rating?: number;
   userRatingCount?: number;
   photos?: { name?: string; authorAttributions?: { displayName?: string; uri?: string }[] }[];
+  regularOpeningHours?: { periods?: GooglePeriod[] };
+  utcOffsetMinutes?: number;
+  websiteUri?: string;
+}
+
+interface GoogleDayTime {
+  day?: number;
+  hour?: number;
+  minute?: number;
+}
+interface GooglePeriod {
+  open?: GoogleDayTime;
+  close?: GoogleDayTime;
 }
 
 /** The first photo's name and author; Google names expire, so the client never stores them. */
@@ -151,6 +164,60 @@ function firstPhoto(p: GooglePlace) {
   if (!first?.name) return null;
   const author = first.authorAttributions?.[0];
   return { name: first.name, author: author?.displayName ?? '', authorUri: author?.uri ?? null };
+}
+
+// Rating, hours and website make a details request Enterprise-priced (research R2); it carries no
+// session token because it is not part of an autocomplete session.
+const INFO_FIELDS =
+  'id,displayName,types,primaryTypeDisplayName,rating,userRatingCount,photos,regularOpeningHours,utcOffsetMinutes,websiteUri';
+const MAX_PLACE_ID = 300;
+
+const dayTime = (t: GoogleDayTime) => ({
+  day: t.day ?? 0,
+  hour: t.hour ?? 0,
+  minute: t.minute ?? 0,
+});
+
+async function info(
+  cors: Cors,
+  body: Record<string, unknown>,
+  key: string,
+  fetchFn: typeof fetch,
+): Promise<Response> {
+  const { placeId } = body;
+  if (!isString(placeId) || placeId.length > MAX_PLACE_ID) return badRequest(cors);
+
+  const res = await fetchFn(`${GOOGLE}/places/${encodeURIComponent(placeId)}`, {
+    method: 'GET',
+    headers: { 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': INFO_FIELDS },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  if (res.status === 404) return json(cors, { error: 'not-found' }, 404);
+  if (!res.ok) return unavailable(cors);
+  const p = (await res.json()) as GooglePlace;
+  const periods = p.regularOpeningHours?.periods;
+  const hours = periods
+    ? {
+        periods: periods.flatMap((x) =>
+          x.open ? [{ open: dayTime(x.open), close: x.close ? dayTime(x.close) : null }] : [],
+        ),
+      }
+    : null;
+  const website = p.websiteUri && /^https?:\/\//i.test(p.websiteUri) ? p.websiteUri : null;
+  return json(cors, {
+    info: {
+      placeId: p.id ?? placeId,
+      name: p.displayName?.text ?? '',
+      kind: p.primaryTypeDisplayName?.text ?? '',
+      types: p.types ?? [],
+      rating: p.rating ?? null,
+      ratingCount: p.userRatingCount ?? null,
+      photo: firstPhoto(p),
+      hours,
+      utcOffsetMinutes: p.utcOffsetMinutes ?? null,
+      website,
+    },
+  });
 }
 
 const POPULAR_QUERY = {
@@ -262,7 +329,7 @@ export async function handlePlaces(
   } catch {
     return badRequest(cors);
   }
-  const actions = ['suggest', 'details', 'popular', 'photo'];
+  const actions = ['suggest', 'details', 'popular', 'photo', 'info'];
   if (typeof body.action !== 'string' || !actions.includes(body.action)) {
     return badRequest(cors);
   }
@@ -272,6 +339,7 @@ export async function handlePlaces(
     if (body.action === 'suggest') return await suggest(cors, body, env.key, fetchFn);
     if (body.action === 'details') return await details(cors, body, env.key, fetchFn);
     if (body.action === 'photo') return await photo(cors, body, env.key, fetchFn);
+    if (body.action === 'info') return await info(cors, body, env.key, fetchFn);
     return await popular(cors, body, env.key, fetchFn);
   } catch {
     return unavailable(cors);

@@ -4,6 +4,7 @@ import type {
   Forecast,
   Location,
   Place,
+  PlaceInfo,
   PlaceSuggestion,
   PopularList,
   Trip,
@@ -92,6 +93,8 @@ export interface PlaceSearch {
   popular(city: Location): Promise<PopularList>;
   /** A short-lived image URL for a photo name, max width in px. Rejects on failure. */
   photoUrl(photoName: string, maxWidthPx: number): Promise<string>;
+  /** Photo, type, rating, hours and website for a place id. Rejects (code 'not-found' when gone). */
+  info(placeId: string): Promise<PlaceInfo>;
 }
 
 export interface CityPhotoService {

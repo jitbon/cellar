@@ -2,6 +2,7 @@ import {
   isFoodPlace,
   type Location,
   type Place,
+  type PlaceInfo,
   type PlaceSearch,
   type PlaceSuggestion,
   type PopularList,
@@ -66,6 +67,18 @@ export class SupabasePlaceSearch implements PlaceSearch {
       maxWidthPx,
     });
     return data.photoUri;
+  }
+
+  async info(placeId: string): Promise<PlaceInfo> {
+    try {
+      const { info } = await this.call<{ info: PlaceInfo }>({ action: 'info', placeId });
+      return { ...info, photo: info.photo ?? null };
+    } catch (error) {
+      // The function answers 404 when the provider no longer knows the place.
+      const status = (error as { context?: { status?: number } } | null)?.context?.status;
+      if (status === 404) throw Object.assign(new Error('not-found'), { code: 'not-found' });
+      throw error;
+    }
   }
 
   async details(suggestion: PlaceSuggestion, sessionToken: string): Promise<Place> {
