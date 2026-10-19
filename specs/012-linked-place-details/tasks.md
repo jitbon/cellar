@@ -91,8 +91,8 @@ data-model.md. Request/response, UI layout and text: contracts/places-info.md.
 
 - [X] T022 [P] Extend `apps/web/e2e/a11y.spec.ts`: the linked-item detail view with hours expanded, light and dark, no serious axe violations; extend `apps/web/e2e/layout.spec.ts` (mobile-360): the view fits without horizontal scroll and the week list is readable
 - [X] T023 [P] Update `README.md`: lower the suggested Place Details cap from 300 to about 100 requests per day and say why (shared with autocomplete picks; detail views use Place Details Enterprise), per research R2
-- [ ] T024 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and the full e2e suite; fix failures (known flakes: `e2e/perf.spec.ts` under load, `e2e/sync.spec.ts` FR-002)
-- [ ] T025 Walk through `specs/012-linked-place-details/quickstart.md` live scenarios 1–8 with the real `places` function where available; record which were run
+- [X] T024 Run `pnpm lint`, `pnpm --filter web typecheck`, `pnpm test`, `pnpm test:db` and the full e2e suite; fix failures (known flakes: `e2e/perf.spec.ts` under load, `e2e/sync.spec.ts` FR-002)
+- [X] T025 Walk through `specs/012-linked-place-details/quickstart.md` live scenarios 1–8 with the real `places` function where available; record which were run
 
 ---
 
