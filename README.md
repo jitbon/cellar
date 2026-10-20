@@ -13,6 +13,10 @@ with details on hover or tap.
 - `apps/web` — React + Vite web app
 - `supabase` — Postgres schema, row-level security, RPCs, and DB tests
 
+**Deploying or setting up a hosted project?** Start with [SETUP.md](SETUP.md): the checklist of
+manual steps (migrations, function deploy, Google quota caps, sign-in providers) and what to run
+after each release.
+
 Setup, automated checks and manual validation scenarios:
 [specs/001-block-trip-planner/quickstart.md](specs/001-block-trip-planner/quickstart.md) and
 [specs/002-weather-forecast/quickstart.md](specs/002-weather-forecast/quickstart.md), and
